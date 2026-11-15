@@ -94,3 +94,4 @@ One line per loop iteration, newest last.
 - c1 p2 t2 i3 `establish_single_access_point`: New run_job tool: 'build my brief now', 'check the rule pages' and 'take a snapshot' work by asking the Chief
 - c1 p2 t2 i4 `establish_single_access_point`: The town quiz and the run-or-wait check open by asking the Chief ('quiz me on my town', 'am I ready to run?')
 - c1 p2 t2 i5 `establish_single_access_point`: A test checks that every page the Chief can offer with open_page really opens, so the single access point can't silently break
+- Phase 2 end (cycle 1): green, pushed. FEATURES.md checked: three new Chief tools listed; HQ, Briefing link and three Save buttons were controls, not functions, and each function is still reachable.
