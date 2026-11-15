@@ -136,12 +136,17 @@ private fun RestoreFromBackup() {
 @Composable
 private fun BrainStep(onNext: () -> Unit) {
     var connected by remember { mutableStateOf(false) }
+    var wantsAi by remember { mutableStateOf(false) }
     Body("Ballot works without AI. Your plan, the town quiz, draft templates, deadlines and reminders all run on this phone.")
-    Body("An AI service is optional. It adds web research (finding your offices, rules and meetings) and first drafts. Several are free and need no card: Google Gemini only needs a Google account and takes about two minutes.")
-    KeyConnector(makeMain = true, onConnected = { connected = true })
+    // The next step is one tap either way: carry on, or open the AI setup.
     if (connected) PosterButton("Continue", modifier = Modifier.fillMaxWidth(), onClick = onNext)
-    else PosterButton("Continue without AI", primary = false, onClick = onNext)
-    Small("You can add a second free service later in Settings. If one is busy, Ballot switches to the other on its own.")
+    else PosterButton("Continue without AI", modifier = Modifier.fillMaxWidth(), onClick = onNext)
+    if (!connected) LinkButton(if (wantsAi) "Hide AI setup" else "Add a free AI for research and drafts (optional)", onClick = { wantsAi = !wantsAi })
+    if (wantsAi || connected) {
+        Small("It adds web research (finding your offices, rules and meetings) and first drafts. Several are free and need no card: Google Gemini only needs a Google account and takes about two minutes.")
+        KeyConnector(makeMain = true, onConnected = { connected = true })
+        Small("You can add a second free service later in Settings. If one is busy, Ballot switches to the other on its own.")
+    }
 }
 
 @Composable
