@@ -160,7 +160,9 @@ class BriefWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx,
         val nowT = LocalDateTime.now()
         val minute = nowT.hour * 60 + nowT.minute
         val today = case.today()
-        if (!force && (minute < s.briefMinuteOfDay - 60 * 5 || case.db.brief().countFor(today, "NEWS") + case.db.brief().countFor(today, "AGENDA") > 0)) return Result.success()
+        // Build once a day, after the chosen brief time, never during work or sleep.
+        val alreadyBuilt = case.db.brief().countFor(today, "NEWS") + case.db.brief().countFor(today, "AGENDA") > 0
+        if (!force && (minute < s.briefMinuteOfDay || alreadyBuilt || Scheduling.quiet(case.availability(), nowT))) return Result.success()
         val issues = p.issues.ifBlank { "local government" }
         val r = runCatching {
             g.chief.ask(
