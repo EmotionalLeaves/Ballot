@@ -51,3 +51,4 @@ One line per loop iteration, newest last.
 - c1 p1 t1 i32 `system_check_and_update`: A service that passes a re-test is taken off today's resting list straight away
 - c1 p1 t1 i33 `system_check_and_update`: Text size slider saves once when you let go instead of on every pixel of the drag
 - c1 p1 t1 i34 `system_check_and_update`: App lock slows guessing: after five wrong PINs each try waits 30 seconds
+- Fix (owner report): "not a supported model" on Gemini; Connect tries up to eight models best-first and the Chief self-heals to a working model. Release 0.2.3.

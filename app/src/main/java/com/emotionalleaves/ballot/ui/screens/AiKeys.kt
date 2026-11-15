@@ -47,18 +47,29 @@ object KeySetup {
         val s = g.settings.get()
         val client = clientFor(p.id, s.openAiBaseUrl)
         val models = runCatching { client.listModels(key) }
-        models.exceptionOrNull()?.let { e -> if (e is LlmException && (e.status == 401 || e.status == 403)) return Outcome(false, friendly(p, e)) }
-        val model = Providers.pickModel(p, models.getOrDefault(emptyList()))
-        val test = runCatching { client.test(key, model) }
-        test.exceptionOrNull()?.let { e ->
-            // The picked model may be busy or retired: try the preset's lighter model once.
-            if (model != p.fallbackModel) {
-                val second = runCatching { client.test(key, p.fallbackModel) }
-                if (second.isSuccess) return save(g, p, key, p.fallbackModel, makeMain)
-            }
-            return Outcome(false, friendly(p, e))
+        models.exceptionOrNull()?.let { e -> if (e is LlmException && isKeyProblem(e)) return Outcome(false, friendly(p, e)) }
+        // Try models best-first until one answers. A model can be retired or missing from the free
+        // tier without anything being wrong with the key.
+        val tried = mutableListOf<String>()
+        var last: Throwable? = null
+        for (model in Providers.candidates(p, models.getOrDefault(emptyList())).take(8)) {
+            tried += model
+            val r = runCatching { client.test(key, model) }
+            if (r.isSuccess) return save(g, p, key, model, makeMain)
+            val e = r.exceptionOrNull()
+            last = e
+            if (e is LlmException && isKeyProblem(e)) return Outcome(false, friendly(p, e))
+            if (e is LlmException && e.status == 0) return Outcome(false, friendly(p, e))
         }
-        return save(g, p, key, model, makeMain)
+        val detail = last?.message?.let { "\n\nLast answer from ${p.name}: $it" } ?: ""
+        return Outcome(false, "${p.name} accepted the key but none of the ${tried.size} models it was asked for would answer. " +
+            "This usually means the free tier is busy or changing: try again in a few minutes, or connect Groq as a second free service.$detail")
+    }
+
+    /** The key itself is wrong, so trying other models won't help. */
+    private fun isKeyProblem(e: LlmException): Boolean {
+        val m = (e.message ?: "").lowercase()
+        return e.status == 401 || (e.status == 403 && "model" !in m) || (e.status == 400 && ("api key" in m || "api_key" in m))
     }
 
     private suspend fun save(g: AppGraph, p: ProviderPreset, key: String, model: String, makeMain: Boolean): Outcome {
@@ -85,7 +96,7 @@ object KeySetup {
         return when (status) {
             401, 403 -> "${p.name} rejected that key. Go back to the key page, copy it again, and paste it here."
             429 -> "${p.name} says it's busy right now. Wait a minute and tap Connect again."
-            404 -> "${p.name} didn't recognise the model. Tap Connect again and Ballot will pick another."
+            404 -> "${p.name} didn't recognise the model. ${e.message ?: ""}"
             0 -> "Couldn't reach ${p.name}. Check your connection and try again."
             else -> e.message ?: "Something went wrong."
         }

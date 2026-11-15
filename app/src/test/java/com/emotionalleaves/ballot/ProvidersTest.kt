@@ -67,3 +67,30 @@ class FreeTierTest {
         listOf("search_web", "fetch_official_page", "create_task", "add_deadline", "queue_follow_up").forEach { assertTrue(it, it in Providers.liteTools) }
     }
 }
+
+class ModelCandidatesTest {
+    @Test fun newestFlashFirstThenKnownGoodNames() {
+        val c = Providers.candidates(Providers.gemini, listOf("gemini-2.5-flash", "gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.9-flash-preview", "gemini-3.5-flash-lite", "gemini-3.8-pro"))
+        assertEquals("gemini-3.8-flash", c[0])
+        assertEquals("gemini-3.6-flash", c[1])
+        assertTrue("previews come after stable", c.indexOf("gemini-3.9-flash-preview") > c.indexOf("gemini-2.5-flash"))
+        assertFalse("pro is excluded on the free tier", "gemini-3.8-pro" in c)
+        assertTrue(c.containsAll(Providers.gemini.knownGood))
+        assertEquals(c.size, c.toSet().size)
+    }
+
+    @Test fun withNoListBallotStillHasNamesToTry() {
+        val c = Providers.candidates(Providers.gemini, emptyList())
+        assertEquals("gemini-flash-latest", c.first())
+        assertTrue(c.size >= 5)
+    }
+
+    @Test fun tellsModelProblemsFromKeyProblems() {
+        assertTrue(Providers.isModelProblem(404, "models/gemini-2.5-flash is not found for API version v1beta, or is not supported for generateContent"))
+        assertTrue(Providers.isModelProblem(400, "This model is not supported"))
+        assertTrue(Providers.isModelProblem(429, "Quota exceeded for metric generate_content_free_tier_requests, limit: 0, model: gemini-3.8-pro"))
+        assertFalse(Providers.isModelProblem(400, "API key not valid. Please pass a valid API key."))
+        assertFalse(Providers.isModelProblem(401, "Request had invalid authentication credentials"))
+        assertFalse(Providers.isModelProblem(429, "Rate limit reached, try again in 5 seconds"))
+    }
+}

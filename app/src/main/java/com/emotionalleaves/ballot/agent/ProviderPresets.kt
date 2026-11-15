@@ -29,6 +29,8 @@ data class ProviderPreset(
     val tagline: String,
     /** Small free context window: send a lighter request (fewer tools, shorter results). */
     val lite: Boolean = false,
+    /** Model names to try, in order, when the service's own list is unavailable or a model is refused. */
+    val knownGood: List<String> = emptyList(),
 )
 
 object Providers {
@@ -41,8 +43,8 @@ object Providers {
         id = "gemini", name = "Google Gemini", baseUrl = "https://generativelanguage.googleapis.com/v1beta",
         // AI Studio now issues "AQ." auth keys; older keys start "AIza". Both work on the native API.
         keyUrl = "https://aistudio.google.com/apikey", keyPrefixes = listOf("AIza", "AQ."), free = true, needsCard = false, webSearch = false,
-        defaultModel = "gemini-2.5-flash", fallbackModel = "gemini-2.5-flash-lite",
-        prefer = listOf(Regex("^gemini-[0-9.]+-flash$"), Regex("^gemini-[0-9.]+-flash-latest$"), Regex("^gemini-flash-latest$"), Regex("^gemini-[0-9.]+-flash"), Regex("flash-lite")),
+        defaultModel = "gemini-flash-latest", fallbackModel = "gemini-flash-lite-latest",
+        prefer = listOf(Regex("^gemini-[0-9.]+-flash$"), Regex("^gemini-flash-latest$"), Regex("^gemini-[0-9.]+-flash-lite$"), Regex("^gemini-flash-lite-latest$"), Regex("flash")),
         exclude = nonChat + Regex("pro", RegexOption.IGNORE_CASE) + Regex("preview-tts|live|thinking-exp|aqa|learnlm", RegexOption.IGNORE_CASE),
         steps = listOf(
             "Tap Open the key page. Sign in with any Google account.",
@@ -53,6 +55,7 @@ object Providers {
         limitsNote = "Free tier, no card. Limited requests per minute and per day; when you hit the cap it simply waits until tomorrow, it never charges you.",
         privacyNote = "Google may use free-tier requests to improve its products.",
         dailyHint = 250, tagline = "Recommended. Free with a Google account.",
+        knownGood = listOf("gemini-flash-latest", "gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-2.5-flash", "gemini-2.5-flash-lite"),
     )
 
     val groq = ProviderPreset(
@@ -70,6 +73,7 @@ object Providers {
         limitsNote = "Free tier, no card. Very fast. Limits per minute and per day.",
         privacyNote = "Check Groq's terms for how free-tier data is handled.",
         dailyHint = 1000, tagline = "Free and very fast.",
+        knownGood = listOf("openai/gpt-oss-120b", "openai/gpt-oss-20b", "llama-3.3-70b-versatile", "llama-3.1-8b-instant"),
     )
 
     val openRouter = ProviderPreset(
@@ -87,6 +91,7 @@ object Providers {
         limitsNote = "Free models only: about 50 requests a day and 20 a minute. Free models come and go, so Ballot picks one each time you test.",
         privacyNote = "Free models are run by different companies; some log prompts.",
         dailyHint = 50, tagline = "Many free models through one key.",
+        knownGood = listOf("openrouter/free"),
     )
 
     val cerebras = ProviderPreset(
@@ -104,6 +109,7 @@ object Providers {
         limitsNote = "Free tier, no card. Daily token allowance and shorter context than the others.",
         privacyNote = "Check Cerebras's terms for how free-tier data is handled.",
         dailyHint = 1000, tagline = "Free, fast, good as a backup.", lite = true,
+        knownGood = listOf("gpt-oss-120b", "qwen-3-235b-a22b-instruct-2507", "llama3.1-8b"),
     )
 
     val mistral = ProviderPreset(
@@ -121,6 +127,7 @@ object Providers {
         limitsNote = "Free plan, no card, phone check required. About one request a second.",
         privacyNote = "On the free plan Mistral may use your requests to train its models.",
         dailyHint = 0, tagline = "Free with a phone check.",
+        knownGood = listOf("mistral-small-latest", "mistral-medium-latest", "open-mistral-nemo"),
     )
 
     val anthropic = ProviderPreset(
@@ -137,6 +144,7 @@ object Providers {
         limitsNote = "Paid per use. Built-in web search, the strongest research mode.",
         privacyNote = "Anthropic does not train on API requests by default.",
         dailyHint = 0, tagline = "Paid. Best research, web search built in.",
+        knownGood = listOf("claude-sonnet-5-5", "claude-haiku-5-5"),
     )
 
     val openAi = ProviderPreset(
@@ -152,6 +160,7 @@ object Providers {
         ),
         limitsNote = "Paid per use.", privacyNote = "OpenAI does not train on API requests by default.",
         dailyHint = 0, tagline = "Paid.",
+        knownGood = listOf("gpt-4o", "gpt-4o-mini"),
     )
 
     /** Free first, recommended first. */
@@ -184,13 +193,37 @@ object Providers {
         return k.length in 20..300 && !k.contains(' ') && k.all { it.isLetterOrDigit() || it in "-_.:" }
     }
 
+    private fun version(id: String): Double = Regex("(\\d+(?:\\.\\d+)?)").find(id)?.value?.toDoubleOrNull() ?: 0.0
+
+    /**
+     * Every model worth trying, best first: the service's own list ranked by preference (newest
+     * first, previews last), then the known-good names, then the preset defaults.
+     */
+    fun candidates(p: ProviderPreset, available: List<String>): List<String> {
+        val ids = available.map { it.removePrefix("models/") }.filter { id -> p.exclude.none { it.containsMatchIn(id) } }.distinct()
+        val ranked = mutableListOf<String>()
+        for (rx in p.prefer) {
+            ids.filter { rx.containsMatchIn(it) && it !in ranked }
+                .sortedWith(compareBy<String> { it.contains("preview") || it.contains("exp") }.thenByDescending { version(it) }.thenBy { it.length })
+                .forEach { ranked += it }
+        }
+        ranked += ids.filter { it !in ranked }.sortedWith(compareBy<String> { it.contains("preview") || it.contains("exp") }.thenByDescending { version(it) })
+        return (ranked + p.knownGood + listOf(p.defaultModel, p.fallbackModel)).filter { it.isNotBlank() }.distinct()
+    }
+
     /** Chooses a chat model from the service's current list, falling back to the preset default. */
-    fun pickModel(p: ProviderPreset, available: List<String>): String {
-        val ids = available.map { it.removePrefix("models/") }.filter { id -> p.exclude.none { it.containsMatchIn(id) } }
-        if (ids.isEmpty()) return p.defaultModel
-        if (p.defaultModel in ids) return p.defaultModel
-        for (rx in p.prefer) ids.filter { rx.containsMatchIn(it) }.sorted().lastOrNull()?.let { return it }
-        return ids.first()
+    fun pickModel(p: ProviderPreset, available: List<String>): String = candidates(p, available).first()
+
+    /**
+     * True when an error is about the model (retired, not on the free tier, not allowed) rather than
+     * the key, so trying another model can help.
+     */
+    fun isModelProblem(status: Int, message: String): Boolean {
+        val m = message.lowercase()
+        return status == 404 ||
+            (status == 400 && ("model" in m || "not supported" in m) && "api key" !in m) ||
+            (status == 403 && "model" in m) ||
+            (status == 429 && ("limit: 0" in m || "limit 0" in m || "free tier" in m && "model" in m))
     }
 
     /** Free when the service is free and, for OpenRouter, the model is one of its free ones. */

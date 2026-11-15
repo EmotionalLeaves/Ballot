@@ -176,8 +176,11 @@ $brief
                 continue
             }
             val c = clientFor(route.preset.id, s.openAiBaseUrl)
+            // If the saved model is refused (retired, not on the free tier), try the known-good ones and keep whichever works.
+            val modelsToTry = (listOf(route.model) + route.preset.knownGood).distinct().take(4)
+            var modelIndex = 0
             var tools = if (c.supportsWebSearch) req.tools.filter { it.name != "search_web" } else req.tools
-            var r2 = req.copy(model = route.model, tools = tools, webSearch = req.webSearch && c.supportsWebSearch)
+            var r2 = req.copy(model = modelsToTry[0], tools = tools, webSearch = req.webSearch && c.supportsWebSearch)
             if (route.preset.lite) {
                 // Small free context: fewer tools, a shorter brief, clipped tool results.
                 tools = tools.filter { it.name in Providers.liteTools }
@@ -190,13 +193,23 @@ $brief
             while (true) {
                 try {
                     val r = c.complete(secrets.keyFor(route.preset.id), r2)
+                    if (r2.model != route.model) {
+                        val healed = r2.model
+                        settingsStore.update { st -> st.copy(providerModels = Providers.encodeModels(Providers.parseModels(st.providerModels) + (route.preset.id to healed))) }
+                        case.audit("app", "Switched to a working model", input = "${route.preset.name}: ${route.model} → $healed")
+                    }
                     val cost = if (free) 0L else r.usage.inputTokens * s.inputMicrosPerMTok / 1_000_000 + r.usage.outputTokens * s.outputMicrosPerMTok / 1_000_000 + r.usage.searches * s.searchMicrosEach
-                    case.db.usage().insert(UsageRecord(model = "${route.preset.id}:${route.model}", inputTokens = r.usage.inputTokens, outputTokens = r.usage.outputTokens, searches = r.usage.searches, costMicros = cost))
+                    case.db.usage().insert(UsageRecord(model = "${route.preset.id}:${r2.model}", inputTokens = r.usage.inputTokens, outputTokens = r.usage.outputTokens, searches = r.usage.searches, costMicros = cost))
                     if (i > 0) case.audit("app", "Used backup AI service", input = "${route.preset.name} · ${route.model}", outcome = last?.message ?: "")
                     return r
                 } catch (e: LlmException) {
                     last = e
                     anyRetryable = anyRetryable || e.retryable
+                    if (Providers.isModelProblem(e.status, e.message ?: "") && modelIndex + 1 < modelsToTry.size) {
+                        modelIndex++
+                        r2 = r2.copy(model = modelsToTry[modelIndex])
+                        continue
+                    }
                     if (Providers.isDailyLimit(e.status, e.retryAfterSec, e.message ?: "")) {
                         rest(route.preset.id)
                         case.audit("app", "AI service resting until tomorrow", input = route.preset.name, outcome = e.message ?: "")
