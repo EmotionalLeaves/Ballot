@@ -7,6 +7,7 @@ Ballot is a native Android app (Kotlin, Compose, Room + SQLCipher, WorkManager) 
 - Builds happen only in GitHub Actions. `ci.yml` runs on every push (lint, unit + Robolectric tests, compile). `release.yml` runs when `VERSION` changes on main (it creates the `v<VERSION>` tag itself) (gates, signed APK, emulator smoke test, GitHub Release).
 - Single source of truth is the database. Screens observe DAO flows; actions write through `CaseFile` or the tools.
 - Deterministic core (`core/`): scoring, campaign math, race model, stages, deadlines, verification and approval levels run in plain code with JVM tests. The model explains them and never computes them.
+- Minimal AI reliance (owner's instruction, DECISIONS.md 2026-11-15): every core job works by hand and in plain code with no AI service connected. Quizzes, templates, checklists, interviews, scoring and suggestions are built in code from the case file. AI is an optional helper for web research and first drafts only, and each AI button has a non-AI path beside it. Never add a feature that only works with AI when plain code can do it.
 - Every schema change bumps `BallotDatabase.VERSION`, adds a `Migration` to `BallotDatabase.MIGRATIONS` and a test. A change that cannot migrate is dropped.
 - Section 8 guardrails (law, honesty, privacy), the approval levels and the verification gates are never weakened.
 
@@ -52,7 +53,7 @@ Runs on a loop with no end condition and no questions asked. One cycle is 312 it
 | --- | --- |
 | `system_check_and_update` | Finds and fixes one defect: a crash, a failing test, a broken flow, an outdated dependency, a stale rule source |
 | `reduce_menus_and_buttons` | Removes or merges one control that the Chief or the Home card can replace |
-| `establish_single_access_point` | Moves one more function behind the Chief, so everything is reachable by asking |
+| `establish_single_access_point` | Gives one more function one obvious home (Today or the Chief), reachable by asking, and never only through AI |
 | `apply_professional_formatting` | Fixes one screen's spacing, type, alignment, copy or empty state against the design language |
 | `test_core_functionality` | Runs one end-to-end flow as a new user and repairs whatever fails |
 | `verify_goal_completion` | Checks one feature against "does this move a real person closer to office" and strengthens or removes it |
@@ -79,7 +80,7 @@ Runs on a loop with no end condition and no questions asked. One cycle is 312 it
 - Never push red. Only commits that pass the quality gates leave the machine.
 - Never weaken the guardrails (approval levels, verification gates, section 8).
 - Never remove a capability by accident. `FEATURES.md` is checked each phase. Controls can go; functions cannot unless phase 4 judged them useless and logged why.
-- Simplify toward the Chief, with a floor of Home, Chief and one overflow.
+- Simplify toward Today and the Chief, with a floor of Home, Chief and one overflow. The Chief's typed tools and Today must work without any AI connected.
 - No churn: an iteration that finds nothing worth changing records "no change".
 - No oscillation: `DECISIONS.md` records each design choice; reversing one needs a stronger logged reason.
 - Human interaction is disabled for the build loop only. Inside the app, the Chief still asks before it sends, posts, files, signs or spends.
