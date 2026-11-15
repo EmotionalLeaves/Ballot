@@ -451,5 +451,14 @@ class FlowTests {
         assertTrue(w.toString(), w.any { it.startsWith("Meeting") && it.endsWith("Council") })
         assertTrue(w.toString(), w.any { it == "Deadline · tomorrow: Report due" })
     }
+
+    @Test fun closePeopleYouHaventTalkedToAreFlaggedForACheckIn() = runTest {
+        val at = com.emotionalleaves.ballot.data.now(); val day = 86_400_000L
+        db.contacts().upsert(com.emotionalleaves.ballot.data.Contact(name = "Old friend", closeness = 4, lastContactAt = at - 40 * day))
+        db.contacts().upsert(com.emotionalleaves.ballot.data.Contact(name = "Recent", closeness = 4, lastContactAt = at - 2 * day))
+        db.contacts().upsert(com.emotionalleaves.ballot.data.Contact(name = "Promised coffee", nextStep = "Coffee in December", lastContactAt = at - 20 * day))
+        val due = case.checkIns(at).map { it.first.name }
+        assertEquals(listOf("Old friend", "Promised coffee"), due)
+    }
 }
 

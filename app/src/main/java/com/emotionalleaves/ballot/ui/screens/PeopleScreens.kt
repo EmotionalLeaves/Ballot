@@ -7,6 +7,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -80,6 +82,20 @@ fun PeopleScreen(nav: NavHostController) {
             Panel(accent = true, onClick = { nav.navigate(Routes.APPROVALS) }) {
                 Text(if (followUps.size == 1) "1 follow-up drafted" else "${followUps.size} follow-ups drafted", style = MaterialTheme.typography.titleMedium, color = com.emotionalleaves.ballot.ui.theme.Ink)
                 Text("Approve and send them yourself.", style = MaterialTheme.typography.bodyMedium, color = com.emotionalleaves.ballot.ui.theme.Ink)
+            }
+        }
+        // Relationships fade quietly; these are the people worth a message this week, worked out from your own log.
+        item {
+            var due by remember { mutableStateOf(emptyList<Pair<com.emotionalleaves.ballot.data.Contact, String>>()) }
+            LaunchedEffect(contacts.size) { due = g.case.checkIns() }
+            if (due.isNotEmpty()) Panel {
+                Title("Worth a check-in")
+                due.forEach { (p, why) ->
+                    Row(Modifier.fillMaxWidth().clickable { nav.navigate(Routes.contact(p.id)) }.padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(p.name, style = MaterialTheme.typography.bodyLarge, color = c.fg, modifier = Modifier.weight(1f))
+                        Small(why)
+                    }
+                }
             }
         }
         item { ChipRow(listOf("All", "Cabinet", "Map", "Validators", "Press"), view, { it }) { view = it } }

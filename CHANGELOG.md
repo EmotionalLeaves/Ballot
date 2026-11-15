@@ -242,3 +242,4 @@ One line per loop iteration, newest last.
 - c1 p6 t1 i39 `overhaul_system_architecture`: Each release now ships a SHA-256 checksum file beside the APK and states the signing fingerprint in its notes, so a download can be checked against what was built
 - c1 p6 t1 i40 `overhaul_system_architecture`: Briefing starts with 'Your week ahead', built in plain code from your own records (meetings, deadlines, promises due, changed rule pages), so it's useful with or without AI
 - c1 p6 t1 i41 `overhaul_system_architecture`: After a crash, Today says so once (nothing saved was lost) and points to the report in Diagnostics; it stays on the phone unless you choose to send it
+- c1 p6 t1 i42 `overhaul_system_architecture`: People shows who's worth a check-in, worked out from your own log: close contacts unheard from in 30 days and anyone with a next step and no contact for 14

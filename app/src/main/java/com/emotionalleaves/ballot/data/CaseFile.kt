@@ -488,5 +488,21 @@ class CaseFile(val db: BallotDatabase, private val settings: SettingsStore) {
         db.rules().all().filter { it.status == "CHANGED" }.forEach { out += "Rule page changed: ${it.summary.take(60)}" }
         return out
     }
+
+    /**
+     * People worth a check-in, in plain code: anyone close (closeness 3+) you haven't talked to in 30 days, and
+     * anyone with a next step written down and no contact for 14. Longest gap first, at most [max].
+     */
+    suspend fun checkIns(at: Long = now(), max: Int = 5): List<Pair<Contact, String>> {
+        val day = 86_400_000L
+        return db.contacts().all().mapNotNull { c ->
+            val gap = if (c.lastContactAt == 0L) Long.MAX_VALUE else (at - c.lastContactAt) / day
+            when {
+                c.nextStep.isNotBlank() && gap >= 14 -> c to "Next step: ${c.nextStep.take(60)}"
+                c.closeness >= 3 && gap >= 30 -> c to (if (gap == Long.MAX_VALUE) "No conversation logged yet" else "Last talked $gap days ago")
+                else -> null
+            }
+        }.sortedByDescending { (c, _) -> if (c.lastContactAt == 0L) Long.MAX_VALUE else at - c.lastContactAt }.take(max)
+    }
 }
 
