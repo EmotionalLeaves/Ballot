@@ -531,13 +531,23 @@ class ToolRegistry {
                 }, "document", id)))
         })
 
-        reg(ToolDef("score_speech", "Score a speaking rep from its transcript in plain code: clarity, pace, filler words and length.",
-            S.obj(listOf("transcript", "duration_sec"), mapOf("transcript" to S.s("What was said"), "duration_sec" to S.i("Seconds"), "target_sec" to S.i("Target seconds"))),
-            RoutineKind.TRACKER, required = listOf("transcript", "duration_sec")) { a, _ ->
+        reg(ToolDef("score_speech", "Score a speaking rep from its transcript in plain code: clarity, pace, filler words and length. The rep is saved and counts toward the weekly score.",
+            S.obj(listOf("transcript", "duration_sec"), mapOf("transcript" to S.s("What was said"), "duration_sec" to S.i("Seconds"), "target_sec" to S.i("Target seconds"),
+                "drill" to S.e("Which drill, if any", listOf("INTRO", "STORY", "COMMENT", "OTHER")))),
+            RoutineKind.TRACKER, required = listOf("transcript", "duration_sec")) { a, c ->
             val target = a.int("target_sec") ?: 60
-            val m = SpeechScorer.score(a.str("transcript")!!, a.int("duration_sec") ?: 0, target)
+            val transcript = a.str("transcript")!!
+            val secs = a.int("duration_sec") ?: 0
+            val m = SpeechScorer.score(transcript, secs, target)
+            val drill = a.str("drill")?.uppercase() ?: "OTHER"
+            // A rep done with the Chief is a rep: saved like one from Practice, and a clear story counts toward stage 1.
+            c.case.db.speech().upsert(com.emotionalleaves.ballot.data.SpeechRep(kind = drill, prompt = "With the Chief", transcript = transcript, durationSec = secs,
+                wordsPerMinute = m.wpm, fillerCount = m.fillers, clarity = m.clarity, pace = m.pace, lengthScore = m.lengthScore, total = m.total,
+                feedback = SpeechScorer.plainFeedback(m, target).joinToString(" ")))
+            if (drill == "STORY" && m.total >= 70) c.case.updateProfile { it.copy(storyRatedClear = true) }
+            val next = c.case.advanceIfReady()
             ToolOutcome("Score ${m.total}/100. Clarity ${m.clarity}, pace ${m.pace} (${m.wpm} wpm), length ${m.lengthScore}, fillers ${m.fillers}. " +
-                SpeechScorer.plainFeedback(m, target).joinToString(" "))
+                SpeechScorer.plainFeedback(m, target).joinToString(" ") + (next?.let { " The exit test is met: stage ${it.number}, ${it.title}, is now open." } ?: ""))
         })
 
         reg(ToolDef("start_mock_room", "Open a mock room in Practice where the Chief plays the other side.",

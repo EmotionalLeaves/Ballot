@@ -146,3 +146,4 @@ One line per loop iteration, newest last.
 - c1 p4 t2 i7 `verify_goal_completion`: Weekly review: saving it ticks off the 'Weekly review' task on Today, and the lesson leaves out stop/keep/start lines you left blank
 - c1 p4 t2 i8 `verify_goal_completion`: Show up stage: 'Attended' and 'Gave a comment' are one tap on the whole label (they count toward the stage 3 exit), and event kinds read in sentence case
 - c1 p4 t2 i9 `verify_goal_completion`: Briefing: an item's suggested action can be added to your plan in one tap ('Add to my plan'), so news turns into something you do
+- c1 p4 t2 i10 `verify_goal_completion`: Speaking reps scored by the Chief are saved like Practice reps: they count in the weekly score, and a clear story rep counts toward the stage 1 exit
