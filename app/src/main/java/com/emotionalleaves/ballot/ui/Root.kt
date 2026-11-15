@@ -243,8 +243,8 @@ fun LockScreen(onUnlocked: () -> Unit) {
                 fails++
                 pin = ""
                 // After five wrong PINs, each further try waits 30 seconds.
-                if (fails >= 5) { lockedUntil = System.currentTimeMillis() + 30_000; error = "Wrong PIN. Wait 30 seconds before trying again." }
-                else error = "Wrong PIN."
+                if (fails >= 5) lockedUntil = System.currentTimeMillis() + 30_000
+                error = if (fails >= 5) "Wrong PIN. Wait 30 seconds before trying again." else "Wrong PIN."
             }
         }, modifier = Modifier.fillMaxWidth())
         if (canBio) {
