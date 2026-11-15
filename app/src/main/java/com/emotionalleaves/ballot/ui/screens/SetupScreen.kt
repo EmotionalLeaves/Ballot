@@ -41,7 +41,9 @@ import com.emotionalleaves.ballot.ui.components.Progress
 import com.emotionalleaves.ballot.ui.components.Small
 import com.emotionalleaves.ballot.ui.components.ThickRule
 import com.emotionalleaves.ballot.ui.theme.LocalBallotColors
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private val stepTitles = listOf(
     "Connect the brain", "Where you live", "Your life as it is", "Why you want this",
@@ -73,7 +75,7 @@ fun SetupScreen() {
         Text(stepTitles[step], style = MaterialTheme.typography.headlineLarge, color = c.fg)
         ThickRule()
         when (step) {
-            0 -> BrainStep(onNext = { save(profile, 1) })
+            0 -> { BrainStep(onNext = { save(profile, 1) }); RestoreFromBackup() }
             1 -> WhereStep(profile, onNext = { save(it, 2) })
             2 -> LifeStep(profile, onNext = { save(it, 3) })
             3 -> WhyStep(profile, onNext = { save(it, 4) })
@@ -99,6 +101,35 @@ private fun NextRow(onNext: () -> Unit, label: String = "Next", onSkip: (() -> U
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         PosterButton(label, onClick = onNext)
         if (onSkip != null) PosterButton("Skip", onClick = onSkip, primary = false)
+    }
+}
+
+/** Moving phones or reinstalling: bring the whole case file back without walking through setup. */
+@Composable
+private fun RestoreFromBackup() {
+    val ctx = LocalContext.current
+    val g = ctx.graph
+    val scope = rememberCoroutineScope()
+    var open by remember { mutableStateOf(false) }
+    var passphrase by remember { mutableStateOf("") }
+    var status by remember { mutableStateOf("") }
+    val c = LocalBallotColors.current
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) scope.launch {
+            status = runCatching {
+                val bytes = withContext(Dispatchers.IO) { ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() } } ?: error("Could not read the file.")
+                com.emotionalleaves.ballot.data.Backup.import(g.db, bytes, passphrase.toCharArray())
+                "Backup restored."
+            }.getOrElse { it.message ?: "Import failed." }
+        }
+    }
+    Gap(8.dp)
+    LinkButton(if (open) "Hide" else "I have a Ballot backup file", onClick = { open = !open })
+    if (open) {
+        Small("Your case file comes back as it was when you exported it. Connect your AI service again afterwards: keys are never put in backups.")
+        Field(passphrase, { passphrase = it }, "Backup passphrase", singleLine = true, secret = true)
+        PosterButton("Choose the backup file", enabled = passphrase.length >= 8, onClick = { picker.launch(arrayOf("*/*")) })
+        if (status.isNotBlank()) Small(status, color = c.fg)
     }
 }
 
