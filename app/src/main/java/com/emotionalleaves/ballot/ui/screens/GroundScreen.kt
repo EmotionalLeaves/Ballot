@@ -317,12 +317,7 @@ private fun RaceCardByHand(o: Office, rc: RaceCard?) {
                 source = "you", confidence = com.emotionalleaves.ballot.data.Confidence.STATED, updatedAt = now()))
             g.case.audit("you", "Filled a race card by hand", input = o.body)
             // A filing deadline you typed goes on the deadline wall too, so its alerts and prepared draft work like any other.
-            parseDay(deadline)?.let { day ->
-                val title = "Filing deadline: ${o.body} ${o.district}".trim()
-                if (g.db.deadlines().all().none { it.title == title && !it.done }) g.db.deadlines().upsert(com.emotionalleaves.ballot.data.Deadline(title = title, dueEpochDay = day,
-                    officialUrl = o.officialUrl, legal = true, source = "you", confidence = com.emotionalleaves.ballot.data.Confidence.STATED))
-                g.case.rescore()
-            }
+            parseDay(deadline)?.let { day -> g.case.addDeadlineByHand("Filing deadline: ${o.body} ${o.district}".trim(), day, o.officialUrl, legal = true) }
             open = false
         }
     })

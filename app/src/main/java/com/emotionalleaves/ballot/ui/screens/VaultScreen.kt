@@ -132,6 +132,7 @@ private fun DeadlinesTab() {
     val deadlines by g.db.deadlines().observe().collectAsStateWithLifecycle(initialValue = emptyList())
     var title by remember { mutableStateOf("") }
     var date by remember { mutableStateOf("") }
+    var legal by remember { mutableStateOf(true) }
     var url by remember { mutableStateOf("") }
     val c = LocalBallotColors.current
     val today = LocalDate.now().toEpochDay()
@@ -162,10 +163,10 @@ private fun DeadlinesTab() {
             Field(title, { title = it }, "What is due", singleLine = true)
             Field(date, { date = it }, "Date (YYYY-MM-DD)", singleLine = true)
             Field(url, { url = it }, "Official link (optional)", singleLine = true)
+            com.emotionalleaves.ballot.ui.components.SwitchRow("Legal deadline (filing, reports, petitions)", legal, { legal = it })
             PosterButton("Add", enabled = title.isNotBlank() && parseDay(date) != null, onClick = {
                 scope.launch {
-                    g.db.deadlines().upsert(Deadline(title = title, dueEpochDay = parseDay(date)!!, officialUrl = url, source = "you", confidence = Confidence.STATED))
-                    g.case.ensureDeadlineDrafts()
+                    g.case.addDeadlineByHand(title, parseDay(date)!!, url, legal)
                     title = ""; date = ""; url = ""
                 }
             })

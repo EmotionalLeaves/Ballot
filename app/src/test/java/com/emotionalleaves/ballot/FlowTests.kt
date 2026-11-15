@@ -300,5 +300,15 @@ class FlowTests {
         assertTrue(card, card.contains("Transit"))
         assertEquals(card, db.events().get(e.id)!!.preCard)
     }
+
+    @Test fun aDeadlineTypedTwiceIsOneDeadlineWithItsDraft() = runTest {
+        finishSetup()
+        val day = java.time.LocalDate.now().plusDays(4).toEpochDay()
+        val a = case.addDeadlineByHand("Candidate filing closes", day)
+        val b = case.addDeadlineByHand(" candidate filing closes ", day)
+        assertEquals(a, b)
+        assertEquals(1, db.deadlines().all().size)
+        assertTrue("a legal deadline inside a week gets its task", db.tasks().open().any { it.legal })
+    }
 }
 

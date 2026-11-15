@@ -275,5 +275,19 @@ class CaseFile(val db: BallotDatabase, private val settings: SettingsStore) {
         db.events().upsert(e.copy(preCard = card, updatedAt = now()))
         return card
     }
+
+    /**
+     * A deadline you typed in yourself. One path for every screen: no duplicates, legal ones get their prepared
+     * draft and task straight away, and it's audited. Saved as "you said" until it has an official page.
+     */
+    suspend fun addDeadlineByHand(title: String, dueEpochDay: Long, officialUrl: String = "", legal: Boolean = true): Long {
+        val t = title.trim()
+        db.deadlines().all().firstOrNull { !it.done && it.title.equals(t, true) && it.dueEpochDay == dueEpochDay }?.let { return it.id }
+        val id = db.deadlines().upsert(Deadline(title = t, dueEpochDay = dueEpochDay, officialUrl = officialUrl.trim(), legal = legal, source = "you", confidence = Confidence.STATED))
+        audit("you", "Added a deadline by hand", input = "$t · ${LocalDate.ofEpochDay(dueEpochDay)}")
+        ensureDeadlineDrafts()
+        rescore()
+        return id
+    }
 }
 
