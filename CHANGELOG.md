@@ -234,3 +234,4 @@ One line per loop iteration, newest last.
 - c1 p6 t1 i31 `overhaul_system_architecture`: Voter privacy: door-knocking household notes are cleared 90 days after election day, keeping only the totals as a lesson, audited
 - c1 p6 t1 i32 `overhaul_system_architecture`: Night shifts work: a shift that crosses midnight (say 10pm to 6am) now counts as work time until the next morning, so nothing is booked inside it (tested)
 - c1 p6 t1 i33 `overhaul_system_architecture`: Deleting stays tidy: removing a person also removes their conversations and unlinks (but keeps) their gifts for reports; removing an office removes its race card
+- c1 p6 t1 i34 `overhaul_system_architecture`: Backup export asks for the passphrase twice and says to write it down, so a typo can't lock you out of your own backup

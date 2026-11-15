@@ -78,6 +78,7 @@ fun SettingsScreen(nav: NavHostController) {
     var domain by remember { mutableStateOf("") }
     var pin by remember { mutableStateOf("") }
     var passphrase by remember { mutableStateOf("") }
+    var passphrase2 by remember { mutableStateOf("") }
     var backupStatus by remember { mutableStateOf("") }
     var confirmWipe by remember { mutableStateOf(0) }
     var restoreFile by remember { mutableStateOf<File?>(null) }
@@ -166,8 +167,12 @@ fun SettingsScreen(nav: NavHostController) {
             Collapsible("Backup", "Encrypted export and daily snapshots") {
                 Small("An encrypted file you keep somewhere safe. You choose the passphrase.")
                 Field(passphrase, { passphrase = it }, "Backup passphrase (8+ characters)", singleLine = true, secret = true)
+                // A typo in the passphrase would lock you out of your own backup, so exporting asks for it twice.
+                Field(passphrase2, { passphrase2 = it }, "Type it again to export", singleLine = true, secret = true)
+                if (passphrase2.isNotEmpty() && passphrase2 != passphrase) Small("The two don't match yet.", color = LocalBallotColors.current.signal)
+                Small("Write the passphrase down somewhere safe. Without it the backup can't be opened, by you or anyone.")
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    PosterButton("Export", enabled = passphrase.length >= 8, onClick = { exportLauncher.launch("ballot-backup-${LocalDate.now()}.ballot") })
+                    PosterButton("Export", enabled = passphrase.length >= 8 && passphrase2 == passphrase, onClick = { exportLauncher.launch("ballot-backup-${LocalDate.now()}.ballot") })
                     PosterButton("Import", primary = false, enabled = passphrase.length >= 8, onClick = { importLauncher.launch(arrayOf("*/*")) })
                 }
                 if (backupStatus.isNotBlank()) Small(backupStatus, color = c.fg)
