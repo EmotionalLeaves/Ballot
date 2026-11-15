@@ -188,3 +188,4 @@ One line per loop iteration, newest last.
 - c1 p5 t2 i7 `remove_excess_navigation_elements`: Campaign HQ: building the turnout plan stays on HQ; its tasks land on your plan and the summary shows on the page
 - c1 p5 t2 i8 `remove_excess_navigation_elements`: no change: Board finder and race-card building keep their jump to the Chief because they continue as a conversation (drafting an application, follow-up questions)
 - c1 p5 t2 i9 `remove_excess_navigation_elements`: no change: the mock room's Done is its only on-screen way out (it has no header back arrow), so it stays
+- c1 p5 t2 i10 `remove_excess_navigation_elements`: no change: 'Waiting for your OK' shows on Today, People and More on purpose; each is where an approval is next needed
