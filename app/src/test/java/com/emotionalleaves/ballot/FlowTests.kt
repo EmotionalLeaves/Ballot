@@ -395,5 +395,15 @@ class FlowTests {
         case.setDeadlineDone(db.deadlines().get(id)!!, true)
         assertFalse(db.tasks().open().any { it.deadlineId == id })
     }
+
+    @Test fun voterNotesAreClearedNinetyDaysAfterTheElectionKeepingTotals() = runTest {
+        val day = 86_400_000L
+        val at = com.emotionalleaves.ballot.data.now()
+        case.updateProfile { it.copy(electionDateEpochDay = at / day - 91) }
+        db.voterContacts().upsert(com.emotionalleaves.ballot.data.VoterContact(household = "12 Elm", outcome = com.emotionalleaves.ballot.data.DoorOutcome.SUPPORTER))
+        case.prune(at)
+        assertTrue(db.voterContacts().all().isEmpty())
+        assertTrue(db.lessons().all().any { it.what.contains("1 doors, 1 supporters") })
+    }
 }
 

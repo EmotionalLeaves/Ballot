@@ -357,6 +357,18 @@ class CaseFile(val db: BallotDatabase, private val settings: SettingsStore) {
         var n = db.chat().deleteOlder("background", at - 30 * day)
         db.chat().threads().filter { it.startsWith("room:") }.forEach { n += db.chat().deleteOlder(it, at - 90 * day) }
         n += db.usage().deleteOlder(at - 400 * day)
+        // Door-knocking notes are about voters, not you: 90 days after election day only the totals are kept, as a lesson.
+        val election = profile().electionDateEpochDay
+        if (election > 0 && at / day > election + 90) {
+            val doors = db.voterContacts().all()
+            if (doors.isNotEmpty()) {
+                db.lessons().upsert(Lesson(kind = "QUARTER", what = "Door knocking: ${doors.size} doors, ${doors.count { it.outcome == DoorOutcome.SUPPORTER }} supporters identified.",
+                    change = "Household notes were cleared 90 days after the election, as promised."))
+                doors.forEach { db.voterContacts().delete(it) }
+                audit("app", "Cleared door-knocking notes 90 days after the election", outcome = "${doors.size} removed, totals kept")
+                n += doors.size
+            }
+        }
         return n
     }
 
