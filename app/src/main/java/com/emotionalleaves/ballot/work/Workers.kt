@@ -191,7 +191,11 @@ class BriefWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx,
             )
         }.getOrNull() ?: return Result.retry()
         if (r.queued) return Result.retry()
-        Notifications.post(applicationContext, Notifications.BRIEF, 3001, "Your brief is ready", r.text.take(160))
+        // An error reply (no key, spend cap, refused) is not a brief: never announce it as one.
+        if (r.error) return if (force) Result.failure() else Result.success()
+        val built = case.db.brief().countFor(today, "NEWS") + case.db.brief().countFor(today, "AGENDA") + case.db.brief().countFor(today, "SEAT") +
+            case.db.brief().countFor(today, "DECISION")
+        if (built > 0) Notifications.post(applicationContext, Notifications.BRIEF, 3001, "Your brief is ready", r.text.take(160))
         return Result.success()
     }
 }

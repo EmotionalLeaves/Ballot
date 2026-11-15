@@ -45,3 +45,4 @@ One line per loop iteration, newest last.
 - c1 p1 t1 i26 `system_check_and_update`: Adding an event takes two taps: pick a day chip and a time chip, with typing kept as a fallback
 - c1 p1 t1 i27 `system_check_and_update`: The weekly review now actually arrives: a task and one reminder on the day you choose in Settings (Sunday by default)
 - c1 p1 t1 i28 `system_check_and_update`: Briefing shows whether today's brief is waiting, building or failed, instead of asking you to come back later
+- c1 p1 t1 i29 `system_check_and_update`: The daily brief no longer sends a 'brief is ready' notification when the Chief actually hit an error or found nothing
