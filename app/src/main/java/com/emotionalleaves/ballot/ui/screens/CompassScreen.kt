@@ -98,7 +98,7 @@ fun CompassScreen(nav: NavHostController) {
                                         }
                                     }
                                 })
-                                PosterButton("Lock it", primary = false, enabled = p.story60.isNotBlank(), onClick = { scope.launch { g.case.updateProfile { it.copy(storyLocked = true) } } })
+                                PosterButton("Lock it", primary = false, enabled = p.story60.isNotBlank(), onClick = { scope.launch { g.case.updateProfile { it.copy(storyLocked = true) }; g.case.advanceIfReady() } })
                             } else {
                                 PosterButton("Rehearse", onClick = { nav.navigate(Routes.GYM) })
                                 LinkButton("Unlock", onClick = { confirmUnlock = true }, color = c.muted)
