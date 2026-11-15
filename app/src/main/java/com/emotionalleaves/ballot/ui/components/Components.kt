@@ -45,6 +45,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -366,3 +367,19 @@ fun Collapsible(title: String, subtitle: String = "", startOpen: Boolean = false
         if (open) Column(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp), content = content)
     }
 }
+
+/** A setting you turn on or off. The whole row is the touch target, not just the little switch. */
+@Composable
+fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit, note: String = "") {
+    val c = LocalBallotColors.current
+    androidx.compose.foundation.layout.Row(
+        Modifier.fillMaxWidth().heightIn(min = 48.dp)
+            .toggleable(value = checked, role = androidx.compose.ui.semantics.Role.Switch, onValueChange = onChange),
+        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+    ) {
+        Text(label, style = MaterialTheme.typography.bodyLarge, color = c.fg, modifier = Modifier.weight(1f))
+        if (note.isNotEmpty()) Text(note, style = MaterialTheme.typography.bodySmall, color = c.muted, modifier = Modifier.padding(end = 8.dp))
+        androidx.compose.material3.Switch(checked = checked, onCheckedChange = null)
+    }
+}
+

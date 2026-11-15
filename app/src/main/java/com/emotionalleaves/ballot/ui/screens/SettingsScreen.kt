@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Slider
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -48,6 +47,7 @@ import com.emotionalleaves.ballot.ui.components.PosterButton
 import com.emotionalleaves.ballot.ui.components.Progress
 import com.emotionalleaves.ballot.ui.components.Screen
 import com.emotionalleaves.ballot.ui.components.Small
+import com.emotionalleaves.ballot.ui.components.SwitchRow
 import com.emotionalleaves.ballot.ui.components.Title
 import com.emotionalleaves.ballot.ui.theme.LocalBallotColors
 import kotlinx.coroutines.Dispatchers
@@ -118,17 +118,11 @@ fun SettingsScreen(nav: NavHostController) {
         "Backups are encrypted with a passphrase you choose. Snapshots are taken automatically each day, seven kept.",
         "Panic wipe deletes everything on this phone.")) {
         item {
-            Collapsible("AI services", "Your AI, backups and free-only mode", startOpen = true) {
+            Collapsible("AI services", "Which AI the Chief uses, and free-only mode", startOpen = true) {
                 Small("Ballot tries your main service first, then any other you have connected. Free services cost nothing.")
                 ConnectedServices(outsideChange = aiChanged)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Free only (never spend money)", style = MaterialTheme.typography.bodyLarge, color = c.fg, modifier = Modifier.weight(1f))
-                    Switch(checked = s.freeOnly, onCheckedChange = { v -> upd { it.copy(freeOnly = v) } })
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Use my other services when one is busy", style = MaterialTheme.typography.bodyLarge, color = c.fg, modifier = Modifier.weight(1f))
-                    Switch(checked = s.useBackups, onCheckedChange = { v -> upd { it.copy(useBackups = v) } })
-                }
+                SwitchRow("Free only (never spend money)", s.freeOnly, { v -> upd { it.copy(freeOnly = v) } })
+                SwitchRow("Use my other services when one is busy", s.useBackups, { v -> upd { it.copy(useBackups = v) } })
                 LinkButton(if (showAdd) "Hide" else "Add a service", onClick = { showAdd = !showAdd })
                 if (showAdd) KeyConnector(makeMain = false, onConnected = { aiChanged++; showAdd = false })
                 LinkButton(if (showAdvanced) "Hide advanced" else "Advanced", color = c.muted, onClick = { showAdvanced = !showAdvanced })
@@ -174,11 +168,8 @@ fun SettingsScreen(nav: NavHostController) {
             Collapsible("Autonomy dial", "What the Chief does without asking") {
                 Small("Routine work the Chief does on its own. Switch any to 'ask me first'.")
                 RoutineKind.all.forEach { k ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(RoutineKind.label(k), style = MaterialTheme.typography.bodyLarge, color = c.fg, modifier = Modifier.weight(1f))
-                        Small(if (k in s.askFirst) "Asks first" else "Does it")
-                        Switch(checked = k in s.askFirst, onCheckedChange = { on -> upd { it.copy(askFirst = if (on) it.askFirst + k else it.askFirst - k) } })
-                    }
+                    SwitchRow(RoutineKind.label(k), k in s.askFirst, { on -> upd { it.copy(askFirst = if (on) it.askFirst + k else it.askFirst - k) } },
+                        note = if (k in s.askFirst) "Asks first" else "Does it")
                 }
                 Kicker("Always asks first (fixed)")
                 Small("Anything sent, posted, filed, signed or spent in your name.", color = c.fg)
@@ -205,10 +196,7 @@ fun SettingsScreen(nav: NavHostController) {
                     reviewDay = d
                     scope.launch { g.case.updateProfile { it.copy(weeklyReviewDay = d) } }
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Dark theme (for night use)", style = MaterialTheme.typography.bodyLarge, color = c.fg, modifier = Modifier.weight(1f))
-                    Switch(checked = s.darkTheme, onCheckedChange = { v -> upd { it.copy(darkTheme = v) } })
-                }
+                SwitchRow("Dark theme (for night use)", s.darkTheme, { v -> upd { it.copy(darkTheme = v) } })
                 var scale by remember(s.textScale) { mutableStateOf(s.textScale) }
                 Small("Text size ${"%.0f".format(scale * 100)}%")
                 // Saved when you let go, so dragging doesn't rewrite settings dozens of times.
@@ -240,13 +228,10 @@ fun SettingsScreen(nav: NavHostController) {
         }
         item {
             Collapsible("Lock", "PIN and fingerprint") {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("App lock (PIN or biometric)", style = MaterialTheme.typography.bodyLarge, color = c.fg, modifier = Modifier.weight(1f))
-                    Switch(checked = s.appLock && g.secrets.hasPin(), onCheckedChange = { v ->
-                        lockHint = if (!v || g.secrets.hasPin()) "" else "Set a PIN below first. Fingerprint or face unlock works once a PIN exists."
-                        if (!v) upd { it.copy(appLock = false) } else if (g.secrets.hasPin()) upd { it.copy(appLock = true) }
-                    })
-                }
+                SwitchRow("App lock (PIN or biometric)", s.appLock && g.secrets.hasPin(), { v ->
+                    lockHint = if (!v || g.secrets.hasPin()) "" else "Set a PIN below first. Fingerprint or face unlock works once a PIN exists."
+                    if (!v) upd { it.copy(appLock = false) } else if (g.secrets.hasPin()) upd { it.copy(appLock = true) }
+                })
                 if (lockHint.isNotBlank()) Small(lockHint, color = c.signal)
                 Field(pin, { pin = it.filter(Char::isDigit).take(12) }, "Set a PIN (4 to 12 digits)", singleLine = true, number = true, secret = true)
                 LinkButton("Save PIN and turn lock on", onClick = {
