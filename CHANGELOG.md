@@ -136,3 +136,4 @@ One line per loop iteration, newest last.
 - c1 p4 t1 i17 `test_core_functionality`: Flow test: a legal deadline from an official page goes straight to the top of Today
 - c1 p4 t1 i18 `test_core_functionality`: Flow test: drafts always wait for approval, and one with an unsourced claim says so on its card ('some claims need a source', not BLOCKED)
 - c1 p4 t1 i19 `test_core_functionality`: Flow test: anything waiting for your OK is in the Chief's brief so it never claims it's done
+- c1 p4 t1 i20 `test_core_functionality`: Flow test found money logged as 'in' or 'In-kind' missed every total: directions are normalised, and $19.99 is stored as 1999 cents, not 1998
