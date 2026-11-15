@@ -96,7 +96,7 @@ fun ReplyPanel(onOpenChief: () -> Unit) {
     val r = ChiefBusy.lastReply ?: return
     Panel(onClick = onOpenChief) {
         Small("The Chief · ${r.mode.label} · tap for the whole conversation")
-        Text(r.text.take(600), style = MaterialTheme.typography.bodyMedium, color = LocalBallotColors.current.fg)
+        Text(chiefText(r.text.take(600)), style = MaterialTheme.typography.bodyMedium, color = LocalBallotColors.current.fg, maxLines = 8, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
     }
 }
 
