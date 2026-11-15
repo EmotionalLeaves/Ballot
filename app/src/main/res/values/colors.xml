@@ -1,5 +1,7 @@
 <resources>
     <color name="ink">#FF0B0D12</color>
+    <color name="calm_paper">#FFF7F6F3</color>
     <color name="paper">#FFF6F4EF</color>
     <color name="signal">#FFFF3B1F</color>
+    <color name="calm_teal">#FF0E7C6B</color>
 </resources>

@@ -53,3 +53,4 @@ One line per loop iteration, newest last.
 - c1 p1 t1 i34 `system_check_and_update`: App lock slows guessing: after five wrong PINs each try waits 30 seconds
 - Fix (owner report): "not a supported model" on Gemini; Connect tries up to eight models best-first and the Chief self-heals to a working model. Release 0.2.3.
 - Redesign (owner request): calm theme, simpler Today, standard navigation bar, grouped More, collapsible Settings, compact Plan. Release 0.3.0.
+- c1 p1 t1 i35 `system_check_and_update`: Status bar icons follow Ballot's theme so they stay visible on the light screen; app opens on paper instead of a black flash; icon recoloured to the calm teal

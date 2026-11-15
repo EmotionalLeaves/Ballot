@@ -50,6 +50,12 @@ class MainActivity : FragmentActivity() {
             val loaded by produceState<AppSettings?>(null) { graph.settings.flow.collect { value = it } }
             val settings = loaded ?: AppSettings()
             AppLock.autoLockMinutes = settings.autoLockMinutes
+            // Status and navigation bar icons follow the app's theme, not the phone's, so they stay visible.
+            androidx.compose.runtime.LaunchedEffect(settings.darkTheme) {
+                val clear = android.graphics.Color.TRANSPARENT
+                val bars = if (settings.darkTheme) androidx.activity.SystemBarStyle.dark(clear) else androidx.activity.SystemBarStyle.light(clear, clear)
+                enableEdgeToEdge(statusBarStyle = bars, navigationBarStyle = bars)
+            }
             BallotTheme(dark = settings.darkTheme, textScale = settings.textScale) {
                 val c = LocalBallotColors.current
                 Box(Modifier.fillMaxSize().background(c.bg).safeDrawingPadding()) {
