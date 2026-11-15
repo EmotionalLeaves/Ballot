@@ -205,12 +205,12 @@ class FlowTests {
         assertEquals(1, case.profile().stage)
     }
 
-    /** A legal deadline outranks every other task on Today. */
+    /** Inside seven days a legal deadline gets a prepared draft and a task, and that task outranks everything on Today. */
     @Test fun aLegalDeadlineGoesToTheTopOfToday() = runTest {
         finishSetup()
         val src = db.sources().insert(com.emotionalleaves.ballot.data.SourceRecord(url = "https://sos.state.ne.gov/filing", official = true,
             label = com.emotionalleaves.ballot.data.Confidence.LIKELY))
-        val due = java.time.LocalDate.now().plusDays(10).toString()
+        val due = java.time.LocalDate.now().plusDays(5).toString()
         assertFalse(tools.execute("add_deadline", obj("title" to "Filing period closes", "due_date" to due, "source_id" to src), ToolCtx(case, AppSettings())).isError)
         val top = case.rescore().first { it.blocked == null }
         assertTrue(db.tasks().get(top.id)!!.legal)
