@@ -1,7 +1,5 @@
-# Ballot 0.3.2
+# Ballot 0.3.3
 
-Follow-up to the Connect fix, so nothing waits forever:
+**Fix: Gemini error 400 "Invalid value at tools[0].function_declarations…".** Some of the Chief's tools have a field called "type" (the type of draft, event or file). When Ballot translated the tools into Gemini's format, it mistook those fields for the type label itself and sent "STRING" where Gemini expected a description of the field. Gemini rejected the whole request. Fixed, with a test that checks every tool converts cleanly.
 
-- **Stop button** on the Chief's "working" bar cancels a long request.
-- Each AI service gets **75 seconds** per answer before Ballot moves on to your next service.
-- Gemini Connect skips models that can't chat (robotics, video, transcription, agents), so it reaches a working one sooner.
+Installs over your current version; your case file, contacts, tasks and keys are kept.

@@ -89,9 +89,12 @@ class GeminiClient(private val baseUrl: String = "https://generativelanguage.goo
         /** Gemini wants the OpenAPI subset of JSON Schema with upper-case type names. */
         fun toGeminiSchema(e: JsonElement): JsonElement = when (e) {
             is JsonObject -> JsonObject(e.mapNotNull { (k, v) ->
-                when (k) {
-                    "type" -> k to JsonPrimitive((v as? JsonPrimitive)?.content?.uppercase() ?: "STRING")
-                    "additionalProperties", "\$schema", "default" -> null
+                when {
+                    // "properties" maps field names to schemas. A field may itself be called "type",
+                    // so its value is a schema to convert, never a type name.
+                    k == "properties" && v is JsonObject -> k to JsonObject(v.mapValues { (_, fieldSchema) -> toGeminiSchema(fieldSchema) })
+                    k == "type" && v is JsonPrimitive -> k to JsonPrimitive(v.content.uppercase())
+                    k == "additionalProperties" || k == "\$schema" || k == "default" -> null
                     else -> k to toGeminiSchema(v)
                 }
             }.toMap())

@@ -98,3 +98,21 @@ class GeminiClientTest {
         assertEquals("gemini-3.5-flash", Providers.pickModel(Providers.gemini, ids))
     }
 }
+
+class GeminiSchemaTest {
+    @Test fun aFieldNamedTypeStaysASchema() {
+        val schema = Schema.obj(listOf("type"), mapOf("type" to Schema.e("Kind of draft", listOf("EMAIL", "LETTER")), "title" to Schema.s("Title")))
+        val g = GeminiClient.toGeminiSchema(schema).toString()
+        assertTrue(g, g.contains("\"type\":\"OBJECT\""))
+        assertTrue(g, g.contains("\"type\":{\"type\":\"STRING\""))
+        assertFalse(g, g.contains("\"type\":\"STRING\",\"title\""))
+    }
+
+    @Test fun everyRealToolConvertsCleanly() {
+        val specs = com.emotionalleaves.ballot.agent.ToolRegistry().specs()
+        specs.forEach { t ->
+            val props = (GeminiClient.toGeminiSchema(t.inputSchema) as kotlinx.serialization.json.JsonObject)["properties"] as? kotlinx.serialization.json.JsonObject
+            props?.forEach { (name, v) -> assertTrue("${t.name}.$name must be a schema object", v is kotlinx.serialization.json.JsonObject) }
+        }
+    }
+}
