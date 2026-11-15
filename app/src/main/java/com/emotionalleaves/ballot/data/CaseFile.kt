@@ -232,6 +232,8 @@ class CaseFile(val db: BallotDatabase, private val settings: SettingsStore) {
         offices.forEach { sb.appendLine("[O${it.id}] Office: ${it.body} ${it.district} held by ${it.incumbent.ifBlank { "?" }}, next ${it.nextElection.ifBlank { "?" }} (${it.confidence})") }
         recentEvents.forEach { sb.appendLine("[E${it.id}] Event: ${it.title} ${if (it.attended) "attended" else "planned"}") }
         lessons.forEach { sb.appendLine("[L${it.id}] Lesson: ${it.what.take(120)} → ${it.change.take(120)}") }
+        val waiting = db.pending().all().filter { it.status == "WAITING" }
+        if (waiting.isNotEmpty()) sb.appendLine("Waiting for the user's approval (not done yet): " + waiting.take(5).joinToString("; ") { it.summary.take(80) })
         val seats = ContactRole.cabinet.map { r -> r to cabinet.firstOrNull { it.role == r }?.name }
         sb.appendLine("Kitchen cabinet: " + seats.joinToString { (r, n) -> "${r.lowercase()}=${n ?: "EMPTY"}" })
         return sb.toString().take(maxChars)
