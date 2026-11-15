@@ -194,7 +194,7 @@ fun KeyConnector(makeMain: Boolean = true, onConnected: (String) -> Unit = {}) {
 
 /** One line per connected service with today's use, for Settings. */
 @Composable
-fun ConnectedServices(onChanged: () -> Unit = {}) {
+fun ConnectedServices(outsideChange: Int = 0, onChanged: () -> Unit = {}) {
     val g = LocalContext.current.graph
     val scope = rememberCoroutineScope()
     val c = LocalBallotColors.current
@@ -205,14 +205,14 @@ fun ConnectedServices(onChanged: () -> Unit = {}) {
     var resting by remember { mutableStateOf<Set<String>>(emptySet()) }
     var testing by remember { mutableStateOf("") }
     var results by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
-    androidx.compose.runtime.LaunchedEffect(refresh) {
+    androidx.compose.runtime.LaunchedEffect(refresh, outsideChange) {
         today = g.chief.requestsToday()
         resting = g.chief.restingToday()
         val s = g.settings.get()
         main = s.provider
         models = Providers.parseModels(s.providerModels)
     }
-    val connected = remember(refresh) { Providers.all.filter { g.secrets.hasKey(it.id) } }
+    val connected = remember(refresh, outsideChange) { Providers.all.filter { g.secrets.hasKey(it.id) } }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (connected.isEmpty()) Small("No AI service connected yet. Pick a free one below.")
         connected.forEach { p ->

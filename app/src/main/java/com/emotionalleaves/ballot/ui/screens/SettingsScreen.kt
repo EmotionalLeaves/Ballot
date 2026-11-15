@@ -68,6 +68,7 @@ fun SettingsScreen(nav: NavHostController) {
     var model by remember(s.provider, s.providerModels) { mutableStateOf(Providers.parseModels(s.providerModels)[s.provider] ?: "") }
     var showAdd by remember { mutableStateOf(false) }
     var lockHint by remember { mutableStateOf("") }
+    var aiChanged by remember { mutableStateOf(0) }
     var reviewDay by remember { mutableStateOf(7) }
     LaunchedEffect(Unit) { reviewDay = g.case.profile().weeklyReviewDay }
     var showAdvanced by remember { mutableStateOf(false) }
@@ -116,7 +117,7 @@ fun SettingsScreen(nav: NavHostController) {
         item {
             Collapsible("AI services", "Your AI, backups and free-only mode", startOpen = true) {
                 Small("Ballot tries your main service first, then any other you have connected. Free services cost nothing.")
-                ConnectedServices()
+                ConnectedServices(outsideChange = aiChanged)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("Free only (never spend money)", style = MaterialTheme.typography.bodyLarge, color = c.fg, modifier = Modifier.weight(1f))
                     Switch(checked = s.freeOnly, onCheckedChange = { v -> upd { it.copy(freeOnly = v) } })
@@ -126,7 +127,7 @@ fun SettingsScreen(nav: NavHostController) {
                     Switch(checked = s.useBackups, onCheckedChange = { v -> upd { it.copy(useBackups = v) } })
                 }
                 LinkButton(if (showAdd) "Hide" else "Add a service", onClick = { showAdd = !showAdd })
-                if (showAdd) KeyConnector(makeMain = false)
+                if (showAdd) KeyConnector(makeMain = false, onConnected = { aiChanged++; showAdd = false })
                 LinkButton(if (showAdvanced) "Hide advanced" else "Advanced", color = c.muted, onClick = { showAdvanced = !showAdvanced })
                 if (showAdvanced) {
                     Small("Model for the main service. Leave blank to let Ballot pick.")
