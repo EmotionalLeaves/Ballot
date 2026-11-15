@@ -47,12 +47,14 @@ data class LlmResponse(val content: List<Block>, val stopReason: String, val usa
     val toolUses: List<Block.ToolUse> get() = content.filterIsInstance<Block.ToolUse>()
 }
 
-class LlmException(message: String, val retryable: Boolean, val status: Int = 0) : Exception(message)
+class LlmException(message: String, val retryable: Boolean, val status: Int = 0, val retryAfterSec: Int = 0) : Exception(message)
 
 interface LlmClient {
     val supportsWebSearch: Boolean
     suspend fun complete(apiKey: String, request: LlmRequest): LlmResponse
     suspend fun test(apiKey: String, model: String): String
+    /** The service's current model ids, so Ballot can pick one that exists today. */
+    suspend fun listModels(apiKey: String): List<String> = emptyList()
 }
 
 /** Every network call is listed in a visible log: time, host, path, status. No bodies are kept. */

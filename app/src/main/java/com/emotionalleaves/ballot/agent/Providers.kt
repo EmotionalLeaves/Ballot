@@ -3,6 +3,7 @@ package com.emotionalleaves.ballot.agent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.add
@@ -20,17 +21,48 @@ import java.io.IOException
 
 private val JSON_TYPE = "application/json".toMediaType()
 
-private suspend fun post(url: String, headers: Map<String, String>, body: String): Pair<Int, String> = withContext(Dispatchers.IO) {
-    val b = Request.Builder().url(url).post(body.toRequestBody(JSON_TYPE))
-    headers.forEach { (k, v) -> b.header(k, v) }
+private data class HttpReply(val status: Int, val body: String, val retryAfterSec: Int)
+
+private suspend fun send(req: Request): HttpReply = withContext(Dispatchers.IO) {
     try {
-        Http.client.newCall(b.build()).execute().use { r -> r.code to (r.body?.string() ?: "") }
+        Http.client.newCall(req).execute().use { r ->
+            HttpReply(r.code, r.body?.string() ?: "", parseRetryAfter(r.header("Retry-After")))
+        }
     } catch (e: IOException) {
         throw LlmException("Network problem: ${e.message ?: "no connection"}", retryable = true)
     }
 }
 
-private fun plainError(status: Int, body: String): LlmException {
+private suspend fun post(url: String, headers: Map<String, String>, body: String): HttpReply {
+    val b = Request.Builder().url(url).post(body.toRequestBody(JSON_TYPE))
+    headers.forEach { (k, v) -> b.header(k, v) }
+    return send(b.build())
+}
+
+private suspend fun get(url: String, headers: Map<String, String>): HttpReply {
+    val b = Request.Builder().url(url).get()
+    headers.forEach { (k, v) -> b.header(k, v) }
+    return send(b.build())
+}
+
+/** Retry-After in seconds; HTTP-date values and junk count as unknown (0). */
+fun parseRetryAfter(v: String?): Int = v?.trim()?.toDoubleOrNull()?.let { kotlin.math.ceil(it).toInt().coerceIn(0, 3600) } ?: 0
+
+/** Model ids from an OpenAI-style or Anthropic-style list response. */
+fun parseModelIds(body: String): List<String> = runCatching {
+    val o = BallotJson.parseToJsonElement(body).jsonObject
+    (o.arr("data") ?: o.arr("models") ?: JsonArray(emptyList())).mapNotNull { (it as? JsonObject)?.let { m -> m.str("id") ?: m.str("name") } }
+        .map { it.removePrefix("models/") }
+}.getOrDefault(emptyList())
+
+/** Builds the client for a service. Everything except Claude speaks the OpenAI chat format. */
+fun clientFor(providerId: String, customOpenAiBase: String = ""): LlmClient = when (providerId) {
+    "anthropic" -> AnthropicClient()
+    "openai" -> OpenAiClient(customOpenAiBase.ifBlank { Providers.openAi.baseUrl })
+    else -> OpenAiClient(Providers.byId(providerId).baseUrl)
+}
+
+private fun plainError(status: Int, body: String, retryAfterSec: Int = 0): LlmException {
     val msg = runCatching { BallotJson.parseToJsonElement(body).jsonObject.obj("error")?.str("message") }.getOrNull()
     val friendly = when (status) {
         401 -> "The API key was rejected. Check it in Settings."
@@ -40,7 +72,7 @@ private fun plainError(status: Int, body: String): LlmException {
         in 500..599 -> "The AI provider had an error."
         else -> "The AI provider returned an error ($status)."
     }
-    return LlmException(if (msg != null) "$friendly ($msg)" else friendly, retryable = status == 429 || status >= 500, status = status)
+    return LlmException(if (msg != null) "$friendly ($msg)" else friendly, retryable = status == 429 || status >= 500, status = status, retryAfterSec = retryAfterSec)
 }
 
 /** Anthropic Messages API with tool calling and the server-side web search tool. */
@@ -82,11 +114,12 @@ class AnthropicClient(private val baseUrl: String = "https://api.anthropic.com/v
                 }
             }
         }
-        val (status, text) = post("$baseUrl/messages", mapOf(
+        val reply = post("$baseUrl/messages", mapOf(
             "x-api-key" to apiKey,
             "anthropic-version" to "2023-06-01",
         ), body.toString())
-        if (status !in 200..299) throw plainError(status, text)
+        val text = reply.body
+        if (reply.status !in 200..299) throw plainError(reply.status, text, reply.retryAfterSec)
         val o = runCatching { BallotJson.parseToJsonElement(text).jsonObject }.getOrElse {
             throw LlmException("The AI provider sent a reply that could not be read.", retryable = true)
         }
@@ -114,6 +147,12 @@ class AnthropicClient(private val baseUrl: String = "https://api.anthropic.com/v
         )
     }
 
+    override suspend fun listModels(apiKey: String): List<String> {
+        val r = get("$baseUrl/models?limit=100", mapOf("x-api-key" to apiKey, "anthropic-version" to "2023-06-01"))
+        if (r.status !in 200..299) throw plainError(r.status, r.body, r.retryAfterSec)
+        return parseModelIds(r.body)
+    }
+
     private fun encode(m: LlmMessage): JsonObject = buildJsonObject {
         put("role", m.role)
         put("content", buildJsonArray {
@@ -137,6 +176,12 @@ class AnthropicClient(private val baseUrl: String = "https://api.anthropic.com/v
 class OpenAiClient(private val baseUrl: String) : LlmClient {
     override val supportsWebSearch = false
 
+    override suspend fun listModels(apiKey: String): List<String> {
+        val r = get("${baseUrl.trimEnd('/')}/models", mapOf("Authorization" to "Bearer $apiKey"))
+        if (r.status !in 200..299) throw plainError(r.status, r.body, r.retryAfterSec)
+        return parseModelIds(r.body)
+    }
+
     override suspend fun test(apiKey: String, model: String): String {
         val r = complete(apiKey, LlmRequest(model = model, system = "Reply with the single word: ready",
             messages = listOf(LlmMessage("user", listOf(Block.Text("Test")))), maxTokens = 16))
@@ -156,8 +201,10 @@ class OpenAiClient(private val baseUrl: String) : LlmClient {
                 } else {
                     addJsonObject {
                         put("role", m.role)
-                        put("content", m.content.filterIsInstance<Block.Text>().joinToString("\n") { it.text })
+                        val joined = m.content.filterIsInstance<Block.Text>().joinToString("\n") { it.text }
                         val uses = m.content.filterIsInstance<Block.ToolUse>()
+                        // Some services reject empty text beside tool calls; null is the standard form.
+                        if (joined.isEmpty() && uses.isNotEmpty()) put("content", JsonNull) else put("content", joined)
                         if (uses.isNotEmpty()) putJsonArray("tool_calls") {
                             uses.forEach { u ->
                                 addJsonObject {
@@ -183,8 +230,9 @@ class OpenAiClient(private val baseUrl: String) : LlmClient {
                 }
             }
         }
-        val (status, text) = post("${baseUrl.trimEnd('/')}/chat/completions", mapOf("Authorization" to "Bearer $apiKey"), body.toString())
-        if (status !in 200..299) throw plainError(status, text)
+        val reply = post("${baseUrl.trimEnd('/')}/chat/completions", mapOf("Authorization" to "Bearer $apiKey", "X-Title" to "Ballot"), body.toString())
+        val text = reply.body
+        if (reply.status !in 200..299) throw plainError(reply.status, text, reply.retryAfterSec)
         val o = runCatching { BallotJson.parseToJsonElement(text).jsonObject }.getOrElse {
             throw LlmException("The AI provider sent a reply that could not be read.", retryable = true)
         }

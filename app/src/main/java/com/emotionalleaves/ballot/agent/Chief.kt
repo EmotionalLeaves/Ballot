@@ -13,6 +13,7 @@ import com.emotionalleaves.ballot.data.SecretStore
 import com.emotionalleaves.ballot.data.SettingsStore
 import com.emotionalleaves.ballot.data.SourceRecord
 import com.emotionalleaves.ballot.data.UsageRecord
+import kotlinx.coroutines.delay
 import kotlinx.serialization.builtins.ListSerializer
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -101,42 +102,94 @@ $brief
         return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
-    private fun client(s: AppSettings): LlmClient = if (s.provider == "openai") OpenAiClient(s.openAiBaseUrl) else AnthropicClient()
-
     private fun monthStart(): Long = LocalDate.now().withDayOfMonth(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
     suspend fun spendThisMonthMicros(): Long = case.db.usage().spendSince(monthStart())
 
-    /** One request with a timeout, a retry and the fallback model. Records usage against the monthly cap. */
+    /** One service and model to try. */
+    data class Route(val preset: ProviderPreset, val model: String)
+
+    /** The model chosen for a service: your pick, else the preset default. */
+    fun modelFor(s: AppSettings, p: ProviderPreset): String {
+        Providers.parseModels(s.providerModels)[p.id]?.let { return it }
+        if (p.id == s.provider && (p.id == "anthropic" || p.id == "openai") && s.model.isNotBlank()) return s.model
+        return p.defaultModel
+    }
+
+    /**
+     * The order Ballot tries services in: your main one (and its lighter model), then every other
+     * service you have a key for, free ones first. "Free only" drops anything that could cost money.
+     */
+    fun routes(s: AppSettings): List<Route> {
+        val primary = Providers.byId(s.provider)
+        val out = mutableListOf<Route>()
+        if (secrets.hasKey(primary.id)) {
+            val m = modelFor(s, primary)
+            out += Route(primary, m)
+            val light = if (primary.id == "anthropic" || primary.id == "openai") s.fallbackModel.ifBlank { primary.fallbackModel } else primary.fallbackModel
+            if (light.isNotBlank() && light != m) out += Route(primary, light)
+        }
+        if (s.useBackups || out.isEmpty()) {
+            Providers.all.filter { it.id != primary.id && secrets.hasKey(it.id) }
+                .sortedByDescending { it.free }
+                .forEach { out += Route(it, modelFor(s, it)) }
+        }
+        return if (s.freeOnly) out.filter { Providers.isFreeCall(it.preset, it.model) } else out
+    }
+
+    /** Requests made today per service, for the meter in Settings. */
+    suspend fun requestsToday(): Map<String, Int> {
+        val start = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        return case.db.usage().all().filter { it.at >= start }.groupingBy { it.model.substringBefore(':', "anthropic") }.eachCount()
+    }
+
+    /**
+     * One request with a timeout, a short wait when a free tier says "slow down", and failover
+     * across your services. Records usage; paid calls count against the monthly cap.
+     */
     private suspend fun call(s: AppSettings, req: LlmRequest): LlmResponse {
-        val key = secrets.keyFor(s.provider)
-        val c = client(s)
+        val routes = routes(s)
+        if (routes.isEmpty()) throw LlmException(if (s.freeOnly) "No free AI service is set up. Add a free key in Settings." else "No AI key yet. Add one in Settings.", retryable = false)
         val capMicros = s.monthlyCapCents * 10_000L
-        if (capMicros > 0 && spendThisMonthMicros() >= capMicros) throw LlmException("The monthly spend cap of $${s.monthlyCapCents / 100} is reached. Raise it in Settings or wait for next month.", retryable = false)
-        val attempts = listOf(req.model, req.model, s.fallbackModel).filter { it.isNotBlank() }
         var last: LlmException? = null
-        for ((i, model) in attempts.withIndex()) {
-            try {
-                val r = c.complete(key, req.copy(model = model, webSearch = req.webSearch && c.supportsWebSearch))
-                val cost = r.usage.inputTokens * s.inputMicrosPerMTok / 1_000_000 + r.usage.outputTokens * s.outputMicrosPerMTok / 1_000_000 + r.usage.searches * s.searchMicrosEach
-                case.db.usage().insert(UsageRecord(model = model, inputTokens = r.usage.inputTokens, outputTokens = r.usage.outputTokens, searches = r.usage.searches, costMicros = cost))
-                if (i == attempts.lastIndex && i > 0) case.audit("app", "Used fallback model", input = model)
-                return r
-            } catch (e: LlmException) {
-                last = e
-                if (!e.retryable) throw e
+        var anyRetryable = false
+        for ((i, route) in routes.withIndex()) {
+            val free = Providers.isFreeCall(route.preset, route.model)
+            if (!free && capMicros > 0 && spendThisMonthMicros() >= capMicros) {
+                last = LlmException("The monthly spend cap of $${s.monthlyCapCents / 100} is reached. Raise it in Settings, or add a free service.", retryable = false)
+                continue
+            }
+            val c = clientFor(route.preset.id, s.openAiBaseUrl)
+            val tools = if (c.supportsWebSearch) req.tools.filter { it.name != "search_web" } else req.tools
+            val r2 = req.copy(model = route.model, tools = tools, webSearch = req.webSearch && c.supportsWebSearch)
+            var waited = false
+            while (true) {
+                try {
+                    val r = c.complete(secrets.keyFor(route.preset.id), r2)
+                    val cost = if (free) 0L else r.usage.inputTokens * s.inputMicrosPerMTok / 1_000_000 + r.usage.outputTokens * s.outputMicrosPerMTok / 1_000_000 + r.usage.searches * s.searchMicrosEach
+                    case.db.usage().insert(UsageRecord(model = "${route.preset.id}:${route.model}", inputTokens = r.usage.inputTokens, outputTokens = r.usage.outputTokens, searches = r.usage.searches, costMicros = cost))
+                    if (i > 0) case.audit("app", "Used backup AI service", input = "${route.preset.name} · ${route.model}", outcome = last?.message ?: "")
+                    return r
+                } catch (e: LlmException) {
+                    last = e
+                    anyRetryable = anyRetryable || e.retryable
+                    // A free tier asking for a short pause gets one; anything longer moves to the next service.
+                    if (e.status == 429 && !waited && e.retryAfterSec in 1..20) { waited = true; delay(e.retryAfterSec * 1000L); continue }
+                    break
+                }
             }
         }
-        throw last ?: LlmException("The AI provider did not answer.", retryable = true)
+        val e = last ?: LlmException("The AI service did not answer.", retryable = true)
+        throw if (routes.size > 1) LlmException("${e.message} (tried ${routes.size} options)", retryable = anyRetryable, status = e.status) else e
     }
 
     /** Plain request/response with no tools, used for quizzes, scoring and mock rooms. */
     suspend fun simple(system: String, messages: List<LlmMessage>, maxTokens: Int = 1500): String {
         val s = settingsStore.get()
-        return call(s, LlmRequest(model = s.model, system = system, messages = messages, maxTokens = maxTokens)).text
+        return call(s, LlmRequest(model = "", system = system, messages = messages, maxTokens = maxTokens)).text
     }
 
-    suspend fun hasKey(): Boolean = secrets.keyFor(settingsStore.get().provider).isNotBlank()
+    suspend fun hasKey(): Boolean = routes(settingsStore.get()).isNotEmpty()
 
     /**
      * Talk to the Chief. Writes both sides to the chat thread and every tool call to the audit log.
@@ -176,7 +229,7 @@ $brief
             var steps = 0
             while (steps < MAX_STEPS) {
                 steps++
-                val resp = call(s, LlmRequest(model = s.model, system = system, messages = messages, tools = tools.specs(), webSearch = webSearch, maxTokens = 2048))
+                val resp = call(s, LlmRequest(model = "", system = system, messages = messages, tools = tools.specs(), webSearch = webSearch, maxTokens = 2048))
                 // Server-side web search results: store each cited page as a source record.
                 val annotated = resp.content.map { b ->
                     if (b is Block.Text && b.citations.isNotEmpty()) {
@@ -218,7 +271,7 @@ $brief
         if (!g.ok) {
             // One repair pass: cite a stored source or drop the rule and say whom to call.
             val repaired = runCatching {
-                call(s, LlmRequest(model = s.model, system = system, maxTokens = 1200, messages = mergeSameRole(messages + listOf(
+                call(s, LlmRequest(model = "", system = system, maxTokens = 1200, messages = mergeSameRole(messages + listOf(
                     LlmMessage("assistant", listOf(Block.Text(text))),
                     LlmMessage("user", listOf(Block.Text("Check failed: ${g.reason}. Rewrite your last answer. Either cite a stored source as [S<id>] for every election rule, deadline or requirement, or remove it and say who to call to confirm. No tools."))),
                 )))).text

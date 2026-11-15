@@ -18,3 +18,7 @@ One line per loop iteration, newest last.
 - c1 p1 t1 i8 `system_check_and_update`: Requests queued offline in an earlier session now run when the app next starts with a connection
 - c1 p1 t1 i9 `system_check_and_update`: Opening a vault file decrypts off the main thread and can no longer crash the app; a bad recording no longer crashes playback
 - c1 p1 t1 i10 `system_check_and_update`: Win numbers on race cards and in HQ use your safety margin from Settings instead of a fixed 10%
+
+## Free AI rounds (requested 2026-11-14)
+
+- Round 1: seven AI services built in (Gemini, Groq, OpenRouter free, Cerebras, Mistral free; Claude, OpenAI paid), one key per service, key detection from the pasted text, live model lists, free calls cost nothing, failover across your services with a short wait on free-tier rate limits, "free only" mode.

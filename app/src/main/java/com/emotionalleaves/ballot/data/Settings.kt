@@ -66,6 +66,12 @@ data class AppSettings(
     val briefMinuteOfDay: Int = 16 * 60 + 15,
     val lastSnapshotDay: Long = 0,
     val textScale: Float = 1f,
+    /** Chosen model per service, "gemini=gemini-2.5-flash;groq=openai/gpt-oss-120b". */
+    val providerModels: String = "",
+    /** Only use free services and free models. */
+    val freeOnly: Boolean = false,
+    /** Try other services you have keys for when the main one is busy or down. */
+    val useBackups: Boolean = true,
 )
 
 class SettingsStore(private val context: Context) {
@@ -95,6 +101,9 @@ class SettingsStore(private val context: Context) {
         val briefMin = intPreferencesKey("brief_min")
         val snapDay = longPreferencesKey("snap_day")
         val textScale = androidx.datastore.preferences.core.floatPreferencesKey("text_scale")
+        val providerModels = stringPreferencesKey("provider_models")
+        val freeOnly = booleanPreferencesKey("free_only")
+        val useBackups = booleanPreferencesKey("use_backups")
     }
 
     val flow: Flow<AppSettings> = context.dataStore.data.map { p ->
@@ -125,6 +134,9 @@ class SettingsStore(private val context: Context) {
             briefMinuteOfDay = p[K.briefMin] ?: d.briefMinuteOfDay,
             lastSnapshotDay = p[K.snapDay] ?: d.lastSnapshotDay,
             textScale = p[K.textScale] ?: d.textScale,
+            providerModels = p[K.providerModels] ?: d.providerModels,
+            freeOnly = p[K.freeOnly] ?: d.freeOnly,
+            useBackups = p[K.useBackups] ?: d.useBackups,
         )
     }
 
@@ -142,6 +154,7 @@ class SettingsStore(private val context: Context) {
             p[K.margin] = n.safetyMarginPct; p[K.support] = n.supportRatePct; p[K.cph] = n.contactsPerHour
             p[K.volHours] = n.volunteerHoursPerWeek; p[K.briefMin] = n.briefMinuteOfDay; p[K.snapDay] = n.lastSnapshotDay
             p[K.textScale] = n.textScale
+            p[K.providerModels] = n.providerModels; p[K.freeOnly] = n.freeOnly; p[K.useBackups] = n.useBackups
         }
     }
 
@@ -169,7 +182,24 @@ class SecretStore(context: Context) {
         get() = prefs.getString("openai_key", "") ?: ""
         set(v) = prefs.edit().putString("openai_key", v.trim()).apply()
 
-    fun keyFor(provider: String): String = if (provider == "openai") openAiKey else anthropicKey
+    /** One key per AI service. Claude and OpenAI keep their original storage names. */
+    fun keyFor(provider: String): String = when (provider) {
+        "anthropic" -> anthropicKey
+        "openai" -> openAiKey
+        else -> prefs.getString("key_$provider", "") ?: ""
+    }
+
+    fun setKey(provider: String, key: String) {
+        when (provider) {
+            "anthropic" -> anthropicKey = key
+            "openai" -> openAiKey = key
+            else -> prefs.edit().putString("key_$provider", key.trim()).apply()
+        }
+    }
+
+    fun removeKey(provider: String) = setKey(provider, "")
+
+    fun hasKey(provider: String) = keyFor(provider).isNotBlank()
 
     fun databasePassphrase(): ByteArray {
         val existing = prefs.getString("db_key", null)
