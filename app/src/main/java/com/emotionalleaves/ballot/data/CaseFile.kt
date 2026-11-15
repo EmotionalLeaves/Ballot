@@ -350,13 +350,15 @@ class CaseFile(val db: BallotDatabase, private val settings: SettingsStore) {
     /**
      * Keeps only what's useful (privacy rule: don't hoard). Background job chatter goes after 30 days and
      * practice-room transcripts after 90; your own conversation with the Chief and the audit log are kept.
-     * Spending records go after 13 months, once no monthly cap can need them.
+     * Spending records go after 13 months, once no monthly cap can need them; briefing items after 60 days.
      */
     suspend fun prune(at: Long = now()): Int {
         val day = 86_400_000L
         var n = db.chat().deleteOlder("background", at - 30 * day)
         db.chat().threads().filter { it.startsWith("room:") }.forEach { n += db.chat().deleteOlder(it, at - 90 * day) }
         n += db.usage().deleteOlder(at - 400 * day)
+        // Local news goes stale: briefing items older than 60 days go (any action you added is already on your plan).
+        n += db.brief().deleteOlder(at / day - 60)
         // Door-knocking notes are about voters, not you: 90 days after election day only the totals are kept, as a lesson.
         val election = profile().electionDateEpochDay
         if (election > 0 && at / day > election + 90) {

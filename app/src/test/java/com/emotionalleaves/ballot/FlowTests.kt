@@ -423,5 +423,13 @@ class FlowTests {
         assertTrue(summary, summary.contains("1 people"))
         assertTrue(runCatching { com.emotionalleaves.ballot.data.Backup.verify(file, "wrong pass".toCharArray()) }.isFailure)
     }
+
+    @Test fun oldBriefingItemsArePruned() = runTest {
+        val at = com.emotionalleaves.ballot.data.now(); val today = at / 86_400_000L
+        db.brief().upsert(com.emotionalleaves.ballot.data.BriefItem(dayEpoch = today - 90, kind = "NEWS", title = "old"))
+        db.brief().upsert(com.emotionalleaves.ballot.data.BriefItem(dayEpoch = today, kind = "NEWS", title = "new"))
+        case.prune(at)
+        assertEquals(listOf("new"), db.brief().all().map { it.title })
+    }
 }
 
