@@ -83,7 +83,7 @@ val PAGES: Map<String, String> = linkedMapOf(
     "home" to "Today", "path" to "Plan", "network" to "People", "compass" to "Who you are", "ground" to "Offices and races",
     "field" to "Meetings and events", "briefing" to "Local briefing", "gym" to "Practice", "studio" to "Drafts",
     "approvals" to "Waiting for your OK", "vault" to "Vault", "casefile" to "Case file", "review" to "Weekly review",
-    "hq" to "Campaign HQ", "settings" to "Settings",
+    "hq" to "Campaign HQ", "settings" to "Settings", "quiz" to "the town quiz", "gonogo" to "the run-or-wait check",
 )
 
 /** The typed tools. Each one is a real function in the app. */

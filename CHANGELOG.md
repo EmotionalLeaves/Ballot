@@ -92,3 +92,4 @@ One line per loop iteration, newest last.
 - c1 p2 t2 i1 `establish_single_access_point`: New open_page tool: asking the Chief to go anywhere (drafts, vault, case file, weekly review, settings) gives a one-tap card that opens it
 - c1 p2 t2 i2 `establish_single_access_point`: New change_setting tool: free-only (on only), backups, theme, text size, brief time and sleep hours change by asking; spending, autonomy and the lock stay tap-only
 - c1 p2 t2 i3 `establish_single_access_point`: New run_job tool: 'build my brief now', 'check the rule pages' and 'take a snapshot' work by asking the Chief
+- c1 p2 t2 i4 `establish_single_access_point`: The town quiz and the run-or-wait check open by asking the Chief ('quiz me on my town', 'am I ready to run?')
