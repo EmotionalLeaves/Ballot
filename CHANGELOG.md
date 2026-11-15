@@ -123,3 +123,4 @@ One line per loop iteration, newest last.
 - c1 p4 t1 i4 `test_core_functionality`: Flow test: completing a task by the id the brief shows ('T12') works
 - c1 p4 t1 i5 `test_core_functionality`: Flow test: the Chief can't book an event inside work hours but can in the evening
 - c1 p4 t1 i6 `test_core_functionality`: Flow test: someone the Chief adds can be found again by how you met them
+- c1 p4 t1 i7 `test_core_functionality`: Flow test: every page in the app opens by asking the Chief
