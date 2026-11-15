@@ -112,6 +112,7 @@ fun KeyConnector(makeMain: Boolean = true, onConnected: (String) -> Unit = {}) {
     var ok by remember { mutableStateOf(false) }
     var working by remember { mutableStateOf(false) }
     var refresh by remember { mutableIntStateOf(0) }
+    var choosing by remember { mutableStateOf(false) }
 
     fun accept(text: String) {
         val clean = Providers.cleanKey(text)
@@ -128,10 +129,12 @@ fun KeyConnector(makeMain: Boolean = true, onConnected: (String) -> Unit = {}) {
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Kicker("1 · Pick a service")
-        Providers.all.forEach { p ->
+        // Only the chosen service shows by default, so the steps are on screen without scrolling.
+        val shown = if (choosing) Providers.all else listOf(selected)
+        shown.forEach { p ->
             val on = p.id == selected.id
             val connected = remember(refresh, p.id) { g.secrets.hasKey(p.id) }
-            Panel(accent = on, onClick = { selected = p; status = ""; ok = false }, padding = 12.dp) {
+            Panel(accent = on, onClick = { selected = p; status = ""; ok = false; choosing = false }, padding = 12.dp) {
                 val ink = if (on) com.emotionalleaves.ballot.ui.theme.Ink else c.fg
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(p.name.uppercase(), style = MaterialTheme.typography.titleMedium, color = ink, modifier = Modifier.weight(1f))
@@ -141,6 +144,7 @@ fun KeyConnector(makeMain: Boolean = true, onConnected: (String) -> Unit = {}) {
                 Text(p.tagline + if (!p.needsCard) " No card." else "", style = MaterialTheme.typography.bodyMedium, color = ink)
             }
         }
+        if (!choosing) LinkButton("Pick a different service", onClick = { choosing = true })
         Panel {
             Kicker("2 · Get the key from ${selected.name}")
             selected.steps.forEachIndexed { i, step ->

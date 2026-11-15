@@ -41,3 +41,4 @@ One line per loop iteration, newest last.
 - c1 p1 t1 i23 `system_check_and_update`: Clearing the Chief conversation asks first and says that everything filed stays in the case file
 - Fix (owner report): new AQ. Gemini keys did not work; Gemini now uses its native API. Release 0.2.2.
 - c1 p1 t1 i24 `system_check_and_update`: When the Chief has no AI service it now offers a one-tap card straight to AI services in Settings
+- c1 p1 t1 i25 `system_check_and_update`: Get-a-key flow shows the chosen service and its steps on one screen; the full list of services opens only when you ask
