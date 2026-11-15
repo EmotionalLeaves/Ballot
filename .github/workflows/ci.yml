@@ -25,6 +25,9 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Lint, unit tests, agent evals, migrations, compile
         run: ./gradlew --no-daemon --stacktrace lintDebug testDebugUnitTest assembleDebug 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
+      - name: Print exported Room schemas (so they can be committed for migration tests)
+        if: success()
+        run: for f in app/schemas/*/*.json; do echo "=== SCHEMA $f"; cat "$f"; echo "=== END SCHEMA"; done
       - name: Summarise errors
         if: failure()
         run: |
