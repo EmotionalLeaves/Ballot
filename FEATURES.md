@@ -69,3 +69,14 @@ Checked each phase. Controls may move or merge; a function is only removed when 
 - [x] Crash reports on device with copy; visible network log
 - [x] Combined pages with tabs: What's on locally (meetings, briefing), Your voice (who you are, drafts), Your town (offices, town quiz), Records (vault, case file), Your plan (plan, weekly review, run or wait)
 - [x] Calm theme (light default, dark for night), text scaling, 48dp tap targets, screen-reader labels, collapsible Settings sections, grouped More menu
+
+## Added in cycle 1, phase 6 (50 rounds)
+- [x] Works fully without AI: the Chief answers by finding the right page and card in plain code; town quiz, values interview, templates, prep cards, claim finder and gap list are built from the case file
+- [x] Case-file search (More), week-ahead panel and Sunday notification, check-ins panel, duplicate-contact merge, delete contact or office
+- [x] Event reminders outside quiet hours; notifications open the right screen; notifications-off and crash notices on Today
+- [x] Money: raised, spent and cash on hand (in-kind counted as raised, not cash), limit checks, CSV
+- [x] Deadlines added by hand, marked done, shown as passed; stale approvals expire; old chat, usage and brief items pruned on a schedule; backup reminder
+- [x] Backups include settings (never keys or PIN), are verified after export, imports are all-or-nothing; restores keep an undo copy
+- [x] Rule re-check ignores clock and copyright noise, so only real page changes are flagged
+- [x] Locale-aware dates and times; phone-formatted times parse
+- [x] Calmer screens: smaller deadline words, three-column money totals, one highlighted empty cabinet seat
