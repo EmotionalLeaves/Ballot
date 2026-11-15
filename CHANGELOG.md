@@ -103,3 +103,4 @@ One line per loop iteration, newest last.
 - c1 p3 t2 i5 `apply_professional_formatting`: Vault's rules and self-audit empty states say what the button does and where the information comes from
 - c1 p3 t2 i6 `apply_professional_formatting`: Case file: each tab's empty state says what will appear there and how it gets filled, instead of 'Nothing here yet'
 - c1 p3 t2 i7 `apply_professional_formatting`: Today's help walkthrough names the new 'How and why' button instead of the old 'Why this?'
+- c1 p3 t2 i8 `apply_professional_formatting`: Plan: decision and lesson labels read 'Go no go' and 'Event' instead of GO_NO_GO and EVENT, and the memo hint names the Plan tab

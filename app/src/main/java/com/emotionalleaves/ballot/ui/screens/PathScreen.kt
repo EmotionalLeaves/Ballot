@@ -150,7 +150,7 @@ fun PathScreen(nav: NavHostController) {
         if (showRecord) items(decisions.size) { i ->
             val d = decisions[i]
             Panel {
-                Kicker("${d.kind.replace('_', ' ')} · ${shortDate(d.at)}")
+                Kicker("${pretty(d.kind)} · ${shortDate(d.at)}")
                 Text(d.question, style = MaterialTheme.typography.titleMedium, color = c.fg)
                 if (d.choice.isNotBlank()) Body("Choice: ${d.choice}")
                 if (d.reasoning.isNotBlank()) Small(d.reasoning)
@@ -163,7 +163,7 @@ fun PathScreen(nav: NavHostController) {
         if (showRecord && lessons.isEmpty()) item { EmptyNote("After every event and every week, one lesson goes here.") }
         if (showRecord) items(lessons.take(20).size) { i ->
             val l = lessons[i]
-            Panel { Kicker("${l.kind} · ${shortDate(l.at)}"); Body(l.what); if (l.change.isNotBlank()) Small("Change: ${l.change}") }
+            Panel { Kicker("${pretty(l.kind)} · ${shortDate(l.at)}"); Body(l.what); if (l.change.isNotBlank()) Small("Change: ${l.change}") }
         }
     }
 }
@@ -298,7 +298,7 @@ fun GoNoGoScreen(nav: NavHostController) {
                     saved = true
                 }
             })
-            Small("Then mark the memo 'I agree' on the Path screen.")
+            Small("Then mark the memo 'I agree' on the Plan tab.")
         }
     }
 }

@@ -100,6 +100,9 @@ fun ReplyPanel(onOpenChief: () -> Unit) {
     }
 }
 
+/** A stored code like GO_NO_GO shown as "Go no go". */
+fun pretty(code: String): String = code.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() }
+
 fun day(epochDay: Long): String = if (epochDay <= 0) "—" else LocalDate.ofEpochDay(epochDay).format(DateTimeFormatter.ofPattern("EEE d MMM yyyy"))
 
 fun dateTime(millis: Long): String = if (millis <= 0) "—" else

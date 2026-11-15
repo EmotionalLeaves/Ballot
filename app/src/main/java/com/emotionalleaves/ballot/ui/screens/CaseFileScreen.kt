@@ -73,7 +73,7 @@ fun CaseFileScreen(nav: NavHostController) {
         "Plan" -> tasks.map { t -> Entry("Task · stage ${t.stage} · ${if (t.done) "done" else "open"} · score ${t.score}", t.title, t.why, "STATED",
             { scope.launch { g.db.tasks().delete(t) } }, { editingTask = t }) } +
             decisions.map { d -> Entry("Decision · ${shortDate(d.at)}", d.question, "${d.choice}\n${d.reasoning}".trim(), "STATED", { scope.launch { g.db.decisions().delete(d) } }, null) }
-        "Lessons" -> lessons.map { l -> Entry("${l.kind} · ${shortDate(l.at)}", l.what, l.change, "STATED", { scope.launch { g.db.lessons().delete(l) } }, null) }
+        "Lessons" -> lessons.map { l -> Entry("${pretty(l.kind)} · ${shortDate(l.at)}", l.what, l.change, "STATED", { scope.launch { g.db.lessons().delete(l) } }, null) }
         else -> audit.map { a -> Entry("${dateTime(a.at)} · ${a.actor}${if (a.approvedBy.isNotBlank()) " · approved by ${a.approvedBy}" else ""}", "${a.action}${if (a.tool.isNotBlank()) " · ${a.tool}" else ""}",
             listOf(a.input.take(200), a.outcome.take(200), a.sources).filter { it.isNotBlank() }.joinToString("\n"), "STATED", null, null) }
     }
