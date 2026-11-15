@@ -92,17 +92,17 @@ fun GroundScreen(nav: NavHostController) {
         "Score races ranks every office on 0 to 100 and shows the working. The Chief recommends a target, a stretch and a fallback.",
         "The win number calculator turns turnout into doors and hours.")) {
         item { BusyBar() }
+        // By hand first, since it always works; the Chief's search second.
+        item { AddOfficeByHand() }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                PosterButton("Find my offices with the Chief", onClick = {
+                PosterButton("Find my offices with the Chief", primary = false, onClick = {
                     askChief(g, "Find every office that represents me (city, county, school district, state, federal) from official pages. Save them with find_offices, " +
                         "each with its official link and source. Local and part-time offices first. Define each body in one plain sentence.", "finding offices")
                 })
-                PosterButton("Score races", primary = false, enabled = offices.isNotEmpty(), onClick = { scoreRaces() })
+                PosterButton("Score races", enabled = offices.isNotEmpty(), onClick = { scoreRaces() })
             }
         }
-        // Adding an office by hand needs no AI: a city website, a ballot or a phone call to the clerk is enough.
-        item { AddOfficeByHand() }
         item { ReplyPanel { nav.navigate(Routes.CHIEF) } }
         rec?.let { r ->
             item {
