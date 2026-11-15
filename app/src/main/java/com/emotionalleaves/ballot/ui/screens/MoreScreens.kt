@@ -118,8 +118,8 @@ fun ApprovalsScreen(nav: NavHostController) {
     val c = LocalBallotColors.current
     Screen("Approvals", kicker = "Asks first, every time", onBack = { nav.popBackStack() }, walkthrough = listOf(
         "Anything sent, posted, filed, signed or spent in your name waits here.",
-        "For messages: edit if you like, tap APPROVE AND SEND, and your own messaging app opens. You press send.",
-        "For routine items you moved to 'asks first' with the autonomy dial: APPROVE runs them.",
+        "For messages: edit if you like, tap Approve and send, and your own messaging app opens. You press send.",
+        "For routine items you moved to 'asks first' with the autonomy dial: Approve runs them.",
         "Voice input that would change money, deadlines or contacts is confirmed here first.")) {
         if (pending.isEmpty()) item { EmptyNote("Nothing waiting. Anything the Chief prepares in your name will appear here first.") }
         items(pending.size) { i ->

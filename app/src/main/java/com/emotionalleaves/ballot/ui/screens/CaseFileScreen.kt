@@ -67,7 +67,7 @@ fun CaseFileScreen(nav: NavHostController) {
         "Ground" -> offices.map { o -> Entry("Office · ${shortDate(o.updatedAt)} · ${o.source}", "${o.body} ${o.district}", o.powers.ifBlank { o.officialUrl }, o.confidence,
             { scope.launch { g.db.offices().delete(o) } }, { nav.navigate(Routes.GROUND) }) } +
             rules.map { r -> Entry("Rule · checked ${shortDate(r.lastChecked)}", r.jurisdiction, r.summary, r.status, { scope.launch { g.db.rules().delete(r) } }, { openUrl(ctx, r.officialUrl) }) }
-        "Sources" -> sources.map { s -> Entry("S${s.id} · ${dateTime(s.fetchedAt)}${if (s.injectionFlagged) " · INSTRUCTIONS FLAGGED" else ""}", s.title.ifBlank { s.url }, s.url, s.label, null, { openUrl(ctx, s.url) }) }
+        "Sources" -> sources.map { s -> Entry("S${s.id} · ${dateTime(s.fetchedAt)}${if (s.injectionFlagged) " · contains instructions (ignored)" else ""}", s.title.ifBlank { s.url }, s.url, s.label, null, { openUrl(ctx, s.url) }) }
         "Record" -> positions.filter { it.statedPubliclyAt > 0 }.map { p -> Entry("Said publicly ${shortDate(p.statedPubliclyAt)}", p.issue, p.stance, "STATED", null) { nav.navigate(Routes.COMPASS) } } +
             docs.filter { it.approved }.map { d -> Entry("Approved ${docLabel(d.type)} · ${shortDate(d.updatedAt)}", d.title, d.body.take(300), d.confidence, null) { nav.navigate(Routes.document(d.id)) } }
         "Plan" -> tasks.map { t -> Entry("Task · stage ${t.stage} · ${if (t.done) "done" else "open"} · score ${t.score}", t.title, t.why, "STATED",
