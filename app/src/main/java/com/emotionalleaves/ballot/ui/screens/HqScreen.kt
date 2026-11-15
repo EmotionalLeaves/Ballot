@@ -76,7 +76,7 @@ fun HqScreen(nav: NavHostController) {
 
     LaunchedEffect(unlocked) {
         if (unlocked) launchItems.forEach { (title, key) ->
-            if (g.db.tasks().countTemplate(key) == 0) g.db.tasks().upsert(Task(stage = 7, title = title, templateKey = key, legal = key.endsWith("filing"),
+            g.case.addTaskOnce(Task(stage = 7, title = title, templateKey = key, legal = key.endsWith("filing"),
                 why = "Part of the launch checklist.", doneLooksLike = "Done, with any receipt saved to the Vault.", module = "hq", sizeMinutes = 45, highEffort = true))
         }
     }
@@ -215,7 +215,7 @@ private fun CallTime(list: List<com.emotionalleaves.ballot.data.Contact>, reason
                             "message" to kotlinx.serialization.json.JsonPrimitive("Thank you so much, ${p.name.substringBefore(' ')}, for ${if (o == "Gave") "your gift of" else "pledging"} ${dollars(cents)}. " +
                                 "It means a lot and it goes straight into the campaign. [One personal line.]"))),
                             com.emotionalleaves.ballot.agent.ToolCtx(g.case, g.settings.get()))
-                        if (o == "Gave" && g.db.tasks().countTemplate("donor.${p.id}") == 0) g.db.tasks().upsert(com.emotionalleaves.ballot.data.Task(stage = g.case.profile().stage,
+                        if (o == "Gave") g.case.addTaskOnce(com.emotionalleaves.ballot.data.Task(stage = g.case.profile().stage,
                             title = "Get ${p.name}'s donor details", why = "Many places require a donor's address, employer and occupation on the report. Check your rules in the Vault.",
                             doneLooksLike = "Details added to the gift in the Vault's money ledger.", goodEnough = "Ask in the thank-you.", module = "network", sizeMinutes = 5,
                             templateKey = "donor.${p.id}"))

@@ -104,10 +104,10 @@ fun BriefingScreen(nav: NavHostController) {
                         if (added) Small("On your plan.")
                         else com.emotionalleaves.ballot.ui.components.LinkButton("Add to my plan", onClick = {
                             scope.launch {
-                                if (g.db.tasks().countTemplate(key) == 0) g.db.tasks().upsert(com.emotionalleaves.ballot.data.Task(stage = g.case.profile().stage,
+                                g.case.addTaskOnce(com.emotionalleaves.ballot.data.Task(stage = g.case.profile().stage,
                                     title = b.action.take(120), why = "From your briefing: ${b.title.take(100)}", doneLooksLike = "Done, or decided not to.",
                                     goodEnough = "Showing up counts.", humanContact = true, module = "briefing", templateKey = key, sizeMinutes = 15))
-                                g.case.rescore(); added = true
+                                added = true
                             }
                         })
                     }

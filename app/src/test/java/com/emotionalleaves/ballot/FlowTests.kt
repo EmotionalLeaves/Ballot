@@ -310,5 +310,15 @@ class FlowTests {
         assertEquals(1, db.deadlines().all().size)
         assertTrue("a legal deadline inside a week gets its task", db.tasks().open().any { it.legal })
     }
+
+    @Test fun tasksWithAKeyAreAddedOnce() = runTest {
+        val t = com.emotionalleaves.ballot.data.Task(stage = 1, title = "Get donor details", templateKey = "donor.1")
+        assertNotNull(case.addTaskOnce(t))
+        assertEquals(null, case.addTaskOnce(t))
+        val again = com.emotionalleaves.ballot.data.Task(stage = 1, title = "Get to yes", templateKey = "gonogo.0")
+        val id = case.addTaskOnce(again, againOnceDone = true)!!
+        case.completeTask(db.tasks().get(id)!!)
+        assertNotNull("a check can come back once the old one is done", case.addTaskOnce(again, againOnceDone = true))
+    }
 }
 

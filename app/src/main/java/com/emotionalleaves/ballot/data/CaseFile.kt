@@ -289,5 +289,19 @@ class CaseFile(val db: BallotDatabase, private val settings: SettingsStore) {
         rescore()
         return id
     }
+
+    /**
+     * Adds a task unless one with the same templateKey exists: ever (default), or only among open tasks when
+     * [againOnceDone] is true (for checks that can come back). Rescores, so Today shows it at once.
+     */
+    suspend fun addTaskOnce(task: Task, againOnceDone: Boolean = false): Long? {
+        if (task.templateKey.isNotBlank()) {
+            val exists = if (againOnceDone) db.tasks().open().any { it.templateKey == task.templateKey } else db.tasks().countTemplate(task.templateKey) > 0
+            if (exists) return null
+        }
+        val id = db.tasks().upsert(task)
+        rescore()
+        return id
+    }
 }
 

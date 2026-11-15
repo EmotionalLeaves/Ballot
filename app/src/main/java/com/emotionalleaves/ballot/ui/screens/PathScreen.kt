@@ -338,7 +338,7 @@ fun GoNoGoScreen(nav: NavHostController) {
                     goNoGoPoints.indices.filter { answers[it] != "YES" }.forEach { i ->
                         val key = "gonogo.$i"
                         // One open "get to yes" task per point, however many times the memo is rewritten.
-                        if (g.db.tasks().open().none { it.templateKey == key }) g.db.tasks().upsert(Task(stage = g.case.profile().stage, title = "Get to yes: ${goNoGoPoints[i]}", why = "A go or no-go point is not met yet.",
+                        g.case.addTaskOnce(againOnceDone = true, task = Task(stage = g.case.profile().stage, title = "Get to yes: ${goNoGoPoints[i]}", why = "A go or no-go point is not met yet.",
                             doneLooksLike = "This point answered yes with evidence.", goodEnough = "Evidence, not certainty.", movesExit = true, module = "path",
                             templateKey = key, sizeMinutes = 15))
                     }

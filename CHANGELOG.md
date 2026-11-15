@@ -210,3 +210,4 @@ One line per loop iteration, newest last.
 - c1 p6 t1 i7 `overhaul_system_architecture`: Template gaps have one tested rule (core Gaps) shared by Drafts and Approvals, and both now name the gap to fill
 - c1 p6 t1 i8 `overhaul_system_architecture`: One ledger rule (core Ledger, tested): in-kind gifts count as raised but never as cash, so the Vault's 'cash on hand', HQ and the weekly score agree
 - c1 p6 t1 i9 `overhaul_system_architecture`: Deadlines typed by hand go through one case-file path (no duplicates, legal ones get their draft and task at once, audited); the Vault form gains a 'legal deadline' switch, on by default
+- c1 p6 t1 i10 `overhaul_system_architecture`: Tasks added from briefings, HQ, donors and the run-or-wait memo go through one case-file path that never duplicates and puts them on Today at once
