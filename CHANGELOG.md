@@ -132,3 +132,4 @@ One line per loop iteration, newest last.
 - c1 p4 t1 i13 `test_core_functionality`: Flow test: 'take a snapshot' by asking answers plainly whether or not there's anything to save yet
 - c1 p4 t1 i14 `test_core_functionality`: Flow test: changing your work hours by asking moves what counts as work time for new events
 - c1 p4 t1 i15 `test_core_functionality`: Flow test: locking a clear story and finishing a task opens stage 2 with its own plan, and says so
+- c1 p4 t1 i16 `test_core_functionality`: Flow test: finishing tasks alone never skips a stage before its exit test is met
