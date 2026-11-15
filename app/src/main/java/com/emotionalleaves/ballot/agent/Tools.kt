@@ -757,22 +757,29 @@ object MoneyChecks {
     }
 }
 
-data class MockRoom(val id: String, val title: String, val setup: String, val persona: String)
+/** [questions] is the plain question bank: the room works from it with no AI connected. */
+data class MockRoom(val id: String, val title: String, val setup: String, val persona: String, val questions: List<String> = emptyList())
 
 object MockRooms {
     val rooms = listOf(
         MockRoom("door", "Hostile voter at the door", "A resident opens the door, skeptical and short on time.",
-            "You are a skeptical resident at your front door. You are busy, a little irritated, and doubt politicians. Push back on vague answers. Keep replies to one or two sentences. Stay in character."),
+            "You are a skeptical resident at your front door. You are busy, a little irritated, and doubt politicians. Push back on vague answers. Keep replies to one or two sentences. Stay in character.",
+            questions = listOf("I've got a minute. Who are you and what do you want?", "Why should I trust another politician?", "What would you actually change on this street?", "I don't even vote in local elections. Why should I?", "How are you different from the person who has the seat now?", "OK. What's the one thing you want me to remember?")),
         MockRoom("reporter", "Local reporter", "A local reporter on a deadline wants a quote and a straight answer.",
-            "You are a fair but probing local news reporter interviewing a first-time candidate. Ask one question at a time, follow up on dodges, ask about qualifications and specifics. Stay in character."),
+            "You are a fair but probing local news reporter interviewing a first-time candidate. Ask one question at a time, follow up on dodges, ask about qualifications and specifics. Stay in character.",
+            questions = listOf("Why are you running, in one sentence?", "What qualifies you for this seat?", "What's the first thing you'd do in office?", "Your opponent says you're too new to this. Your answer?", "Where do you stand on the budget, and what would you cut?", "Is there anything in your past voters should hear from you first?")),
         MockRoom("forum", "Candidate forum", "A moderator asks timed questions in front of a neighborhood audience.",
-            "You are a candidate forum moderator. Ask one question at a time on local issues, enforce a 60-second answer, and occasionally relay a pointed audience question. Stay in character."),
+            "You are a candidate forum moderator. Ask one question at a time on local issues, enforce a 60-second answer, and occasionally relay a pointed audience question. Stay in character.",
+            questions = listOf("Introduce yourself in 60 seconds.", "What is the biggest problem facing our neighborhood?", "How would you pay for your ideas?", "An audience member asks: will you return my calls?", "Name one thing you agree with your opponent on.", "Closing statement: why you?")),
         MockRoom("donor", "Donor call", "A potential donor who knows you a little picks up the phone.",
-            "You are a potential donor who knows the candidate slightly. You are friendly but cautious with money. Ask what the money is for and why they can win. Only commit if the ask is clear. Stay in character."),
+            "You are a potential donor who knows the candidate slightly. You are friendly but cautious with money. Ask what the money is for and why they can win. Only commit if the ask is clear. Stay in character.",
+            questions = listOf("Hi, nice to hear from you. What's this about?", "What exactly would the money be spent on?", "Why do you think you can win?", "How much are you asking for?", "Who else is supporting you?", "What happens if you lose?")),
         MockRoom("interview", "Board appointment interview", "A council panel interviews you for a commission seat.",
-            "You are a city council panel interviewing an applicant for a volunteer board or commission. Ask about motivation, time, conflicts of interest and relevant experience. One question at a time. Stay in character."),
+            "You are a city council panel interviewing an applicant for a volunteer board or commission. Ask about motivation, time, conflicts of interest and relevant experience. One question at a time. Stay in character.",
+            questions = listOf("Why do you want to serve on this board?", "How much time can you give each month?", "Do you have any conflicts of interest we should know about?", "Tell us about a time you worked through a disagreement.", "What do you know about how this board makes decisions?", "Is there anything else we should know?")),
         MockRoom("debate", "Debate practice", "An opponent challenges your positions directly.",
-            "You are a debate opponent in a local race. Challenge the candidate's stated positions respectfully but hard, with plausible counter-arguments. Never invent facts about the real world; argue from reasoning. One point at a time."),
+            "You are a debate opponent in a local race. Challenge the candidate's stated positions respectfully but hard, with plausible counter-arguments. Never invent facts about the real world; argue from reasoning. One point at a time.",
+            questions = listOf("My opponent's plan sounds nice. How would you pay for it?", "You've never held office. Why should anyone take a chance on you?", "Your position will hurt local businesses. Respond.", "Give one specific example of something you've done for this community.", "Isn't your top issue really a state matter, not ours?", "Final word: why are you the better choice?")),
     )
     val ids = rooms.map { it.id }
     fun byId(id: String) = rooms.firstOrNull { it.id == id }

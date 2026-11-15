@@ -216,7 +216,11 @@ fun MockRoomScreen(nav: NavHostController, roomId: String) {
                 val lastMsg = msgs.last()
                 if (lastMsg.role == h.role) msgs[msgs.lastIndex] = LlmMessage(h.role, lastMsg.content + h.content) else msgs += h
             }
-            val reply = runCatching { g.chief.simple(persona, msgs, 400) }.getOrElse { error = it.message ?: "No reply."; busy = false; return@launch }
+            // With no AI connected the room asks from its own question bank, in order, so practice never depends on AI.
+            val asked = history.count { it.role == "assistant" }
+            fun fromBank() = room.questions.getOrNull(asked) ?: "That's the last question. Tap Score me to see how you did."
+            val reply = if (!g.chief.hasKey()) fromBank()
+                else runCatching { g.chief.simple(persona, msgs, 400) }.getOrElse { error = (it.message ?: "No reply.") + " Using the question bank instead."; fromBank() }
             g.db.chat().insert(ChatMessage(thread = thread, role = "assistant", text = reply, mode = room.title))
             busy = false
         }
@@ -226,6 +230,19 @@ fun MockRoomScreen(nav: NavHostController, roomId: String) {
         busy = true
         scope.launch {
             val transcript = g.db.chat().recent(thread, 40).joinToString("\n") { (if (it.role == "user") "CANDIDATE: " else "OTHER SIDE: ") + it.text }
+            if (!g.chief.hasKey()) {
+                // Plain-code score: fillers and length of each answer (pace needs a recording, so it isn't judged here).
+                val answers = g.db.chat().recent(thread, 40).filter { it.role == "user" }.map { it.text }
+                val scored = answers.map { a -> val w = a.split(Regex("\\s+")).count { it.isNotBlank() }; SpeechScorer.score(a, (w * 60 / 150).coerceAtLeast(1), 45) }
+                val n = if (scored.isEmpty()) 0 else scored.map { (it.clarity + it.lengthScore) / 2 }.average().toInt()
+                val tips = scored.flatMap { SpeechScorer.plainFeedback(it, 45) }.distinct().take(3)
+                val out = "SCORE: $n\n" + (tips.ifEmpty { listOf("Clear and to the point. Next time, end each answer with what you'd do.") }).joinToString("\n") +
+                    "\nScored on filler words and length. Record yourself in a drill to check your pace."
+                g.db.speech().upsert(SpeechRep(kind = "MOCK_${room.id}", prompt = room.title, transcript = transcript.take(8000), total = n.coerceIn(0, 100), feedback = out))
+                g.db.chat().insert(ChatMessage(thread = thread, role = "assistant", text = "Coach's score\n$out", mode = "Coach"))
+                busy = false
+                return@launch
+            }
             val system = "You are the Chief, a calm senior campaign coach. Score the candidate's performance in this mock ${room.title.lowercase()} plainly. " +
                 "Give a score from 0 to 100, then three short lines: what worked, what to fix, one line to practise. Be honest; do not flatter. First line must be 'SCORE: <n>'."
             val out = runCatching { g.chief.simple(system, listOf(LlmMessage("user", listOf(Block.Text(transcript)))), 500) }.getOrElse { error = it.message ?: ""; busy = false; return@launch }

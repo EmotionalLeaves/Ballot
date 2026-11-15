@@ -163,3 +163,9 @@ class ChiefTextTest {
         org.junit.Assert.assertEquals("Next steps\n• Call the clerk at 555\n• Attend Tuesday\nPlain 2 * 3 line", t)
     }
 }
+
+class MockRoomBankTest {
+    @org.junit.Test fun everyRoomCanRunWithoutAi() {
+        com.emotionalleaves.ballot.agent.MockRooms.rooms.forEach { org.junit.Assert.assertTrue(it.id, it.questions.size >= 5) }
+    }
+}
