@@ -191,6 +191,8 @@ fun ConnectedServices(onChanged: () -> Unit = {}) {
     var main by remember { mutableStateOf("") }
     var models by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
     var resting by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var testing by remember { mutableStateOf("") }
+    var results by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
     androidx.compose.runtime.LaunchedEffect(refresh) {
         today = g.chief.requestsToday()
         resting = g.chief.restingToday()
@@ -211,11 +213,17 @@ fun ConnectedServices(onChanged: () -> Unit = {}) {
                 }
                 Small("Model ${models[p.id] ?: p.defaultModel} · key ••••${g.secrets.keyFor(p.id).takeLast(4)}", color = c.fg)
                 Small("Today: $used request(s)" + if (p.dailyHint > 0) " of roughly ${p.dailyHint} free" else "")
+                results[p.id]?.let { Small(it, color = if (it.startsWith("Connected")) Go else c.signal) }
                 if (p.id in resting) Small("Used up its free allowance today. Ballot is using your other services until tomorrow.", color = c.signal)
                 Row {
                     if (p.id != main) LinkButton("Make main", onClick = { scope.launch { g.settings.update { it.copy(provider = p.id) }; refresh++; onChanged() } })
-                    LinkButton("Re-test", onClick = {
-                        scope.launch { KeySetup.connect(g, p, g.secrets.keyFor(p.id), makeMain = false); refresh++ }
+                    LinkButton(if (testing == p.id) "Testing…" else "Re-test", onClick = {
+                        testing = p.id
+                        scope.launch {
+                            val out = KeySetup.connect(g, p, g.secrets.keyFor(p.id), makeMain = false)
+                            results = results + (p.id to out.message)
+                            testing = ""; refresh++
+                        }
                     })
                     LinkButton("Remove", color = c.muted, onClick = { g.secrets.removeKey(p.id); refresh++; onChanged() })
                 }
