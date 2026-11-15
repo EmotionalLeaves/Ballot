@@ -72,3 +72,4 @@ One line per loop iteration, newest last.
 - c1 p1 t1 i48 `system_check_and_update`: verify_claim checks for source_ids up front like its schema says, and a test keeps every tool's checks matched to its schema
 - c1 p1 t1 i49 `system_check_and_update`: Tool ids written as S12, [T4] or #7 are read correctly, and a null required field counts as missing instead of crashing the tool
 - c1 p1 t1 i50 `system_check_and_update`: Rule re-checks skip error pages, so a 404 or a server outage no longer raises a false 'rule page changed' alert or replaces the source
+- c1 p1 t2 i1 `system_check_and_update`: Fetched pages record the address that answered after redirects, so a .gov link redirecting to another site is no longer marked official

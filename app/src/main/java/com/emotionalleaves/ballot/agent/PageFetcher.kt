@@ -22,9 +22,12 @@ object PageFetcher {
             .build()
         try {
             Http.client.newCall(req).await().use { r ->
-                val body = r.body ?: return@use FetchedPage(https, r.code, "", "", "")
+                // The address that actually answered, after redirects: the official check must judge this one,
+                // or a .gov link that redirects elsewhere would pass as official.
+                val finalUrl = r.request.url.toString()
+                val body = r.body ?: return@use FetchedPage(finalUrl, r.code, "", "", "")
                 val type = body.contentType()?.toString() ?: ""
-                if (type.contains("pdf")) return@use FetchedPage(https, r.code, "PDF document", "[This is a PDF. Open it in a browser to read it.]", "")
+                if (type.contains("pdf")) return@use FetchedPage(finalUrl, r.code, "PDF document", "[This is a PDF. Open it in a browser to read it.]", "")
                 val raw = body.source().let { src ->
                     src.request(MAX_BYTES)
                     src.buffer.clone().readUtf8()
@@ -32,7 +35,7 @@ object PageFetcher {
                 val title = Regex("<title[^>]*>(.*?)</title>", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
                     .find(raw)?.groupValues?.get(1)?.let { decode(it).trim() } ?: ""
                 val text = if (type.contains("html") || raw.trimStart().startsWith("<")) htmlToText(raw) else raw
-                FetchedPage(https, r.code, title, text, sha(text))
+                FetchedPage(finalUrl, r.code, title, text, sha(text))
             }
         } catch (e: IOException) {
             throw LlmException("Could not reach $https (${e.message ?: "network"})", retryable = true)
