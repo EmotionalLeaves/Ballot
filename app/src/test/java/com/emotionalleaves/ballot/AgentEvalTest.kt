@@ -156,3 +156,10 @@ class SingleAccessPointTest {
         }
     }
 }
+
+class ChiefTextTest {
+    @org.junit.Test fun markdownReadsCleanly() {
+        val t = com.emotionalleaves.ballot.ui.screens.chiefText("## Next steps\n- Call the **clerk** at `555`\n* Attend Tuesday\nPlain 2 * 3 line").text
+        org.junit.Assert.assertEquals("Next steps\n• Call the clerk at 555\n• Attend Tuesday\nPlain 2 * 3 line", t)
+    }
+}

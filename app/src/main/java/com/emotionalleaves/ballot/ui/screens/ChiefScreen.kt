@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -163,7 +164,7 @@ fun MessageView(m: ChatMessage, sources: Map<Long, SourceRecord>, onCard: (Card)
     Column(Modifier.fillMaxWidth().padding(end = 24.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(18.dp)).background(c.raised)
         .border(1.dp, c.rule, androidx.compose.foundation.shape.RoundedCornerShape(18.dp)).padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Kicker("Chief${if (m.mode.isNotBlank()) " · ${m.mode}" else ""} · ${shortDate(m.at)}", color = c.muted)
-        Text(m.text, style = MaterialTheme.typography.bodyLarge, color = c.fg)
+        Text(remember(m.text) { chiefText(m.text) }, style = MaterialTheme.typography.bodyLarge, color = c.fg)
         cards.forEach { card ->
             Panel(onClick = { onCard(card) }, padding = 12.dp) {
                 if (card.type != "INFO") Kicker(pretty(card.type), color = c.muted)
@@ -189,3 +190,26 @@ fun MessageView(m: ChatMessage, sources: Map<Long, SourceRecord>, onCard: (Card)
 fun StarterChips(options: List<String>, onPick: (String) -> Unit) {
     ChipRow(options, null, { it }) { onPick(it) }
 }
+
+/**
+ * AI replies often come in markdown. Show it the way it's meant to read: **bold** as bold, headings as bold lines,
+ * list dashes as bullets, and no stray asterisks or backticks.
+ */
+fun chiefText(raw: String): androidx.compose.ui.text.AnnotatedString = androidx.compose.ui.text.buildAnnotatedString {
+    val bold = androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.SemiBold)
+    raw.replace("\r", "").lines().forEachIndexed { i, line0 ->
+        if (i > 0) append('\n')
+        var line = line0
+        val heading = Regex("^\\s{0,3}#{1,6}\\s+").find(line)
+        if (heading != null) { withStyle(bold) { append(line.substring(heading.range.last + 1).replace("**", "").trim()) }; return@forEachIndexed }
+        Regex("^(\\s*)[-*+]\\s+").find(line)?.let { m -> line = m.groupValues[1] + "• " + line.substring(m.range.last + 1) }
+        line = line.replace("`", "")
+        var rest = line
+        while (true) {
+            val a = rest.indexOf("**"); val b = if (a >= 0) rest.indexOf("**", a + 2) else -1
+            if (a < 0 || b < 0) { append(rest); break }
+            append(rest.substring(0, a)); withStyle(bold) { append(rest.substring(a + 2, b)) }; rest = rest.substring(b + 2)
+        }
+    }
+}
+
