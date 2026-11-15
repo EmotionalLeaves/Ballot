@@ -48,6 +48,7 @@ fun BriefingScreen(nav: NavHostController) {
     val ctx = LocalContext.current
     val g = ctx.graph
     val briefItems by g.db.brief().observeRecent().collectAsStateWithLifecycle(initialValue = emptyList())
+    val work by androidx.work.WorkManager.getInstance(ctx).getWorkInfosForUniqueWorkFlow("brief_now").collectAsStateWithLifecycle(initialValue = emptyList())
     val c = LocalBallotColors.current
     Screen("Briefing", kicker = "What is happening near you", onBack = { nav.popBackStack() }, walkthrough = listOf(
         "A two-minute digest of local news, upcoming agendas and decisions that touch your issues.",
@@ -62,7 +63,15 @@ fun BriefingScreen(nav: NavHostController) {
                 })
             }
         }
-        item { Small("Building runs in the background and needs a connection. Pull this screen again in a minute.") }
+        item {
+            val state = work.firstOrNull()?.state
+            Small(when (state) {
+                androidx.work.WorkInfo.State.ENQUEUED -> "Waiting for a connection to build the brief…"
+                androidx.work.WorkInfo.State.RUNNING -> "The Chief is building today's brief…"
+                androidx.work.WorkInfo.State.FAILED -> "The last build failed. Check AI services in Settings, then try again."
+                else -> "Building runs in the background, so you can leave this screen."
+            }, color = if (state == androidx.work.WorkInfo.State.RUNNING) c.signal else c.muted)
+        }
         if (briefItems.isEmpty()) item { EmptyNote("Nothing yet. The first brief arrives after your chosen time, or tap Build today's brief.") }
         val grouped = briefItems.groupBy { it.dayEpoch }
         grouped.forEach { (d, list) ->
