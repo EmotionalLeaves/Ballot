@@ -102,7 +102,7 @@ fun HomeScreen(nav: NavHostController) {
             walkthrough = listOf(
                 "The card is the one thing worth doing now. The Chief picked it from all your open tasks.",
                 "Tap Done when it's finished, or Not today to skip it. Skipping costs nothing.",
-                "Why this? shows exactly how it was chosen.",
+                "How and why shows the steps, and exactly how the task was chosen.",
                 "Feeling overloaded? Tap Shrink this week and only the most important thing stays.",
             )) {
             if (!hasBrain) item {
