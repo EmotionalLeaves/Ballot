@@ -204,5 +204,48 @@ class FlowTests {
         tools.execute("complete_task", obj("task_id" to t.id), ToolCtx(case, AppSettings()))
         assertEquals(1, case.profile().stage)
     }
+
+    /** A legal deadline outranks every other task on Today. */
+    @Test fun aLegalDeadlineGoesToTheTopOfToday() = runTest {
+        finishSetup()
+        val src = db.sources().insert(com.emotionalleaves.ballot.data.SourceRecord(url = "https://sos.state.ne.gov/filing", official = true,
+            label = com.emotionalleaves.ballot.data.Confidence.LIKELY))
+        val due = java.time.LocalDate.now().plusDays(10).toString()
+        assertFalse(tools.execute("add_deadline", obj("title" to "Filing period closes", "due_date" to due, "source_id" to src), ToolCtx(case, AppSettings())).isError)
+        val top = case.rescore().first { it.blocked == null }
+        assertTrue(db.tasks().get(top.id)!!.legal)
+    }
+
+    @Test fun aDraftWithAnUnsourcedClaimCannotBeApprovedYet() = runTest {
+        val out = tools.execute("draft_document", obj("type" to "PUBLIC_COMMENT", "title" to "Park budget comment", "body" to "The park budget fell 40% since 2020."),
+            ToolCtx(case, AppSettings()).let { it })
+        // No claims listed: nothing to check, but it still waits for approval.
+        assertFalse(out.text, out.isError)
+        val d = db.documents().all().single()
+        assertFalse(d.approved)
+        val withClaim = tools.execute("draft_document", JsonObject(mapOf(
+            "type" to JsonPrimitive("PUBLIC_COMMENT"), "title" to JsonPrimitive("Park comment v2"), "body" to JsonPrimitive("The park budget fell 40%."),
+            "claims" to kotlinx.serialization.json.JsonArray(listOf(JsonObject(mapOf("text" to JsonPrimitive("The park budget fell 40%."))))))),
+            ToolCtx(case, AppSettings()))
+        assertTrue(withClaim.text, withClaim.text.contains("must be sourced or cut"))
+        assertEquals("Some claims need a source shows on the card", true, withClaim.cards.single().body.contains("need a source"))
+        assertTrue(db.documents().all().none { it.approved })
+    }
+
+    @Test fun waitingApprovalsAreInTheChiefsBrief() = runTest {
+        finishSetup()
+        tools.execute("queue_follow_up", obj("contact" to "Ana", "message" to "Thanks for coffee"), ToolCtx(case, AppSettings()))
+        assertTrue(case.brief().contains("Waiting for the user's approval"))
+    }
+
+    @Test fun moneyInAndOutIsKeptSeparately() = runTest {
+        tools.execute("log_money", obj("direction" to "in", "amount_dollars" to 25, "person" to "Ana"), ToolCtx(case, AppSettings()))
+        tools.execute("log_money", obj("direction" to "In-kind", "amount_dollars" to 19.99, "person" to "Print shop"), ToolCtx(case, AppSettings()))
+        tools.execute("log_money", obj("direction" to "OUT", "amount_dollars" to 10, "purpose" to "Flyers"), ToolCtx(case, AppSettings()))
+        val m = db.money().all()
+        assertEquals(2500L, m.filter { it.direction == "IN" }.sumOf { it.amountCents })
+        assertEquals(1000L, m.filter { it.direction == "OUT" }.sumOf { it.amountCents })
+        assertEquals("cents are rounded, not cut", 1999L, m.single { it.direction == "IN_KIND" }.amountCents)
+    }
 }
 

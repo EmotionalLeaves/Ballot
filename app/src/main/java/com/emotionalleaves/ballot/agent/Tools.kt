@@ -480,10 +480,13 @@ class ToolRegistry {
                 "employer" to S.s("Donor employer"), "occupation" to S.s("Donor occupation"), "memo" to S.s("Memo"),
                 "own_funds" to S.b("The user's own money"),
             )), RoutineKind.TRACKER, voiceConfirm = true, required = listOf("direction", "amount_dollars")) { a, c ->
-            val cents = ((a.dbl("amount_dollars") ?: 0.0) * 100).toLong()
+            // Models write "in", "In" or "in-kind": store the one spelling every report and total looks for.
+            val direction = a.str("direction")!!.trim().uppercase().replace('-', '_').replace(' ', '_')
+            if (direction !in setOf(MoneyDirection.IN, MoneyDirection.OUT, MoneyDirection.IN_KIND)) return@ToolDef ToolOutcome("direction must be IN, OUT or IN_KIND.", isError = true)
+            val cents = Math.round((a.dbl("amount_dollars") ?: 0.0) * 100)
             if (cents <= 0) return@ToolDef ToolOutcome("Amount must be above zero.", isError = true)
             val at = a.str("date")?.let { parseDate(it) }?.let { LocalDate.ofEpochDay(it).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli() } ?: now()
-            val m = Money(direction = a.str("direction")!!, amountCents = cents, person = a.str("person") ?: "", at = at,
+            val m = Money(direction = direction, amountCents = cents, person = a.str("person") ?: "", at = at,
                 category = a.str("category") ?: "", address = a.str("address") ?: "", employer = a.str("employer") ?: "",
                 occupation = a.str("occupation") ?: "", memo = a.str("memo") ?: "", ownFunds = a.bool("own_funds") ?: false)
             c.case.db.money().upsert(m)
@@ -518,7 +521,9 @@ class ToolRegistry {
             ToolOutcome("Draft saved as document ${id}. Fact check: ${d.factCheckStatus}" +
                 (if (blocked) ". Unverified claims are highlighted and must be sourced or cut before approval." else "") +
                 (if (crisis) ". Held for the ${c.settings.coolingMinutes}-minute cooling period." else ""),
-                cards = listOf(Card("DOCUMENT", d.title, "${d.type.lowercase().replace('_', ' ')} · ${d.factCheckStatus}", "document", id)))
+                cards = listOf(Card("DOCUMENT", d.title, "${d.type.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }} · " + when (d.factCheckStatus) {
+                    FactStatus.BLOCKED -> "some claims need a source"; FactStatus.PASSED -> "facts checked"; else -> "no facts to check"
+                }, "document", id)))
         })
 
         reg(ToolDef("score_speech", "Score a speaking rep from its transcript in plain code: clarity, pace, filler words and length.",
