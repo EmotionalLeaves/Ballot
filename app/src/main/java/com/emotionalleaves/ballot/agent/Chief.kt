@@ -90,7 +90,7 @@ $brief
                 toolsUsed.any { it in setOf("score_speech", "start_mock_room") } || Regex("\\b(practice|rehearse|drill|mock|debate|interview me)\\b").containsMatchIn(t) -> Mode.COACH
                 toolsUsed.any { it == "draft_document" } || Regex("\\b(draft|write|speech|statement|email|letter|script|comment)\\b").containsMatchIn(t) -> Mode.WRITER
                 toolsUsed.any { it in setOf("web_search", "search_web", "fetch_official_page", "verify_claim", "find_offices", "get_race_card", "save_brief_item") } -> Mode.RESEARCHER
-                toolsUsed.any { it in setOf("add_contact", "log_interaction", "queue_follow_up", "log_money", "add_deadline", "save_to_vault", "add_event") } -> Mode.CLERK
+                toolsUsed.any { it in setOf("add_contact", "log_interaction", "complete_task", "update_event", "queue_follow_up", "log_money", "add_deadline", "save_to_vault", "add_event") } -> Mode.CLERK
                 else -> Mode.STRATEGIST
             }
         }

@@ -370,6 +370,46 @@ class ToolRegistry {
             ToolOutcome("Created task T$id.", cards = listOf(Card("TASK", t.title, "${t.sizeMinutes} min", "home", id)))
         })
 
+        reg(ToolDef("list_plan", "Read the plan: open tasks with ids and scores, upcoming deadlines and upcoming events. Read only.",
+            S.obj(props = mapOf("limit" to S.i("How many of each, default 10"))), RoutineKind.RESEARCH) { a, c ->
+            val n = (a.int("limit") ?: 10).coerceIn(1, 30)
+            val today = c.case.today()
+            val tasks = c.case.db.tasks().open().sortedByDescending { it.score }.take(n)
+            val deadlines = c.case.db.deadlines().open().filter { it.dueEpochDay >= today - 1 }.take(n)
+            val events = c.case.db.events().all().filter { it.startAt >= now() - 3 * 3_600_000L }.sortedBy { it.startAt }.take(n)
+            ToolOutcome(buildString {
+                appendLine("Open tasks:"); if (tasks.isEmpty()) appendLine("  none")
+                tasks.forEach { appendLine("  T${it.id} ${it.title} (score ${it.score}, ${it.sizeMinutes} min${if (it.dueEpochDay > 0) ", due ${LocalDate.ofEpochDay(it.dueEpochDay)}" else ""})") }
+                appendLine("Deadlines:"); if (deadlines.isEmpty()) appendLine("  none")
+                deadlines.forEach { appendLine("  D${it.id} ${it.title} ${LocalDate.ofEpochDay(it.dueEpochDay)} (${it.confidence})") }
+                appendLine("Events:"); if (events.isEmpty()) appendLine("  none")
+                events.forEach { e -> appendLine("  E${e.id} ${e.title} ${java.time.Instant.ofEpochMilli(e.startAt).atZone(ZoneId.systemDefault()).toLocalDateTime().toString().replace('T', ' ')}${if (e.attended) " (attended)" else ""}") }
+            }.trim())
+        })
+
+        reg(ToolDef("complete_task", "Mark a task done when the user says they did it. Use the T id from the brief or list_plan.",
+            S.obj(listOf("task_id"), mapOf("task_id" to S.i("Task id"))), RoutineKind.TRACKER, required = listOf("task_id")) { a, c ->
+            val t = c.case.db.tasks().get(a.long("task_id")!!) ?: return@ToolDef ToolOutcome("No such task.", isError = true)
+            if (t.done) return@ToolDef ToolOutcome("T${t.id} was already done.")
+            c.case.completeTask(t)
+            val next = c.case.advanceIfReady()
+            ToolOutcome("Marked done: ${t.title}." + (next?.let { " The exit test is met: stage ${it.number}, ${it.title}, is now open." } ?: ""),
+                cards = listOf(Card("TASK", t.title, "Done", "home", t.id)))
+        })
+
+        reg(ToolDef("update_event", "Record what happened at an event: attended, gave a public comment, and a short debrief. Use the E id.",
+            S.obj(listOf("event_id"), mapOf("event_id" to S.i("Event id"), "attended" to S.b("Attended"), "gave_comment" to S.b("Spoke at public comment"),
+                "debrief" to S.s("What happened, who was there"))), RoutineKind.TRACKER, required = listOf("event_id")) { a, c ->
+            val e = c.case.db.events().get(a.long("event_id")!!) ?: return@ToolDef ToolOutcome("No such event.", isError = true)
+            val spoke = a.bool("gave_comment") ?: e.gaveComment
+            val updated = e.copy(attended = a.bool("attended") ?: (e.attended || spoke), gaveComment = spoke,
+                debrief = a.str("debrief")?.let { d -> if (e.debrief.isBlank()) d else e.debrief + "\n" + d } ?: e.debrief, updatedAt = now())
+            c.case.db.events().upsert(updated)
+            val next = c.case.advanceIfReady()
+            ToolOutcome("Event updated: ${e.title}${if (updated.attended) ", attended" else ""}${if (updated.gaveComment) ", spoke" else ""}." +
+                (next?.let { " Exit test met: stage ${it.number} is open." } ?: ""), cards = listOf(Card("EVENT", e.title, "Updated", "field", e.id)))
+        })
+
         reg(ToolDef("reschedule_plan", "Re-flow the plan after life changes: push overdue non-legal tasks forward, reseed the stage playbook, rescore.",
             S.obj(props = mapOf("reason" to S.s("What changed"), "shrink_week" to S.b("Shrink the week to its single most important item"))),
             RoutineKind.REMINDER) { a, c ->
