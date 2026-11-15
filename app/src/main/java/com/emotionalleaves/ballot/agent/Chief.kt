@@ -192,7 +192,12 @@ $brief
             var waited = false
             while (true) {
                 try {
-                    val r = c.complete(secrets.keyFor(route.preset.id), r2)
+                    val r = try {
+                        // One slow service can't hold you up: after 75 seconds Ballot moves to the next one.
+                        kotlinx.coroutines.withTimeout(75_000) { c.complete(secrets.keyFor(route.preset.id), r2) }
+                    } catch (t: kotlinx.coroutines.TimeoutCancellationException) {
+                        throw LlmException("${route.preset.name} didn't answer in time.", retryable = true)
+                    }
                     if (r2.model != route.model) {
                         val healed = r2.model
                         settingsStore.update { st -> st.copy(providerModels = Providers.encodeModels(Providers.parseModels(st.providerModels) + (route.preset.id to healed))) }
