@@ -251,3 +251,4 @@ One line per loop iteration, newest last.
 - c1 p6 t1 i48 `overhaul_system_architecture`: Practice reps older than a year are tidied away daily, except your best rep for each drill, which stays as your benchmark
 - c1 p6 t1 i49 `overhaul_system_architecture`: Sunday evenings bring one plain 'week ahead' notice from your own records (meetings, deadlines, promises), no AI needed, opening the Briefing
 - c1 p6 t1 i50 `overhaul_system_architecture`: The Chief is told how the app now works: search the case file before saying 'I don't know', point to the by-hand pages (templates, quiz, prep cards, week ahead) when they fit, and never make a step depend on AI
+- c1 p6 t2 i1 `apply_bold_aesthetics`: Records is calmer: deadline counts at 32 (words like Passed or Today at reading size, not 44pt), and the money totals sit in three equal columns that fit a phone

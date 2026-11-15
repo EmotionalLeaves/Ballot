@@ -144,9 +144,10 @@ private fun DeadlinesTab() {
             Panel(accent = !d.done && left in 0..7) {
                 val ink = if (!d.done && left in 0..7) com.emotionalleaves.ballot.ui.theme.Ink else c.fg
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    // A number only when it's a count; words stay at reading size so the list stays calm.
                     BigNumber(when { d.done -> "✓"; left < 0 -> "Passed"; left == 0L -> "Today"; else -> "$left" },
                         when { d.done -> "Done"; left < 0 -> "${-left} ${if (left == -1L) "day" else "days"} ago"; left == 0L -> "Due today"; left == 1L -> "Day left"; else -> "Days left" },
-                        color = if (!d.done && left < 0) c.signal else ink, size = 44)
+                        color = if (!d.done && left < 0) c.signal else ink, size = if (d.done || left <= 0) 24 else 32)
                     ConfidenceBadge(d.confidence)
                 }
                 Text(d.title, style = MaterialTheme.typography.titleMedium, color = ink)
@@ -227,9 +228,10 @@ private fun MoneyTab() {
     val totals = com.emotionalleaves.ballot.core.Ledger.totals(money.map { it.direction to it.amountCents })
     androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            BigNumber(dollars(totals.raised), "Raised", size = 36)
-            BigNumber(dollars(totals.out), "Spent", size = 36)
-            BigNumber(dollars(totals.cashOnHand), "Cash on hand", size = 36, color = c.signal)
+            // Three equal columns at a size that fits a phone even with thousands in each.
+            BigNumber(dollars(totals.raised), "Raised", Modifier.weight(1f), size = 24)
+            BigNumber(dollars(totals.out), "Spent", Modifier.weight(1f), size = 24)
+            BigNumber(dollars(totals.cashOnHand), "Cash on hand", Modifier.weight(1f), size = 24, color = c.signal)
         }
         if (totals.inKind > 0) Small("Raised includes ${dollars(totals.inKind)} given in kind, which isn't cash to spend.")
         warnings.forEach { Small("⚠ $it", color = c.signal) }
