@@ -365,6 +365,12 @@ interface ChatDao {
 
     @Query("DELETE FROM chat_message WHERE thread = :thread")
     suspend fun clear(thread: String)
+
+    @Query("DELETE FROM chat_message WHERE thread = :thread AND at < :before")
+    suspend fun deleteOlder(thread: String, before: Long): Int
+
+    @Query("SELECT DISTINCT thread FROM chat_message")
+    suspend fun threads(): List<String>
 }
 
 @Dao
@@ -431,6 +437,9 @@ interface UsageDao {
 
     @Query("SELECT * FROM usage_record")
     suspend fun all(): List<UsageRecord>
+
+    @Query("DELETE FROM usage_record WHERE at < :before")
+    suspend fun deleteOlder(before: Long): Int
 
     @Insert
     suspend fun insert(u: UsageRecord): Long

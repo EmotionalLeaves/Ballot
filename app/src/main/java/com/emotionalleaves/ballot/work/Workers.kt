@@ -120,6 +120,7 @@ class HourlyWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx
         if (s.lastSnapshotDay != today) {
             runCatching { Snapshots.take(applicationContext, case.db) }
             runCatching { case.expireStaleApprovals() }
+            runCatching { case.prune() }
             g.settings.update { it.copy(lastSnapshotDay = today) }
         }
 

@@ -349,5 +349,15 @@ class FlowTests {
         assertEquals(listOf("Council"), case.eventsToRemind(at).map { it.title })
         assertTrue("only once", case.eventsToRemind(at).isEmpty())
     }
+
+    @Test fun oldBackgroundChatterIsPrunedButYourConversationStays() = runTest {
+        val at = com.emotionalleaves.ballot.data.now()
+        val old = at - 60L * 86_400_000L
+        db.chat().insert(com.emotionalleaves.ballot.data.ChatMessage(thread = "background", role = "assistant", text = "old job", at = old))
+        db.chat().insert(com.emotionalleaves.ballot.data.ChatMessage(thread = "main", role = "user", text = "my old question", at = old))
+        db.chat().insert(com.emotionalleaves.ballot.data.ChatMessage(thread = "room:door", role = "user", text = "old rep", at = at - 100L * 86_400_000L))
+        assertEquals(2, case.prune(at))
+        assertEquals(listOf("my old question"), db.chat().all().map { it.text })
+    }
 }
 
