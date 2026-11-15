@@ -367,5 +367,15 @@ class FlowTests {
         assertFalse("once a month at most", case.remindBackup(lastBackupAt = 0))
         assertFalse(case.remindBackup(lastBackupAt = com.emotionalleaves.ballot.data.now()))
     }
+
+    @Test fun mergingTwoRecordsForOnePersonKeepsEverything() = runTest {
+        val a = case.logInteraction("Ana", "Met at the library", twoWay = true)
+        val b = case.logInteraction("Ana Ruiz", "Coffee", twoWay = true)
+        db.contacts().upsert(db.contacts().get(b.id)!!.copy(phone = "555-0100"))
+        val m = case.mergeContacts(a.id, b.id)!!
+        assertEquals("555-0100", m.phone)
+        assertEquals(1, db.contacts().all().size)
+        assertEquals(2, db.interactions().all().count { it.contactId == a.id })
+    }
 }
 

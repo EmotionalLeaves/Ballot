@@ -227,6 +227,20 @@ fun ContactScreen(nav: NavHostController, id: Long) {
                 })
             }
         }
+        // The same person entered twice (by you and by the Chief, say) shows here with a one-tap merge.
+        item {
+            val all by g.db.contacts().observe().collectAsStateWithLifecycle(initialValue = emptyList())
+            val first = p.name.trim().substringBefore(' ').lowercase()
+            val dupes = all.filter { o -> o.id != p.id && (o.name.trim().equals(p.name.trim(), true) ||
+                (first.length > 2 && o.name.trim().substringBefore(' ').lowercase() == first && (o.name.trim().contains(' ').not() || p.name.trim().contains(' ').not())) ||
+                (p.phone.isNotBlank() && o.phone == p.phone) || (p.email.isNotBlank() && o.email.equals(p.email, true))) }
+            if (dupes.isNotEmpty()) Panel {
+                Small("Might be the same person:")
+                dupes.forEach { d ->
+                    LinkButton("Merge ${d.name} into ${p.name}", onClick = { scope.launch { g.case.mergeContacts(p.id, d.id) } })
+                }
+            }
+        }
         // Messages start from a short plain template and wait in Approvals for you to edit and send. The Chief's version is optional.
         item {
             val first = p.name.trim().substringBefore(' ')

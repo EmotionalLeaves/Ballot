@@ -372,5 +372,30 @@ class CaseFile(val db: BallotDatabase, private val settings: SettingsStore) {
             why = "Everything lives on this phone. A backup file you keep elsewhere (email it to yourself, or save it to a drive) means a lost phone loses nothing.",
             doneLooksLike = "Backup file saved somewhere off this phone.", goodEnough = "Settings, Backup, Export.", module = "settings")) != null
     }
+
+    /**
+     * Two records for one person: keeps [keepId], fills its blanks from the other, moves every conversation, gift
+     * and introduction over, then removes the duplicate. All in one transaction, audited.
+     */
+    suspend fun mergeContacts(keepId: Long, dropId: Long): Contact? {
+        if (keepId == dropId) return null
+        val keep = db.contacts().get(keepId) ?: return null
+        val drop = db.contacts().get(dropId) ?: return null
+        fun pick(a: String, b: String) = a.ifBlank { b }
+        val merged = keep.copy(howMet = pick(keep.howMet, drop.howMet), interests = listOf(keep.interests, drop.interests).filter { it.isNotBlank() }.distinct().joinToString("; "),
+            district = pick(keep.district, drop.district), livesInDistrict = keep.livesInDistrict || drop.livesInDistrict, closeness = maxOf(keep.closeness, drop.closeness),
+            role = if (keep.role == ContactRole.NONE) drop.role else keep.role, phone = pick(keep.phone, drop.phone), email = pick(keep.email, drop.email),
+            beat = pick(keep.beat, drop.beat), pledgeCents = maxOf(keep.pledgeCents, drop.pledgeCents), lastContactAt = maxOf(keep.lastContactAt, drop.lastContactAt),
+            nextStep = pick(keep.nextStep, drop.nextStep), introducedById = if (keep.introducedById != 0L) keep.introducedById else drop.introducedById, updatedAt = now())
+        db.withTransaction {
+            db.interactions().all().filter { it.contactId == dropId }.forEach { db.interactions().upsert(it.copy(contactId = keepId)) }
+            db.money().all().filter { it.contactId == dropId }.forEach { db.money().upsert(it.copy(contactId = keepId)) }
+            db.contacts().all().filter { it.introducedById == dropId }.forEach { db.contacts().upsert(it.copy(introducedById = keepId)) }
+            db.contacts().upsert(merged)
+            db.contacts().delete(drop)
+        }
+        audit("you", "Merged two contacts", input = "${drop.name} into ${keep.name}")
+        return merged
+    }
 }
 
