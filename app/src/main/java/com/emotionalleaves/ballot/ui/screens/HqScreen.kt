@@ -146,9 +146,16 @@ fun HqScreen(nav: NavHostController) {
                     }
                 }
                 item {
-                    LinkButton("Draft thank-yous", onClick = {
-                        askChief(g, "Draft short personal thank-you messages for each of my volunteers with queue_follow_up.", "thank-yous")
-                        nav.navigate(Routes.APPROVALS)
+                    LinkButton("Thank every volunteer", onClick = {
+                        scope.launch {
+                            vols.forEach { v ->
+                                g.chief.tools.execute("queue_follow_up", kotlinx.serialization.json.JsonObject(mapOf(
+                                    "contact" to kotlinx.serialization.json.JsonPrimitive(v.name),
+                                    "message" to kotlinx.serialization.json.JsonPrimitive("Thank you, ${v.name.substringBefore(' ')}. Your time this week made a real difference. [One thing they did.]"))),
+                                    com.emotionalleaves.ballot.agent.ToolCtx(g.case, g.settings.get()))
+                            }
+                            nav.navigate(Routes.APPROVALS)
+                        }
                     })
                 }
             }
@@ -202,8 +209,16 @@ private fun CallTime(list: List<com.emotionalleaves.ballot.data.Contact>, reason
                         val cents = ((amount.toDoubleOrNull() ?: 0.0) * 100).toLong()
                         g.db.contacts().upsert(p.copy(callOutcome = o, pledgeCents = if (o == "Pledged") cents else p.pledgeCents, lastContactAt = now(), updatedAt = now()))
                         if (o == "Gave" && cents > 0) g.db.money().upsert(Money(direction = MoneyDirection.IN, amountCents = cents, person = p.name, contactId = p.id, category = "contribution"))
-                        if (o == "Gave" || o == "Pledged") askChief(g, "Draft a short thank-you to ${p.name} for ${if (o == "Gave") "giving" else "pledging"} ${dollars(cents)}. Use queue_follow_up. " +
-                            "Remind me to collect any required donor details (address, employer, occupation) if my rules need them.", "thank-you")
+                        // The thank-you is a plain template waiting in Approvals; no AI needed.
+                        if (o == "Gave" || o == "Pledged") g.chief.tools.execute("queue_follow_up", kotlinx.serialization.json.JsonObject(mapOf(
+                            "contact" to kotlinx.serialization.json.JsonPrimitive(p.name),
+                            "message" to kotlinx.serialization.json.JsonPrimitive("Thank you so much, ${p.name.substringBefore(' ')}, for ${if (o == "Gave") "your gift of" else "pledging"} ${dollars(cents)}. " +
+                                "It means a lot and it goes straight into the campaign. [One personal line.]"))),
+                            com.emotionalleaves.ballot.agent.ToolCtx(g.case, g.settings.get()))
+                        if (o == "Gave" && g.db.tasks().countTemplate("donor.${p.id}") == 0) g.db.tasks().upsert(com.emotionalleaves.ballot.data.Task(stage = g.case.profile().stage,
+                            title = "Get ${p.name}'s donor details", why = "Many places require a donor's address, employer and occupation on the report. Check your rules in the Vault.",
+                            doneLooksLike = "Details added to the gift in the Vault's money ledger.", goodEnough = "Ask in the thank-you.", module = "network", sizeMinutes = 5,
+                            templateKey = "donor.${p.id}"))
                         g.case.audit("you", "Call time", input = "${p.name}: $o ${dollars(cents)}")
                         amount = ""; i++
                     }
