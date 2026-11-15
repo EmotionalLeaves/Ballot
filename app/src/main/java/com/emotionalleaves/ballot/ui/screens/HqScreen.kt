@@ -127,7 +127,10 @@ fun HqScreen(nav: NavHostController) {
                     })
                 }
             }
-            "Call time" -> item { CallTime(contacts.filter { it.role != ContactRole.PRESS }.sortedByDescending { it.closeness }) }
+            "Call time" -> item {
+                val reason = p.story60.ifBlank { p.why }.split(Regex("(?<=[.!?])\\s+")).firstOrNull()?.trim()?.takeIf { it.length in 10..220 }
+                CallTime(contacts.filter { it.role != ContactRole.PRESS }.sortedByDescending { it.closeness }, reason)
+            }
             "Doors" -> item {
                 val weeksLeft = if (p.electionDateEpochDay > 0) ((p.electionDateEpochDay - LocalDate.now().toEpochDay()) / 7).toInt().coerceAtLeast(1) else 0
                 Doors(doors, cards.maxByOrNull { it.score }?.let { CampaignMath.winNumber(it.pastTurnout, it.seats, settings.safetyMarginPct) } ?: 0, weeksLeft, settings.contactsPerHour)
@@ -170,7 +173,7 @@ fun HqScreen(nav: NavHostController) {
 }
 
 @Composable
-private fun CallTime(list: List<com.emotionalleaves.ballot.data.Contact>) {
+private fun CallTime(list: List<com.emotionalleaves.ballot.data.Contact>, reason: String?) {
     val ctx = LocalContext.current
     val g = ctx.graph
     val scope = rememberCoroutineScope()
@@ -186,8 +189,9 @@ private fun CallTime(list: List<com.emotionalleaves.ballot.data.Contact>) {
             Small("How you met: ${p.howMet.ifBlank { "—" }} · cares about: ${p.interests.ifBlank { "—" }} · last contact ${shortDate(p.lastContactAt)}", color = c.fg)
             if (p.suggestedAskCents > 0) Small("Suggested ask: ${dollars(p.suggestedAskCents)}", color = c.signal)
             if (p.callOutcome.isNotBlank()) Small("Last outcome: ${p.callOutcome}")
-            Body("Script: \"Hi ${p.name.substringBefore(' ')}, it's me. I'm running for local office because [your reason]. Early money decides whether I can reach voters. " +
-                "Would you give [amount] to help me get started?\" Then stop talking.")
+            val ask = if (p.suggestedAskCents > 0) dollars(p.suggestedAskCents) else "[amount]"
+            Body("Script: \"Hi ${p.name.substringBefore(' ')}, it's me. I'm running for local office. ${reason ?: "[Your reason, from your story.]"} " +
+                "Early money decides whether I can reach voters. Would you give $ask to help me get started?\" Then stop talking.")
             if (p.phone.isNotBlank()) PosterButton("Dial", onClick = { dial(ctx, p.phone) })
         }
         Field(amount, { amount = it.filter { ch -> ch.isDigit() || ch == '.' } }, "Amount pledged or given", singleLine = true, number = true)

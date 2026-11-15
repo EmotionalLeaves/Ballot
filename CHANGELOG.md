@@ -32,3 +32,4 @@ One line per loop iteration, newest last.
 - c1 p1 t1 i14 `system_check_and_update`: Weekly review saves once, so a double tap no longer writes duplicate lessons
 - c1 p1 t1 i15 `system_check_and_update`: App lock switch explains that a PIN is needed instead of silently doing nothing; short PINs say why they were refused
 - c1 p1 t1 i16 `system_check_and_update`: Door math no longer double-counts the safety margin and uses your real weeks to election day and doors per hour
+- c1 p1 t1 i17 `system_check_and_update`: Call-time script fills in your own reason from your story and the suggested ask instead of placeholders
