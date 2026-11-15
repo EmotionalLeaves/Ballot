@@ -12,6 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -164,11 +165,22 @@ fun DocumentScreen(nav: NavHostController, id: Long) {
                             factCheckStatus = if (claims.isEmpty()) FactStatus.UNCHECKED else d.factCheckStatus, aiDrafted = d.aiDrafted, updatedAt = now()))
                     }
                 })
-                PosterButton("Fact-check", primary = false, enabled = !ChiefBusy.busy, onClick = {
-                    askChief(g, "Run a two-pass fact check on document ${d.id} (\"${d.title}\"):\n\n$body\n\nPass 1: list every factual claim. Pass 2: try to disprove each one using official sources " +
-                        "(fetch them; use verify_claim for numbers and dates). Cut or reword anything you cannot source. Save the result with draft_document document_id ${d.id}, keeping my wording wherever it is accurate.", "fact-checking")
+                // Plain-code fact check: find every checkable sentence; each needs an official page that says the same thing.
+                PosterButton("Find facts to check", primary = false, enabled = !changed, onClick = {
+                    scope.launch {
+                        val found = com.emotionalleaves.ballot.core.ClaimFinder.find(d.body)
+                        val keep = claims.filter { old -> found.any { it == old.text } }
+                        val merged = keep + found.filter { f -> keep.none { it.text == f } }.map { ClaimRef(it) }
+                        val labelled = com.emotionalleaves.ballot.agent.FactCheck.label(merged, g.case, g.settings.get().freshnessDaysGeneral)
+                        val status = if (labelled.isEmpty()) FactStatus.PASSED else if (labelled.any { it.label == Verification.UNVERIFIED }) FactStatus.BLOCKED else FactStatus.PASSED
+                        g.db.documents().upsert(d.copy(claims = BallotJson.encodeToString(ListSerializer(ClaimRef.serializer()), labelled), factCheckStatus = status, updatedAt = now()))
+                    }
                 })
             }
+            LinkButton("Or have the Chief fact-check it", color = c.muted, onClick = {
+                if (!ChiefBusy.busy) askChief(g, "Run a two-pass fact check on document ${d.id} (\"${d.title}\"):\n\n$body\n\nPass 1: list every factual claim. Pass 2: try to disprove each one using official sources " +
+                        "(fetch them; use verify_claim for numbers and dates). Cut or reword anything you cannot source. Save the result with draft_document document_id ${d.id}, keeping my wording wherever it is accurate.", "fact-checking")
+            })
         }
         item {
             Panel {
@@ -180,13 +192,22 @@ fun DocumentScreen(nav: NavHostController, id: Long) {
                         else -> Badge("Not checked", c.muted)
                     }
                 }
-                if (claims.isEmpty()) Small("No claims listed yet. Run Fact-check before anything goes public.")
-                claims.forEach { cl ->
+                if (claims.isEmpty()) Small("No claims listed yet. Tap Find facts to check before anything goes public.")
+                claims.forEachIndexed { ci, cl ->
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         ConfidenceBadge(cl.label)
                         Small(cl.text + if (cl.sourceIds.isNotEmpty()) " (${cl.sourceIds.joinToString { "S$it" }})" else "", color = if (cl.label == Verification.UNVERIFIED) c.signal else c.fg)
                     }
+                    if (cl.label == Verification.UNVERIFIED) SourceForClaim(onSourced = { sid ->
+                        scope.launch {
+                            val updated = claims.mapIndexed { i, x -> if (i == ci) x.copy(sourceIds = (x.sourceIds + sid).distinct()) else x }
+                            val labelled = com.emotionalleaves.ballot.agent.FactCheck.label(updated, g.case, g.settings.get().freshnessDaysGeneral)
+                            val status = if (labelled.any { it.label == Verification.UNVERIFIED }) FactStatus.BLOCKED else FactStatus.PASSED
+                            g.db.documents().upsert(d.copy(claims = BallotJson.encodeToString(ListSerializer(ClaimRef.serializer()), labelled), factCheckStatus = status, updatedAt = now()))
+                        }
+                    })
                 }
+                if (claims.any { it.label == Verification.UNVERIFIED }) Small("Add an official page that says the same thing, or cut or reword the sentence. Approval waits until every claim is sourced.")
             }
         }
         item {
@@ -225,3 +246,27 @@ fun DocumentScreen(nav: NavHostController, id: Long) {
     if (confirmDelete) ConfirmDialog("Delete this draft?", "It will be removed from the case file.", "Delete",
         onConfirm = { scope.launch { g.db.documents().delete(d); nav.popBackStack() } }, onDismiss = { confirmDelete = false })
 }
+
+/** Paste the official page for one claim; the app reads it and the claim counts only if the page says the same thing. */
+@Composable
+private fun SourceForClaim(onSourced: (Long) -> Unit) {
+    val g = LocalContext.current.graph
+    val scope = rememberCoroutineScope()
+    val c = LocalBallotColors.current
+    var open by remember { mutableStateOf(false) }
+    var url by remember { mutableStateOf("") }
+    var note by remember { mutableStateOf("") }
+    if (!open) { LinkButton("Add a source", onClick = { open = true }); return }
+    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+        Field(url, { url = it.trim() }, "Official page (https://…)", Modifier.weight(1f), singleLine = true)
+        LinkButton("Check", onClick = {
+            scope.launch {
+                val out = g.chief.tools.execute("fetch_official_page", kotlinx.serialization.json.JsonObject(mapOf("url" to kotlinx.serialization.json.JsonPrimitive(url))),
+                    com.emotionalleaves.ballot.agent.ToolCtx(g.case, g.settings.get(), approved = true))
+                if (out.isError || out.sourceIds.isEmpty()) note = out.text.take(200) else { onSourced(out.sourceIds.first()); open = false; url = "" }
+            }
+        })
+    }
+    if (note.isNotBlank()) Small(note, color = c.signal)
+}
+
