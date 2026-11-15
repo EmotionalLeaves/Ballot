@@ -86,6 +86,7 @@ class GeminiClient(private val baseUrl: String = "https://generativelanguage.goo
     }
 
     companion object {
+        const val FUMBLE = "fumbled a step"
         /** Gemini wants the OpenAPI subset of JSON Schema with upper-case type names. */
         fun toGeminiSchema(e: JsonElement): JsonElement = when (e) {
             is JsonObject -> JsonObject(e.mapNotNull { (k, v) ->
@@ -183,6 +184,10 @@ class GeminiClient(private val baseUrl: String = "https://generativelanguage.goo
             val finish = cand.str("finishReason") ?: "STOP"
             if (blocks.isEmpty() && finish in setOf("SAFETY", "RECITATION", "PROHIBITED_CONTENT", "BLOCKLIST", "SPII")) {
                 throw LlmException("Gemini stopped this reply ($finish). Try rewording the request.", retryable = false)
+            }
+            // Flash models sometimes garble a tool call and send nothing back. Asking again usually works.
+            if (blocks.isEmpty() && finish in setOf("MALFORMED_FUNCTION_CALL", "UNEXPECTED_TOOL_CALL", "TOO_MANY_TOOL_CALLS")) {
+                throw LlmException("Gemini $FUMBLE ($finish).", retryable = true)
             }
             if (blocks.isEmpty() && finish == "MAX_TOKENS") {
                 throw LlmException("Gemini ran out of room while thinking. Ask again, or ask a shorter question.", retryable = true)

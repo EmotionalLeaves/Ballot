@@ -190,6 +190,7 @@ $brief
                 if (r2.messages.isEmpty()) r2 = r2.copy(messages = req.messages.takeLast(1))
             }
             var waited = false
+            var refumbled = false
             while (true) {
                 try {
                     val r = try {
@@ -220,6 +221,8 @@ $brief
                         case.audit("app", "AI service resting until tomorrow", input = route.preset.name, outcome = e.message ?: "")
                         break
                     }
+                    // A garbled tool call usually comes out right on a second try with the same service.
+                    if (!refumbled && (e.message ?: "").contains(GeminiClient.FUMBLE)) { refumbled = true; continue }
                     // A free tier asking for a short pause gets one; anything longer moves to the next service.
                     if (e.status == 429 && !waited && e.retryAfterSec in 1..20) { waited = true; delay(e.retryAfterSec * 1000L); continue }
                     break

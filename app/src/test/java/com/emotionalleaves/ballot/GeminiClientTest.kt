@@ -99,6 +99,13 @@ class GeminiClientTest {
     }
 }
 
+class GeminiFinishTest {
+    @Test fun aGarbledToolCallIsRetryableNotAnEmptyAnswer() {
+        val e = runCatching { GeminiClient.decode("""{"candidates":[{"content":{"parts":[]},"finishReason":"MALFORMED_FUNCTION_CALL"}]}""") }.exceptionOrNull()
+        assertTrue(e is com.emotionalleaves.ballot.agent.LlmException && e.retryable)
+    }
+}
+
 class GeminiSchemaTest {
     @Test fun aFieldNamedTypeStaysASchema() {
         val schema = Schema.obj(listOf("type"), mapOf("type" to Schema.e("Kind of draft", listOf("EMAIL", "LETTER")), "title" to Schema.s("Title")))
