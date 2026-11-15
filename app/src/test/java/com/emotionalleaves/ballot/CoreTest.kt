@@ -312,3 +312,14 @@ class BlockersTest {
         assertTrue(WeeklyScore.blockers(WeekCounts(conversations = 2, meetings = 1, speakingReps = 1), stage = 1, openTasks = 3, skippedTasks = 0).single().contains("5-minute"))
     }
 }
+
+class PrepCardTest {
+    @Test fun aCardUsesOnlyYourOwnRecords() {
+        val c = com.emotionalleaves.ballot.core.PrepCard.build("City Council: Transit budget hearing", "", listOf("Transit", "Housing"),
+            listOf("Transit" to "Run the 24 bus until midnight."), listOf("Ana" to "Met at the transit hearing", "Ben" to "Neighbor"), hasApprovedComment = false)
+        assertTrue(c, c.contains("Transit: Run the 24 bus until midnight."))
+        assertTrue(c, c.contains("Ana"))
+        assertFalse(c, c.contains("Ben"))
+        assertTrue(c, c.contains("Attend once silently first"))
+    }
+}

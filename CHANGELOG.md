@@ -155,3 +155,4 @@ One line per loop iteration, newest last.
 - AI-reliance: the values interview is a five-question form in Who you are, saved to your profile; the Chief version is optional.
 - AI-reliance: Drafts start from a plain-code template for each kind of document, filled with your own words (Templates, tested); the one-page platform is built the same way. The Chief's draft is the optional second choice.
 - AI-reliance: a quiet week's review names likely blockers in plain code from your own numbers (WeeklyScore.blockers, tested); talking it through with the Chief is optional.
+- AI-reliance: the pre-event card is built in plain code from your goal, issues, stances and contacts (PrepCard, tested); web research with the Chief is optional.

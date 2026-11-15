@@ -228,7 +228,18 @@ private fun EventPanel(
             }
         }
         Row {
-            LinkButton("Pre-event card", onClick = {
+            // The prep card is built here from your own records; the Chief's version (with web research) is optional.
+            LinkButton("Prep card", onClick = {
+                scope.launch {
+                    val p = g.case.profile()
+                    val card = com.emotionalleaves.ballot.core.PrepCard.build(e.title, e.goal, p.issues.lines().map { it.trim() }.filter { it.isNotBlank() },
+                        g.db.positions().all().filter { it.stance.isNotBlank() }.map { it.issue to it.stance },
+                        g.db.contacts().all().map { it.name to it.howMet },
+                        g.db.documents().all().any { it.approved && it.type == "PUBLIC_COMMENT" })
+                    g.db.events().get(e.id)?.let { g.db.events().upsert(it.copy(preCard = card, updatedAt = now())) }
+                }
+            })
+            LinkButton("Research it with the Chief", color = c.muted, onClick = {
                 askChief(g, "Write a pre-event card for \"${e.title}\" on ${dateTime(e.startAt)} at ${e.place}: who is likely to be there (by role, from sources), what to say in one line, " +
                     "and one goal for the night. Keep it under 120 words. If the agenda is posted, check it: ${e.agendaUrl}", "pre-event card") { r ->
                     scope.launch { g.db.events().get(e.id)?.let { g.db.events().upsert(it.copy(preCard = r.text.take(1200), updatedAt = now())) } }
