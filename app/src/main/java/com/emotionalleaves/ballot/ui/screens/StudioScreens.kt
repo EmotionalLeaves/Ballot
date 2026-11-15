@@ -190,7 +190,7 @@ fun DocumentScreen(nav: NavHostController, id: Long) {
                     askChief(g, "Check this draft against everything I have said publicly (positions with public dates and approved documents). Flag any contradiction plainly:\n\n$body", "checking consistency")
                     nav.navigate(Routes.CHIEF)
                 })
-                LinkButton("Rehearse in Gym", onClick = { nav.navigate(Routes.GYM) })
+                LinkButton("Rehearse it", onClick = { nav.navigate(Routes.GYM) })
             }
         }
         if (d.previousBody.isNotBlank()) item {

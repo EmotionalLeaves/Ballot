@@ -530,11 +530,11 @@ class ToolRegistry {
                 SpeechScorer.plainFeedback(m, target).joinToString(" "))
         })
 
-        reg(ToolDef("start_mock_room", "Open a mock room in the Gym where the Chief plays the other side.",
+        reg(ToolDef("start_mock_room", "Open a mock room in Practice where the Chief plays the other side.",
             S.obj(listOf("room"), mapOf("room" to S.e("Room", MockRooms.ids), "difficulty" to S.e("Difficulty", listOf("EASY", "MEDIUM", "HARD")))),
             RoutineKind.TRACKER, required = listOf("room")) { a, _ ->
             val room = MockRooms.byId(a.str("room") ?: "") ?: return@ToolDef ToolOutcome("Unknown room.", isError = true)
-            ToolOutcome("Mock room ready: ${room.title}. The user can open it from the Gym.", cards = listOf(Card("INFO", room.title, room.setup, "gym", 0)))
+            ToolOutcome("Mock room ready: ${room.title}. The user can open it from Practice.", cards = listOf(Card("INFO", room.title, room.setup, "gym", 0)))
         })
 
         reg(ToolDef("update_platform",

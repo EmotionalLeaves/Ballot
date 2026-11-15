@@ -84,7 +84,7 @@ fun CompassScreen(nav: NavHostController) {
                 ChipRow(listOf("60", "3", "10"), version, { if (it == "60") "60 seconds" else "$it minutes" }) { version = it }
                 when (version) {
                     "60" -> {
-                        Small(if (p.storyLocked) "Locked after ${p.storyDrafts} drafts. Now rehearse it in the Gym until it's rated clear."
+                        Small(if (p.storyLocked) "Locked after ${p.storyDrafts} drafts. Now rehearse it in Practice until it's rated clear."
                             else "Draft ${p.storyDrafts} of ${StageRules.STORY_DRAFT_CAP}. About 150 words.", color = if (p.storyLocked) c.signal else c.muted)
                         Field(story, { if (!p.storyLocked) story = it }, "Why you are doing this, as a story", minLines = 6)
                         Small("${story.split(Regex("\\s+")).count { it.isNotBlank() }} words")

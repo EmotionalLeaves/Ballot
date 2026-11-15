@@ -45,7 +45,7 @@ enum class Stage(
     GROUND(2, "Learn the ground", "Months 1 to 3", "You pass the Chief's quiz on your own town (8 of 10).",
         "Quiz score on your own town", "Reading without retaining", "Short quizzes and teach-back."),
     SHOW_UP(3, "Show up", "Months 2 to 9", "Ten meetings attended, three public comments given.",
-        "Meetings attended, comments given", "Nerves", "Rehearse in the Gym. Attend once silently first."),
+        "Meetings attended, comments given", "Nerves", "Rehearse in Practice. Attend once silently first."),
     SERVE(4, "Serve", "Months 6 to 18", "One role or one finished project you can point to.",
         "Applications sent", "Waiting to feel ready", "Apply at the first eligible opening."),
     BASE(5, "Build a base", "Ongoing", "200 people in your network who would take your call.",
@@ -120,8 +120,8 @@ object StageRules {
                 "A draft of about 150 words saved in the story bank.", "Three drafts maximum, then it locks.",
                 listOf("Open Compass, then Story bank.", "Ask the Chief for a first draft from your interview.", "Edit it into your own words."), 15, module = "compass"),
             TaskTemplate("s1.record", "Record the 60-second story five times", "Saying it out loud is what makes it yours.",
-                "Five recorded reps in the Gym, last one rated clear.", "Clear beats perfect.",
-                listOf("Open the Gym.", "Pick the story drill.", "Record, read the score, repeat."), 15, highEffort = true, module = "gym"),
+                "Five recorded reps in Practice, last one rated clear.", "Clear beats perfect.",
+                listOf("Open Practice.", "Pick the story drill.", "Record, read the score, repeat."), 15, highEffort = true, module = "gym"),
         )
         Stage.GROUND -> listOf(
             TaskTemplate("s2.offices", "List every office that represents you", "You cannot pick a race you cannot see.",
@@ -149,7 +149,7 @@ object StageRules {
                 listOf("Go.", "Introduce yourself to two people.", "Debrief by voice afterwards."), 45, highEffort = true, humanContact = true, module = "field"),
             TaskTemplate("s3.comment", "Draft a public comment", "A comment puts your name and view on the public record.",
                 "A two-minute comment approved in the Studio.", "Two minutes, one point, one ask.",
-                listOf("Pick an agenda item that touches your issues.", "Ask the Chief for a draft.", "Rehearse it in the Gym."), 15, module = "studio"),
+                listOf("Pick an agenda item that touches your issues.", "Ask the Chief for a draft.", "Rehearse it in Practice."), 15, module = "studio"),
             TaskTemplate("s3.volunteer", "Sign up to volunteer on a local campaign", "The apprentice route teaches campaigns faster than anything.",
                 "One volunteer shift booked.", "Any local campaign you can stand behind.",
                 listOf("Ask the Chief for local campaigns needing volunteers.", "Pick one.", "Sign up yourself."), 15, humanContact = true, module = "field"),

@@ -94,7 +94,7 @@ fun GymScreen(nav: NavHostController) {
         cards = (offices + holders + positions + rules).shuffled()
     }
     val c = LocalBallotColors.current
-    Screen("Gym", kicker = "Skills", onBack = { nav.popBackStack() }, walkthrough = listOf(
+    Screen("Practice", kicker = "Speaking reps, mock rooms and flashcards", onBack = { nav.popBackStack() }, walkthrough = listOf(
         "One five-minute speaking rep a day. Pick a drill, tap Speak, talk, tap Stop.",
         "The score is plain code: clarity (filler words), pace (words per minute) and length against the target.",
         "Mock rooms: the Chief plays a hostile voter, a reporter, a moderator or a donor.",
