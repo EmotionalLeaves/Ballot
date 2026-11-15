@@ -74,6 +74,14 @@ class ToolDef(
     val handler: suspend (JsonObject, ToolCtx) -> ToolOutcome,
 )
 
+/** Pages the open_page tool can point at; the keys are the card targets the app knows how to open. */
+val PAGES: Map<String, String> = linkedMapOf(
+    "home" to "Today", "path" to "Plan", "network" to "People", "compass" to "Who you are", "ground" to "Offices and races",
+    "field" to "Meetings and events", "briefing" to "Local briefing", "gym" to "Practice", "studio" to "Drafts",
+    "approvals" to "Waiting for your OK", "vault" to "Vault", "casefile" to "Case file", "review" to "Weekly review",
+    "hq" to "Campaign HQ", "settings" to "Settings",
+)
+
 /** The typed tools. Each one is a real function in the app. */
 class ToolRegistry {
     private val defs = LinkedHashMap<String, ToolDef>()
@@ -603,6 +611,15 @@ class ToolRegistry {
             }
             c.case.rescore()
             ToolOutcome("Profile updated. The plan has been rescored.")
+        })
+
+        // Everything in the app is reachable by asking: "take me to my drafts" gives a card that opens the page.
+        reg(ToolDef("open_page", "Give the user a one-tap card that opens a page of the app, when they ask to go somewhere or see something there.",
+            S.obj(listOf("page"), mapOf("page" to S.e("Page", PAGES.keys.toList()), "why" to S.s("One line on what they'll find"))),
+            RoutineKind.RESEARCH, required = listOf("page")) { a, _ ->
+            val page = a.str("page")!!.lowercase()
+            val title = PAGES[page] ?: return@ToolDef ToolOutcome("Unknown page. Use one of: ${PAGES.keys.joinToString()}.", isError = true)
+            ToolOutcome("Card shown: tap to open $title.", cards = listOf(Card("INFO", "Open $title", a.str("why") ?: "", target = page)))
         })
 
         reg(ToolDef("save_brief_item", "Save one item to today's Briefing: local news, an agenda or a decision that touches the user's issues, with one optional action.",

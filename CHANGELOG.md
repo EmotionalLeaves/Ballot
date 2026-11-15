@@ -89,3 +89,4 @@ One line per loop iteration, newest last.
 - c1 p2 t1 i3 `reduce_menus_and_buttons`: Cooling minutes, win margin and rule-check days save as you type; their Save button is gone
 - c1 p2 t1 i4 `reduce_menus_and_buttons`: Today's task card merges 'How to do it' and 'Why this?' into one 'How and why' dialog (steps, what done looks like, then the score)
 - c1 p2 t1 i5 `reduce_menus_and_buttons`: Today drops its separate Briefing link: the status line that says 'N new in your briefing' opens it
+- c1 p2 t2 i1 `establish_single_access_point`: New open_page tool: asking the Chief to go anywhere (drafts, vault, case file, weekly review, settings) gives a one-tap card that opens it

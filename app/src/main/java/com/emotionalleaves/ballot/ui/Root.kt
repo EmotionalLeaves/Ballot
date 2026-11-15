@@ -126,6 +126,8 @@ fun NavHostController.openCard(card: Card) {
         "briefing" -> Routes.BRIEFING
         "home" -> Routes.HOME
         "settings" -> Routes.SETTINGS
+        "casefile" -> Routes.CASEFILE
+        "review" -> Routes.REVIEW
         else -> null
     } ?: return
     navigate(route) { launchSingleTop = true }
