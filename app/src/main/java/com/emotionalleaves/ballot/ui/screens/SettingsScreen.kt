@@ -158,6 +158,7 @@ fun SettingsScreen(nav: NavHostController) {
                 Title("Spend")
                 val capMicros = (s.monthlyCapCents * 10_000L).coerceAtLeast(1)
                 Body("This month: ${dollars(spend / 10_000)} of ${dollars(s.monthlyCapCents.toLong())}")
+                Small(if (s.freeOnly) "Free only is on: nothing will be spent." else "Free services never count toward the cap; only paid ones do.", color = c.fg)
                 Progress(spend.toFloat() / capMicros)
                 Field(cap, { cap = it.filter(Char::isDigit) }, "Monthly cap in dollars", singleLine = true, number = true)
                 LinkButton("Save cap", onClick = { cap.toIntOrNull()?.let { v -> upd { it.copy(monthlyCapCents = v * 100) } } })
