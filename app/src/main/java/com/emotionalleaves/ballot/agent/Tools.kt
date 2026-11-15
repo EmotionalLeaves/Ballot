@@ -334,20 +334,9 @@ class ToolRegistry {
                 "notes" to S.s("What was said"), "promises_by_you" to S.s("What the user promised"), "promises_by_them" to S.s("What they promised"),
                 "promise_due" to S.s("YYYY-MM-DD"), "two_way" to S.b("A real two-way conversation"), "next_step" to S.s("Next step"),
             )), RoutineKind.TRACKER, voiceConfirm = true, required = listOf("contact")) { a, c ->
-            val name = a.str("contact")!!.trim()
-            val contact = c.case.db.contacts().byName(name)
-                ?: Contact(name = name, howMet = a.str("notes")?.take(80) ?: "").let { it.copy(id = c.case.db.contacts().upsert(it)) }
-            val due = a.str("promise_due")?.let { parseDate(it) } ?: 0
-            val i = Interaction(contactId = contact.id, channel = a.str("channel") ?: "IN_PERSON", notes = a.str("notes") ?: "",
-                promisesByYou = a.str("promises_by_you") ?: "", promisesByThem = a.str("promises_by_them") ?: "", promiseDueEpochDay = due,
-                twoWay = a.bool("two_way") ?: true, nextStep = a.str("next_step") ?: "")
-            c.case.db.interactions().upsert(i)
-            c.case.db.contacts().upsert(contact.copy(lastContactAt = now(), nextStep = i.nextStep.ifBlank { contact.nextStep }, updatedAt = now()))
-            if (i.promisesByYou.isNotBlank()) {
-                c.case.db.tasks().upsert(Task(stage = c.case.profile().stage, title = "Keep your promise to ${contact.name}: ${i.promisesByYou.take(60)}",
-                    why = "Promises kept are how trust is built.", doneLooksLike = "Done and told them.", goodEnough = "Done, briefly.",
-                    dueEpochDay = if (due > 0) due else c.case.today() + 3, humanContact = true, followUpSince = now(), module = "network", sizeMinutes = 15))
-            }
+            val contact = c.case.logInteraction(a.str("contact")!!, notes = a.str("notes") ?: "", twoWay = a.bool("two_way") ?: true,
+                channel = a.str("channel") ?: "IN_PERSON", promisesByYou = a.str("promises_by_you") ?: "", promisesByThem = a.str("promises_by_them") ?: "",
+                promiseDueEpochDay = a.str("promise_due")?.let { parseDate(it) } ?: 0, nextStep = a.str("next_step") ?: "")
             ToolOutcome("Logged an interaction with ${contact.name}.", cards = listOf(Card("CONTACT", contact.name, "Interaction logged", "contact", contact.id)))
         })
 

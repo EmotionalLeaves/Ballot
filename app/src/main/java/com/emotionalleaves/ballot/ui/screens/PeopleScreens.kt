@@ -221,14 +221,8 @@ fun ContactScreen(nav: NavHostController, id: Long) {
                 Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(twoWay, { twoWay = it }); Small("A real two-way conversation", color = c.fg) }
                 PosterButton("Log it", enabled = note.isNotBlank(), onClick = {
                     scope.launch {
-                        g.db.interactions().upsert(Interaction(contactId = p.id, notes = note, promisesByYou = promise, twoWay = twoWay,
-                            promiseDueEpochDay = if (promise.isNotBlank()) g.case.today() + 3 else 0))
-                        g.db.contacts().upsert(p.copy(lastContactAt = now(), updatedAt = now()))
-                        if (promise.isNotBlank()) g.db.tasks().upsert(com.emotionalleaves.ballot.data.Task(stage = g.case.profile().stage,
-                            title = "Keep your promise to ${p.name}: ${promise.take(60)}", why = "Promises kept are how trust is built.",
-                            doneLooksLike = "Done and told them.", humanContact = true, followUpSince = now(), dueEpochDay = g.case.today() + 3, module = "network"))
+                        g.case.logInteraction(p.name, notes = note, twoWay = twoWay, promisesByYou = promise, contactId = p.id)
                         note = ""; promise = ""
-                        g.case.advanceIfReady()
                     }
                 })
             }

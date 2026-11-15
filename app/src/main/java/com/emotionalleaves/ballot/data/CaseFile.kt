@@ -303,5 +303,27 @@ class CaseFile(val db: BallotDatabase, private val settings: SettingsStore) {
         rescore()
         return id
     }
+
+    /**
+     * Logs one conversation with someone: by name (adding them if new) or by id. Updates their last-talked date,
+     * turns a promise into a task, and checks the stage exit. The tools and the People page both use this.
+     */
+    suspend fun logInteraction(
+        name: String, notes: String, twoWay: Boolean = true, channel: String = "IN_PERSON", promisesByYou: String = "",
+        promisesByThem: String = "", promiseDueEpochDay: Long = 0, nextStep: String = "", contactId: Long? = null,
+    ): Contact {
+        val contact = contactId?.let { db.contacts().get(it) } ?: db.contacts().byName(name.trim())
+            ?: Contact(name = name.trim(), howMet = notes.take(80)).let { it.copy(id = db.contacts().upsert(it)) }
+        val due = if (promisesByYou.isNotBlank() && promiseDueEpochDay == 0L) today() + 3 else promiseDueEpochDay
+        db.interactions().upsert(Interaction(contactId = contact.id, channel = channel, notes = notes, promisesByYou = promisesByYou,
+            promisesByThem = promisesByThem, promiseDueEpochDay = due, twoWay = twoWay, nextStep = nextStep))
+        db.contacts().upsert(contact.copy(lastContactAt = now(), nextStep = nextStep.ifBlank { contact.nextStep }, updatedAt = now()))
+        if (promisesByYou.isNotBlank()) db.tasks().upsert(Task(stage = profile().stage, title = "Keep your promise to ${contact.name}: ${promisesByYou.take(60)}",
+            why = "Promises kept are how trust is built.", doneLooksLike = "Done and told them.", goodEnough = "Done, briefly.",
+            dueEpochDay = due, humanContact = true, followUpSince = now(), module = "network", sizeMinutes = 15))
+        advanceIfReady()
+        rescore()
+        return contact
+    }
 }
 
