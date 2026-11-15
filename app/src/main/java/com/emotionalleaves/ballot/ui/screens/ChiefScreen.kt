@@ -74,6 +74,7 @@ fun ChiefScreen(nav: NavHostController, thread: String = "main") {
     val sources by g.db.sources().observe().collectAsStateWithLifecycle(initialValue = emptyList())
     val queued by g.db.queue().observeCount().collectAsStateWithLifecycle(initialValue = 0)
     var input by remember { mutableStateOf("") }
+    var confirmClear by remember { mutableStateOf(false) }
     val list = rememberLazyListState()
     val speech = rememberSpeechCapture()
     val mic = rememberMicGate()
@@ -97,7 +98,7 @@ fun ChiefScreen(nav: NavHostController, thread: String = "main") {
                 Text("THE CHIEF", style = MaterialTheme.typography.headlineMedium, color = c.fg)
                 Small(if (queued > 0) "$queued request(s) queued until you're online" else "Your chief of staff. Asks before anything goes out in your name.")
             }
-            if (messages.isNotEmpty()) LinkButton("Clear", onClick = { scope.launch { g.db.chat().clear(thread) } }, color = c.muted)
+            if (messages.isNotEmpty()) LinkButton("Clear", onClick = { confirmClear = true }, color = c.muted)
         }
         ThickRule(Modifier.padding(horizontal = Gutter, vertical = 8.dp))
         LazyColumn(Modifier.weight(1f).fillMaxWidth(), state = list, contentPadding = PaddingValues(horizontal = Gutter, vertical = 8.dp),
@@ -129,6 +130,13 @@ fun ChiefScreen(nav: NavHostController, thread: String = "main") {
             }
         }
     }
+    if (confirmClear) ClearDialog(onConfirm = { scope.launch { g.db.chat().clear(thread) } }, onDismiss = { confirmClear = false })
+}
+
+@Composable
+private fun ClearDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    com.emotionalleaves.ballot.ui.components.ConfirmDialog("Clear the conversation?",
+        "This removes the chat only. Everything the Chief filed (contacts, tasks, sources, drafts) stays in your case file.", "Clear", onConfirm, onDismiss)
 }
 
 @Composable
