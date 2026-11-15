@@ -58,6 +58,13 @@ import java.time.ZoneId
 
 @Composable
 fun HomeScreen(nav: NavHostController) {
+    val ctx = LocalContext.current
+    // Re-read whenever Today comes back into view, e.g. after visiting the system settings.
+    var notificationsOn by remember { mutableStateOf(true) }
+    androidx.lifecycle.compose.LifecycleResumeEffect(Unit) {
+        notificationsOn = androidx.core.app.NotificationManagerCompat.from(ctx).areNotificationsEnabled()
+        onPauseOrDispose { }
+    }
     val g = LocalContext.current.graph
     val scope = rememberCoroutineScope()
     val profile by g.db.profile().observe().collectAsStateWithLifecycle(initialValue = null)
@@ -164,6 +171,15 @@ fun HomeScreen(nav: NavHostController) {
                 }
             }
             if (insideWork) item { Small("You're at work now. Everything keeps until after.", Modifier.padding(horizontal = 4.dp)) }
+            // Deadline alerts and meeting reminders depend on notifications; if they're off, say so once, here.
+            if (!notificationsOn) item {
+                Panel(onClick = {
+                    ctx.startActivity(android.content.Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                        .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, ctx.packageName).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+                }, padding = 14.dp) {
+                    Small("Notifications are off, so deadline alerts and meeting reminders can't reach you. Tap to turn them on.", color = c.signal)
+                }
+            }
             item {
                 Row {
                     LinkButton("Shrink this week", color = c.muted, onClick = {
