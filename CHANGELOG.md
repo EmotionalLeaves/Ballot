@@ -176,3 +176,4 @@ One line per loop iteration, newest last.
 - c1 p5 t1 i5 `combine_screens`: Your plan and the weekly review share one page with two tabs, so the review is one tap from the plan
 - c1 p5 t1 i6 `combine_screens`: From stage 5 the run-or-wait check is a third tab on Your plan, next to the plan and the weekly review
 - c1 p5 t1 i7 `combine_screens`: no change: Waiting for your OK stays its own page; it's reached from Today, People and the Chief, and merging it would hide approvals
+- c1 p5 t1 i8 `combine_screens`: no change: Practice and its mock rooms already share one page; a room is a full-screen scene by design
