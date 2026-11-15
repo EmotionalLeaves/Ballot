@@ -134,8 +134,8 @@ fun ApprovalsScreen(nav: NavHostController) {
                 Text(p.summary, style = MaterialTheme.typography.titleMedium, color = c.fg)
                 if (p.kind == PendingKind.SEND) Field(draft, { draft = it }, "Message", minLines = 3)
                 // A template's [gap] is yours to fill; nothing goes out with one left in.
-                val gap = p.kind == PendingKind.SEND && Regex("\\[[^\\]]{2,}]").containsMatchIn(draft)
-                if (gap) Small("Fill in the part in [brackets] first.", color = c.signal)
+                val gap = p.kind == PendingKind.SEND && com.emotionalleaves.ballot.core.Gaps.any(draft)
+                if (gap) Small("Fill in ${com.emotionalleaves.ballot.core.Gaps.first(draft)} first.", color = c.signal)
                 else if (p.kind == PendingKind.CONFIRM_VOICE || p.kind == PendingKind.ROUTINE) Small(prettyPayload(p.payload))
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     PosterButton(if (p.kind == PendingKind.SEND) "Approve and send" else "Approve", enabled = !gap, onClick = {

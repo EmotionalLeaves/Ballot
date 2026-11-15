@@ -204,8 +204,9 @@ fun DocumentScreen(nav: NavHostController, id: Long) {
             }
         }
         // Template gaps like [your name] must be filled before anything can go out.
-        val gaps = Regex("\\[[^\\]]{2,}]").findAll(d.body).count()
-        if (gaps > 0) item { Small(if (gaps == 1) "1 gap in [brackets] to fill before you can approve." else "$gaps gaps in [brackets] to fill before you can approve.", color = c.signal) }
+        val gaps = com.emotionalleaves.ballot.core.Gaps.count(d.body)
+        if (gaps > 0) item { Small((if (gaps == 1) "1 gap to fill before you can approve: " else "$gaps gaps to fill before you can approve, starting with ") +
+            com.emotionalleaves.ballot.core.Gaps.first(d.body), color = c.signal) }
         item {
             val canApprove = !holding && unverified.isEmpty() && !changed && !d.approved && gaps == 0
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {

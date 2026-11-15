@@ -207,3 +207,4 @@ One line per loop iteration, newest last.
 - c1 p6 t1 i4 `overhaul_system_architecture`: Real migration safety net: every exported schema version is created, migrated to today's and validated against the entities, keeping its rows (Room MigrationTestHelper)
 - c1 p6 t1 i5 `overhaul_system_architecture`: One observable 'is AI connected' (Chief.aiConnected, ticking when a key changes) replaces three one-off checks, so Today, the Chief and Briefing update the moment you connect or remove a key
 - c1 p6 t1 i6 `overhaul_system_architecture`: The plain-code features (template facts, town quiz, prep card) live in the case file, not in screens, so screens and tools share one tested home
+- c1 p6 t1 i7 `overhaul_system_architecture`: Template gaps have one tested rule (core Gaps) shared by Drafts and Approvals, and both now name the gap to fill

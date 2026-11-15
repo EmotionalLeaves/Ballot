@@ -331,3 +331,11 @@ class ClaimFinderTest {
         assertEquals(listOf("The park budget fell 40% since 2020.", "Our ward has the most potholes in the city.", "My opponent voted against it 3 times."), found)
     }
 }
+
+class GapsTest {
+    @Test fun countsOnlyRealGaps() {
+        assertEquals(2, com.emotionalleaves.ballot.core.Gaps.count("Hi [name], thanks. [One line.]"))
+        assertEquals(0, com.emotionalleaves.ballot.core.Gaps.count("Array [1] and [] stay"))
+        assertEquals("[name]", com.emotionalleaves.ballot.core.Gaps.first("Hi [name]"))
+    }
+}
