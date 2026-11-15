@@ -1,8 +1,12 @@
 name: Release
 
-# Only tagged releases produce a signed APK. Every quality gate must pass first.
+# Only releases produce a signed APK. Every quality gate must pass first.
+# A release starts when VERSION changes on main (the loop's version bump at the end of each cycle),
+# when a v* tag is pushed, or by hand. The workflow creates the v<VERSION> tag itself.
 on:
   push:
+    branches: [main]
+    paths: [VERSION]
     tags: ["v*"]
   workflow_dispatch:
 
@@ -57,8 +61,8 @@ jobs:
           echo "BALLOT_KEYSTORE_PATH=$RUNNER_TEMP/ballot.jks" >> "$GITHUB_ENV"
       - name: Version
         run: |
-          NAME="${GITHUB_REF_NAME#v}"
-          if [ "$GITHUB_REF_TYPE" != "tag" ]; then NAME="0.0.${GITHUB_RUN_NUMBER}-manual"; fi
+          NAME="$(tr -d '[:space:]' < VERSION)"
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then NAME="${GITHUB_REF_NAME#v}"; fi
           echo "BALLOT_VERSION_NAME=$NAME" >> "$GITHUB_ENV"
           echo "BALLOT_VERSION_CODE=$((1000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
       - name: Build signed release APK
@@ -104,15 +108,22 @@ jobs:
 
   publish:
     needs: smoke
-    if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: apk
+      - name: Tag
+        run: |
+          V="$(tr -d '[:space:]' < VERSION)"
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then V="${GITHUB_REF_NAME#v}"; fi
+          echo "TAG=v$V" >> "$GITHUB_ENV"
       - uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ env.TAG }}
+          target_commitish: ${{ github.sha }}
+          name: Ballot ${{ env.TAG }}
           files: Ballot-*.apk
           body_path: RELEASE_NOTES.md
           fail_on_unmatched_files: true

@@ -4,7 +4,7 @@ Ballot is a native Android app (Kotlin, Compose, Room + SQLCipher, WorkManager) 
 
 ## Ground rules
 
-- Builds happen only in GitHub Actions. `ci.yml` runs on every push (lint, unit + Robolectric tests, compile). `release.yml` runs on `v*` tags (gates, signed APK, emulator smoke test, GitHub Release).
+- Builds happen only in GitHub Actions. `ci.yml` runs on every push (lint, unit + Robolectric tests, compile). `release.yml` runs when `VERSION` changes on main (it creates the `v<VERSION>` tag itself) (gates, signed APK, emulator smoke test, GitHub Release).
 - Single source of truth is the database. Screens observe DAO flows; actions write through `CaseFile` or the tools.
 - Deterministic core (`core/`): scoring, campaign math, race model, stages, deadlines, verification and approval levels run in plain code with JVM tests. The model explains them and never computes them.
 - Every schema change bumps `BallotDatabase.VERSION`, adds a `Migration` to `BallotDatabase.MIGRATIONS` and a test. A change that cannot migrate is dropped.

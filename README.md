@@ -24,7 +24,7 @@ Everything stays on the phone in an encrypted database (SQLCipher, key in the An
 ## Build
 
 - Every push runs the quality gates (lint, unit tests, agent evaluation set, Robolectric UI tests, compile).
-- A tag `v*` runs the gates, builds a signed release APK, installs it on an emulator for a smoke test, then publishes a GitHub Release.
+- Changing `VERSION` on main (or pushing a `v*` tag) runs the gates, builds a signed release APK, installs it on an emulator for a smoke test, then publishes a GitHub Release.
 
 ### Signing
 
