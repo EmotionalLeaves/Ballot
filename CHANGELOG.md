@@ -119,3 +119,4 @@ One line per loop iteration, newest last.
 - Phase 3 end (cycle 1): green, pushed. FEATURES.md checked: one control merged (mic and send), copy and layout only; no function removed.
 - c1 p4 t1 i1 `test_core_functionality`: Flow test: a new user who finishes setup gets a doable first task with a reason on Today
 - c1 p4 t1 i2 `test_core_functionality`: Flow test: tapping Done takes a task off Today, puts the next one up, and is audited
+- c1 p4 t1 i3 `test_core_functionality`: Flow test: the reinstall move (export, wrong passphrase, right passphrase) brings back setup, contacts and tasks, and a failed import changes nothing
