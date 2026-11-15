@@ -425,3 +425,13 @@ class NightShiftTest {
         assertFalse(Scheduling.insideWork(a, monEvening))
     }
 }
+
+class UrlNormTest {
+    @Test fun oneSpellingPerPage() {
+        val N = com.emotionalleaves.ballot.core.UrlNorm
+        val want = "https://lancaster.ne.gov/Election/Filing?year=2026"
+        listOf("https://www.Lancaster.NE.gov/Election/Filing/?year=2026&utm_source=x", "https://lancaster.ne.gov/Election/Filing?year=2026#top",
+            "HTTPS://lancaster.ne.gov:443/Election/Filing?fbclid=abc&year=2026").forEach { assertEquals(it, want, N.normalize(it)) }
+        assertEquals("https://sos.ne.gov", N.normalize("https://sos.ne.gov/"))
+    }
+}

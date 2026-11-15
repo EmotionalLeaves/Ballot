@@ -37,7 +37,7 @@ object PageFetcher {
             Http.pages.newCall(req).await().use { r ->
                 // The address that actually answered, after redirects: the official check must judge this one,
                 // or a .gov link that redirects elsewhere would pass as official.
-                val finalUrl = r.request.url.toString()
+                val finalUrl = com.emotionalleaves.ballot.core.UrlNorm.normalize(r.request.url.toString())
                 val body = r.body ?: return@use FetchedPage(finalUrl, r.code, "", "", "")
                 val type = body.contentType()?.toString() ?: ""
                 if (type.contains("pdf")) return@use FetchedPage(finalUrl, r.code, "PDF document", "[This is a PDF. Open it in a browser to read it.]", "")
