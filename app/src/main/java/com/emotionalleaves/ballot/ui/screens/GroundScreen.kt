@@ -160,8 +160,9 @@ private fun OfficePanel(o: Office, rc: RaceCard?, margin: Int, expanded: Boolean
                 Small("Last turnout ${rc.pastTurnout} · last winner spent ${dollars(rc.pastWinnerSpendCents)} · sources ${rc.sourceIds.ifBlank { "none" }}")
             }
             Small("Last checked ${shortDate(o.lastChecked)}")
+            RaceCardByHand(o, rc)
             Row {
-                LinkButton("Race card", onClick = onRace)
+                LinkButton("Race card with the Chief", onClick = onRace)
                 LinkButton("Explain", onClick = onExplain)
                 if (rc?.scoreWorking?.isNotBlank() == true) LinkButton("Working", onClick = onWorking)
             }
@@ -265,5 +266,57 @@ private fun AddOfficeByHand() {
         })
         Small("Saved as 'you said'. Add the official page later and it can be checked.", color = c.muted)
     }
+}
+
+/** The race card from the clerk's office or past results pages, typed in: the race score works from it with no AI. */
+@Composable
+private fun RaceCardByHand(o: Office, rc: RaceCard?) {
+    val g = LocalContext.current.graph
+    val scope = rememberCoroutineScope()
+    val base = rc ?: RaceCard(officeId = o.id)
+    var open by remember { mutableStateOf(false) }
+    var sigs by remember(base.id) { mutableStateOf(base.signaturesNeeded.takeIf { it > 0 }?.toString() ?: "") }
+    var fee by remember(base.id) { mutableStateOf(if (base.filingFeeCents > 0) "%.2f".format(base.filingFeeCents / 100.0) else "") }
+    var deadline by remember(base.id) { mutableStateOf(if (base.filingDeadlineEpochDay > 0) LocalDate.ofEpochDay(base.filingDeadlineEpochDay).toString() else "") }
+    var seats by remember(base.id) { mutableStateOf(base.seats.toString()) }
+    var turnout by remember(base.id) { mutableStateOf(base.pastTurnout.takeIf { it > 0 }?.toString() ?: "") }
+    var spend by remember(base.id) { mutableStateOf(if (base.pastWinnerSpendCents > 0) (base.pastWinnerSpendCents / 100).toString() else "") }
+    var hours by remember(base.id) { mutableStateOf(base.hoursPerWeek.takeIf { it > 0 }?.toString() ?: "") }
+    var rules by remember(base.id) { mutableStateOf(base.filingRules) }
+    var openSeat by remember(base.id) { mutableStateOf(base.openSeat) }
+    var retiring by remember(base.id) { mutableStateOf(base.incumbentRetiring) }
+    var uncontested by remember(base.id) { mutableStateOf(base.uncontestedHistory) }
+    LinkButton(if (open) "Hide" else "Fill in the race card by hand", onClick = { open = !open })
+    if (!open) return
+    fun digits(s: String) = s.filter { it.isDigit() || it == '.' }
+    Field(rules, { rules = it }, "Filing rules, in plain words", minLines = 2)
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Field(sigs, { sigs = digits(it) }, "Signatures", Modifier.weight(1f), singleLine = true, number = true)
+        Field(fee, { fee = digits(it) }, "Filing fee $", Modifier.weight(1f), singleLine = true, number = true)
+    }
+    Field(deadline, { deadline = it.trim() }, "Filing deadline (YYYY-MM-DD)", singleLine = true)
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Field(seats, { seats = digits(it) }, "Seats", Modifier.weight(1f), singleLine = true, number = true)
+        Field(turnout, { turnout = digits(it) }, "Votes cast last time", Modifier.weight(1f), singleLine = true, number = true)
+    }
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Field(spend, { spend = digits(it) }, "Winner spent $", Modifier.weight(1f), singleLine = true, number = true)
+        Field(hours, { hours = digits(it) }, "Hours a week it takes", Modifier.weight(1f), singleLine = true, number = true)
+    }
+    com.emotionalleaves.ballot.ui.components.SwitchRow("Open seat (no incumbent running)", openSeat, { openSeat = it })
+    com.emotionalleaves.ballot.ui.components.SwitchRow("Incumbent retiring", retiring, { retiring = it })
+    com.emotionalleaves.ballot.ui.components.SwitchRow("Often uncontested", uncontested, { uncontested = it })
+    PosterButton("Save race card", onClick = {
+        scope.launch {
+            g.db.raceCards().upsert(base.copy(filingRules = rules.trim(), signaturesNeeded = sigs.toDoubleOrNull()?.toInt() ?: 0,
+                filingFeeCents = fee.toDoubleOrNull()?.let { Math.round(it * 100) } ?: 0, filingDeadlineEpochDay = parseDay(deadline) ?: 0,
+                seats = seats.toDoubleOrNull()?.toInt()?.coerceAtLeast(1) ?: 1, pastTurnout = turnout.toDoubleOrNull()?.toInt() ?: 0,
+                pastWinnerSpendCents = spend.toDoubleOrNull()?.let { Math.round(it * 100) } ?: 0, hoursPerWeek = hours.toDoubleOrNull()?.toInt() ?: 0,
+                openSeat = openSeat, incumbentRetiring = retiring, uncontestedHistory = uncontested,
+                source = "you", confidence = com.emotionalleaves.ballot.data.Confidence.STATED, updatedAt = now()))
+            g.case.audit("you", "Filled a race card by hand", input = o.body)
+            open = false
+        }
+    })
 }
 
