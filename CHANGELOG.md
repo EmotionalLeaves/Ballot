@@ -128,3 +128,4 @@ One line per loop iteration, newest last.
 - c1 p4 t1 i9 `test_core_functionality`: Flow test: 'too much this week' leaves only the single most important task in the next seven days
 - c1 p4 t1 i10 `test_core_functionality`: Flow test: only real two-way conversations count toward your base, and the contact's last-talked date updates
 - c1 p4 t1 i11 `test_core_functionality`: Flow test: panic wipe leaves no contacts, tasks or audit entries behind
+- c1 p4 t1 i12 `test_core_functionality`: Flow test: lessons and brief items the Chief saves land where Plan and Briefing show them
