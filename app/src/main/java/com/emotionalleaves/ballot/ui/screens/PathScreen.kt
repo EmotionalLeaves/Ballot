@@ -195,33 +195,28 @@ fun QuizScreen(nav: NavHostController) {
     var submitted by remember { mutableStateOf(false) }
     val c = LocalBallotColors.current
 
+    // Built in plain code from your own offices and rules: no AI, nothing invented, works offline.
     fun generate() {
         loading = true; error = ""; submitted = false; answers.clear()
         scope.launch {
-            val offices = g.db.offices().all().joinToString("\n") { "O${it.id}: ${it.body} ${it.district}, held by ${it.incumbent}, powers: ${it.powers}, next election ${it.nextElection}" }
-            val sources = g.db.sources().all().filter { it.official }.take(8).joinToString("\n\n") { "S${it.id} ${it.title}: ${it.excerpt.take(1200)}" }
-            val explainers = g.db.chat().all().filter { it.role == "assistant" }.takeLast(10).joinToString("\n") { it.text.take(400) }
-            if (offices.isBlank() && sources.isBlank()) {
-                error = "The quiz is built only from what is in your case file, and it is empty. List your offices in Offices and races and read a few explainers first."
-                loading = false; return@launch
+            val offices = g.db.offices().all().map { o ->
+                com.emotionalleaves.ballot.core.QuizOffice(o.id, o.body, o.title, o.district, o.level, o.powers, o.term, o.nextElection, o.incumbent, o.partTime, o.appointed)
             }
-            val system = "You write a 10-question multiple-choice quiz about the user's own town, using ONLY the facts below. Never invent facts. " +
-                "Each question cites the record it came from (O#, S#). Reply with JSON only: an array of {\"q\":..., \"options\":[4 strings], \"answer\":index 0-3, \"source\":\"S#\", \"explain\": one sentence}."
-            val text = runCatching {
-                g.chief.simple(system, listOf(LlmMessage("user", listOf(Block.Text("Offices:\n$offices\n\nOfficial sources:\n$sources\n\nRecent explainers:\n$explainers")))), 3000)
-            }.getOrElse { error = it.message ?: "Could not build the quiz."; loading = false; return@launch }
-            // Structured output is validated; invalid output is reported, never shown raw.
-            val parsed = runCatching {
-                val json = text.substring(text.indexOf('['), text.lastIndexOf(']') + 1)
-                BallotJson.decodeFromString(ListSerializer(QuizQ.serializer()), json).filter { it.options.size in 2..6 && it.answer in it.options.indices }.take(10)
-            }.getOrDefault(emptyList())
-            if (parsed.size < 5) error = "The quiz came back malformed. Try again." else { questions = parsed; repeat(parsed.size) { answers += -1 } }
+            val rules = g.db.rules().all().map { com.emotionalleaves.ballot.core.QuizRule(it.id, it.jurisdiction, it.summary) }
+            val built = com.emotionalleaves.ballot.core.QuizBuilder.build(offices, rules, seed = System.currentTimeMillis())
+            if (built.size < 8) {
+                error = "Your case file has enough for ${built.size} questions; the quiz needs 8. Add the offices that represent you (with who holds them, " +
+                    "term length and what they control) in Offices and races, or load your election rules in the Vault."
+            } else {
+                questions = built.map { QuizQ(it.q, it.options, it.answer, it.source, it.explain) }
+                repeat(questions.size) { answers += -1 }
+            }
             loading = false
         }
     }
 
     Screen("Quiz: your town", kicker = "Stage 2 exit test · pass is ${StageRules.QUIZ_PASS} of 10", onBack = { nav.popBackStack() },
-        walkthrough = listOf("Ten questions built only from your own case file.", "Pick an answer for each, then check.", "Retake as often as you like. Your best score counts.")) {
+        walkthrough = listOf("Ten questions built in the app from your own offices and rules. No AI involved.", "Pick an answer for each, then check.", "Retake as often as you like. Your best score counts.")) {
         if (questions.isEmpty()) item {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Body("The quiz turns reading into knowing.")

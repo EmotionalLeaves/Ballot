@@ -233,3 +233,35 @@ class ScoresTest {
         assertEquals(2L, rec.stretch?.officeId)
     }
 }
+
+class QuizBuilderTest {
+    private val offices = listOf(
+        com.emotionalleaves.ballot.core.QuizOffice(1, "City Council", district = "Ward 2", level = "LOCAL", powers = "City budget and zoning", term = "4 years", nextElection = "November 2027", incumbent = "Rosa Lee"),
+        com.emotionalleaves.ballot.core.QuizOffice(2, "School Board", level = "SCHOOL", powers = "School budget and hiring the superintendent", term = "4 years", nextElection = "May 2027", incumbent = "Tom Hale"),
+        com.emotionalleaves.ballot.core.QuizOffice(3, "County Board", district = "District 5", level = "COUNTY", powers = "Roads, jails and county parks", term = "2 years", nextElection = "November 2026", incumbent = "Ann Cho"),
+        com.emotionalleaves.ballot.core.QuizOffice(4, "Parks Commission", level = "LOCAL", powers = "Advises on park plans", appointed = true, incumbent = "Joe Park"),
+    )
+
+    @Test fun everyQuestionComesFromTheCaseFileWithTheRightAnswerAmongTheOptions() {
+        val qs = com.emotionalleaves.ballot.core.QuizBuilder.build(offices, emptyList(), seed = 42)
+        assertEquals(10, qs.size)
+        qs.forEach { q ->
+            assertTrue(q.q, q.answer in q.options.indices)
+            assertTrue(q.q, q.options.size >= 2 && q.options.distinct().size == q.options.size)
+            assertTrue(q.source, q.source.matches(Regex("[OR]\\d+")))
+        }
+        // The holder question's right answer is the stored incumbent.
+        qs.filter { it.q.startsWith("Who holds") }.forEach { q ->
+            val id = q.source.drop(1).toLong()
+            assertEquals(offices.first { it.id == id }.incumbent, q.options[q.answer])
+        }
+    }
+
+    @Test fun sameSeedSameQuiz() {
+        assertEquals(com.emotionalleaves.ballot.core.QuizBuilder.build(offices, emptyList(), 7), com.emotionalleaves.ballot.core.QuizBuilder.build(offices, emptyList(), 7))
+    }
+
+    @Test fun anEmptyCaseFileGivesNoQuestionsRatherThanInventedOnes() {
+        assertTrue(com.emotionalleaves.ballot.core.QuizBuilder.build(emptyList(), emptyList(), 1).isEmpty())
+    }
+}

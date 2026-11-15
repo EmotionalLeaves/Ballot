@@ -151,3 +151,4 @@ One line per loop iteration, newest last.
 - c1 p4 t2 i12 `verify_goal_completion`: Serve stage: telling the Chief you got a role or finished a project records it, and either way the stage 4 exit is checked at once
 - c1 p4 t2 i13 `verify_goal_completion`: Choose stage: a go memo waiting for your agreement shows at the top of the plan with 'I agree: go', instead of hidden under Decisions
 - AI-reliance (owner request): CLAUDE.md and DECISIONS.md set the rule that every core job works without AI; AI is for research and optional first drafts.
+- AI-reliance: the stage 2 town quiz is built in plain code from your offices and rules (QuizBuilder, with tests); no AI and nothing invented.
