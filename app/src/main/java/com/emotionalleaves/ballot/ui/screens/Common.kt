@@ -138,7 +138,8 @@ fun parseHm(s: String): Int? = s.trim().split(":").takeIf { it.size == 2 }?.let 
     if (hh in 0..23 && mm in 0..59) hh * 60 + mm else null
 }
 
-fun parseDay(s: String): Long? = runCatching { LocalDate.parse(s.trim()).toEpochDay() }.getOrNull()
+/** Accepts 2026-11-20, 11/20/2026, Nov 20 2026 and the like (core DateText). */
+fun parseDay(s: String): Long? = com.emotionalleaves.ballot.core.DateText.day(s)?.toEpochDay()
 
 fun shareText(context: Context, text: String, subject: String = "") {
     val i = Intent(Intent.ACTION_SEND).apply {

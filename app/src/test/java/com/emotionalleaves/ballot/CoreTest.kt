@@ -372,3 +372,19 @@ class LedgerCsvTest {
         assertTrue(csv.contains("Cash on hand,,15.50"))
     }
 }
+
+class DateTextTest {
+    private val D = com.emotionalleaves.ballot.core.DateText
+    @Test fun daysAsPeopleWriteThem() {
+        val want = java.time.LocalDate.of(2026, 11, 20)
+        listOf("2026-11-20", "11/20/2026", "11/20/26", "Nov 20 2026", "November 20, 2026", "20 Nov 2026", "Nov 20th 2026").forEach { assertEquals(it, want, D.day(it)) }
+        assertEquals(null, D.day("20/11/2026"))
+        assertEquals(null, D.day("next Tuesday"))
+    }
+    @Test fun timesAsPeopleWriteThem() {
+        val want = java.time.LocalDateTime.of(2026, 11, 20, 18, 30)
+        listOf("2026-11-20T18:30", "2026-11-20 18:30", "2026-11-20 6:30pm", "2026-11-20 6:30 PM", "11/20/2026 6:30pm", "2026-11-20T18:30:00").forEach { assertEquals(it, want, D.dateTime(it)) }
+        assertEquals(java.time.LocalDateTime.of(2026, 11, 20, 0, 15), D.dateTime("2026-11-20 12:15am"))
+        assertEquals(null, D.dateTime("2026-11-20"))
+    }
+}

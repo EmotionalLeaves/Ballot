@@ -48,8 +48,8 @@ internal fun ToolRegistry.registerAppTools() {
             "title" to S.s("Title"), "type" to S.e("Type", EventType.all), "place" to S.s("Address or room"),
             "start" to S.s("YYYY-MM-DDTHH:MM local time"), "goal" to S.s("One goal for the night"), "agenda_url" to S.s("Agenda link"),
         )), RoutineKind.REMINDER, required = listOf("title", "start")) { a, c ->
-        val start = runCatching { LocalDateTime.parse(a.str("start")!!.take(16), DateTimeFormatter.ISO_LOCAL_DATE_TIME) }.getOrNull()
-            ?: return@ToolDef ToolOutcome("start must be YYYY-MM-DDTHH:MM.", isError = true)
+        val start = com.emotionalleaves.ballot.core.DateText.dateTime(a.str("start")!!)
+            ?: return@ToolDef ToolOutcome("start must be a date and a time, e.g. 2026-11-20T18:30.", isError = true)
         val avail = c.case.availability()
         if (com.emotionalleaves.ballot.core.Scheduling.insideWork(avail, start)) return@ToolDef ToolOutcome("That is inside the user's work hours. Pick another time or tell the user.", isError = true)
         val e = Event(type = a.str("type") ?: EventType.MEETING, title = a.str("title")!!, place = a.str("place") ?: "",

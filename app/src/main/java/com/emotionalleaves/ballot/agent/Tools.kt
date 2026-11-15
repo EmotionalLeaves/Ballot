@@ -154,7 +154,7 @@ class ToolRegistry {
     }
 
     companion object {
-        fun parseDate(s: String): Long? = runCatching { LocalDate.parse(s.trim().take(10)).toEpochDay() }.getOrNull()
+        fun parseDate(s: String): Long? = com.emotionalleaves.ballot.core.DateText.day(s)?.toEpochDay()
     }
 }
 
