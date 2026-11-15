@@ -59,12 +59,12 @@ fun BriefingScreen(nav: NavHostController) {
         "A two-minute digest of local news, upcoming agendas and decisions that touch your issues.",
         "It is built in the background after work, so it is waiting when you open the app.",
         "Each item ends with one optional action.")) {
+        item { ReplyPanel { nav.navigate(Routes.CHIEF) } }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 PosterButton("Build today's brief", onClick = { Workers.briefNow(ctx) })
                 PosterButton("Weekly long read", primary = false, onClick = {
                     askChief(g, "Write this week's long read: one topic I need to understand for my town (budgets, zoning, or whatever my issues need). Plain language, sourced, under 600 words. Save it with draft_document type OTHER.", "long read")
-                    nav.navigate(Routes.CHIEF)
                 })
             }
         }

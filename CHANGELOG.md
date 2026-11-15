@@ -184,3 +184,4 @@ One line per loop iteration, newest last.
 - c1 p5 t2 i3 `remove_excess_navigation_elements`: Plan: asking the Chief to check for open seats answers on the plan itself instead of jumping to the Chief
 - c1 p5 t2 i4 `remove_excess_navigation_elements`: Weekly review: the monthly check and quarterly memo answer on the review page instead of jumping to the Chief
 - c1 p5 t2 i5 `remove_excess_navigation_elements`: People: building the validators or press list with the Chief stays on People; new names appear in the list and the summary shows on the page
+- c1 p5 t2 i6 `remove_excess_navigation_elements`: Briefing: the weekly long read is written in the background and saved to Drafts, without jumping to the Chief
