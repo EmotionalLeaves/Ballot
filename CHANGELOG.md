@@ -196,3 +196,4 @@ One line per loop iteration, newest last.
 - c1 p5 t3 i5 `apply_intuitive_layout`: Setup's first screen leads with 'Continue without AI'; the AI setup opens only if you ask for it
 - c1 p5 t3 i6 `apply_intuitive_layout`: Briefing without AI says plainly that it's the one page that needs AI and where agendas you find yourself go, instead of showing buttons that do nothing
 - c1 p5 t3 i7 `apply_intuitive_layout`: The Chief's empty screen without AI lists the pages that do each job by hand, instead of chat starters that can't be answered
+- c1 p5 t3 i8 `apply_intuitive_layout`: Drafts: a template's [gaps] are counted above Approve, and approval waits until they're filled, so a placeholder can never go out

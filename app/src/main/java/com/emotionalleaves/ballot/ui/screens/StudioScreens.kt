@@ -211,8 +211,11 @@ fun DocumentScreen(nav: NavHostController, id: Long) {
                 if (claims.any { it.label == Verification.UNVERIFIED }) Small("Add an official page that says the same thing, or cut or reword the sentence. Approval waits until every claim is sourced.")
             }
         }
+        // Template gaps like [your name] must be filled before anything can go out.
+        val gaps = Regex("\\[[^\\]]{2,}]").findAll(d.body).count()
+        if (gaps > 0) item { Small(if (gaps == 1) "1 gap in [brackets] to fill before you can approve." else "$gaps gaps in [brackets] to fill before you can approve.", color = c.signal) }
         item {
-            val canApprove = !holding && unverified.isEmpty() && !changed && !d.approved
+            val canApprove = !holding && unverified.isEmpty() && !changed && !d.approved && gaps == 0
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 PosterButton(if (d.approved) "Approved" else "Approve", enabled = canApprove, onClick = {
                     scope.launch {
