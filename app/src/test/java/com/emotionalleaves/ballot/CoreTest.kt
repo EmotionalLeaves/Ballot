@@ -400,3 +400,13 @@ class LimitCheckTest {
         assertTrue(w[0], w[0].contains("over the $500 limit") && w[0].contains("$50"))
     }
 }
+
+class PageFinderTest {
+    @Test fun plainWordsFindThePage() {
+        val P = com.emotionalleaves.ballot.core.PageFinder
+        assertEquals("studio", P.find("help me write a public comment").first())
+        assertEquals("vault", P.find("when is my filing deadline?").first())
+        assertEquals("quiz", P.find("quiz me on my town").first())
+        assertTrue(P.find("hello there").isEmpty())
+    }
+}

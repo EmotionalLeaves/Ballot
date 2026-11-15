@@ -261,9 +261,14 @@ $brief
             return finish(thread, reply, Mode.STRATEGIST, emptyList(), emptyList(), persist)
         }
         if (!hasKey()) {
-            return finish(thread, "No AI service is connected, so I can't research the web or write drafts. Everything else works without me: your plan on Today, the town quiz, draft templates in Drafts, contacts, events and deadlines. " +
-                "If you'd like research and drafts too, connect a free AI in Settings, AI services (Google Gemini takes about two minutes).", Mode.STRATEGIST,
-                listOf(Card("INFO", "Connect a free AI", "Opens AI services in Settings", "settings")), emptyList(), persist, error = true)
+            // No AI: still point at the page that does the job, matched in plain code from your words.
+            val pages = com.emotionalleaves.ballot.core.PageFinder.find(userText)
+            val cards = pages.mapNotNull { k -> PAGES[k]?.let { Card("INFO", "Open ${it.replaceFirstChar { c -> c.uppercase() }}", "", k) } } +
+                Card("INFO", "Connect a free AI (optional)", "Opens AI services in Settings", "settings")
+            val lead = if (pages.isNotEmpty()) "No AI is connected, so I can't chat, but this is where that's done by hand:"
+                else "No AI is connected, so I can't chat or research. Your plan, the town quiz, draft templates, contacts, events and deadlines all work without me."
+            return finish(thread, "$lead If you'd like research and first drafts too, connect a free AI in Settings, AI services.", Mode.STRATEGIST,
+                cards.distinctBy { it.target }, emptyList(), persist, error = pages.isEmpty())
         }
         if (!online()) {
             if (queue) case.db.queue().insert(QueuedRequest(thread = thread, prompt = userText))
