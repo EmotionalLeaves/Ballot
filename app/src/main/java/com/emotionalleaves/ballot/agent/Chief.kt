@@ -106,6 +106,16 @@ $brief
 
     suspend fun spendThisMonthMicros(): Long = case.db.usage().spendSince(monthStart())
 
+    /** Services that said "no more today" rest until tomorrow, so requests go straight to the next one. */
+    private val runtime by lazy { context.getSharedPreferences("ballot_runtime", Context.MODE_PRIVATE) }
+
+    fun restingToday(): Set<String> {
+        val today = LocalDate.now().toEpochDay()
+        return Providers.all.map { it.id }.filter { runtime.getLong("rest_$it", 0) == today }.toSet()
+    }
+
+    private fun rest(id: String) = runtime.edit().putLong("rest_$id", LocalDate.now().toEpochDay()).apply()
+
     /** One service and model to try. */
     data class Route(val preset: ProviderPreset, val model: String)
 
@@ -134,7 +144,10 @@ $brief
                 .sortedByDescending { it.free }
                 .forEach { out += Route(it, modelFor(s, it)) }
         }
-        return if (s.freeOnly) out.filter { Providers.isFreeCall(it.preset, it.model) } else out
+        val allowed = if (s.freeOnly) out.filter { Providers.isFreeCall(it.preset, it.model) } else out
+        // Resting services go last rather than disappearing: if every service is resting, still try.
+        val resting = restingToday()
+        return allowed.sortedBy { it.preset.id in resting }
     }
 
     /** Requests made today per service, for the meter in Settings. */
@@ -160,8 +173,16 @@ $brief
                 continue
             }
             val c = clientFor(route.preset.id, s.openAiBaseUrl)
-            val tools = if (c.supportsWebSearch) req.tools.filter { it.name != "search_web" } else req.tools
-            val r2 = req.copy(model = route.model, tools = tools, webSearch = req.webSearch && c.supportsWebSearch)
+            var tools = if (c.supportsWebSearch) req.tools.filter { it.name != "search_web" } else req.tools
+            var r2 = req.copy(model = route.model, tools = tools, webSearch = req.webSearch && c.supportsWebSearch)
+            if (route.preset.lite) {
+                // Small free context: fewer tools, a shorter brief, clipped tool results.
+                tools = tools.filter { it.name in Providers.liteTools }
+                r2 = r2.copy(tools = tools, system = r2.system.take(5000), maxTokens = minOf(r2.maxTokens, 1200), messages = r2.messages.takeLast(8).map { m ->
+                    LlmMessage(m.role, m.content.map { b -> if (b is Block.ToolResult && b.content.length > 2500) b.copy(content = b.content.take(2500) + "\n[…clipped]") else b })
+                }.dropWhile { m -> m.role != "user" || m.content.any { it is Block.ToolResult } })
+                if (r2.messages.isEmpty()) r2 = r2.copy(messages = req.messages.takeLast(1))
+            }
             var waited = false
             while (true) {
                 try {
@@ -173,6 +194,11 @@ $brief
                 } catch (e: LlmException) {
                     last = e
                     anyRetryable = anyRetryable || e.retryable
+                    if (Providers.isDailyLimit(e.status, e.retryAfterSec, e.message ?: "")) {
+                        rest(route.preset.id)
+                        case.audit("app", "AI service resting until tomorrow", input = route.preset.name, outcome = e.message ?: "")
+                        break
+                    }
                     // A free tier asking for a short pause gets one; anything longer moves to the next service.
                     if (e.status == 429 && !waited && e.retryAfterSec in 1..20) { waited = true; delay(e.retryAfterSec * 1000L); continue }
                     break

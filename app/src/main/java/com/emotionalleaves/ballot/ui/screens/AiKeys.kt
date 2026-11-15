@@ -184,8 +184,10 @@ fun ConnectedServices(onChanged: () -> Unit = {}) {
     var today by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
     var main by remember { mutableStateOf("") }
     var models by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    var resting by remember { mutableStateOf<Set<String>>(emptySet()) }
     androidx.compose.runtime.LaunchedEffect(refresh) {
         today = g.chief.requestsToday()
+        resting = g.chief.restingToday()
         val s = g.settings.get()
         main = s.provider
         models = Providers.parseModels(s.providerModels)
@@ -203,6 +205,7 @@ fun ConnectedServices(onChanged: () -> Unit = {}) {
                 }
                 Small("Model ${models[p.id] ?: p.defaultModel} · key ••••${g.secrets.keyFor(p.id).takeLast(4)}", color = c.fg)
                 Small("Today: $used request(s)" + if (p.dailyHint > 0) " of roughly ${p.dailyHint} free" else "")
+                if (p.id in resting) Small("Used up its free allowance today. Ballot is using your other services until tomorrow.", color = c.signal)
                 Row {
                     if (p.id != main) LinkButton("Make main", onClick = { scope.launch { g.settings.update { it.copy(provider = p.id) }; refresh++; onChanged() } })
                     LinkButton("Re-test", onClick = {

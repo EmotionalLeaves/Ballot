@@ -54,3 +54,16 @@ class ProvidersTest {
         assertEquals("gemini", Providers.all.first().id)
     }
 }
+
+class FreeTierTest {
+    @Test fun tellsADailyCapFromAShortPause() {
+        assertTrue(Providers.isDailyLimit(429, 0, "Quota exceeded for requests per day"))
+        assertTrue(Providers.isDailyLimit(429, 7200, "Rate limited"))
+        assertFalse(Providers.isDailyLimit(429, 5, "Rate limit reached for requests per minute"))
+        assertFalse(Providers.isDailyLimit(500, 0, "daily"))
+    }
+
+    @Test fun liteToolsStillResearchAndTrack() {
+        listOf("search_web", "fetch_official_page", "create_task", "add_deadline", "queue_follow_up").forEach { assertTrue(it, it in Providers.liteTools) }
+    }
+}

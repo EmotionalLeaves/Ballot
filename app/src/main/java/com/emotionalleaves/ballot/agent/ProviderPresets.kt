@@ -27,6 +27,8 @@ data class ProviderPreset(
     /** Rough requests a day on the free tier, for the meter only. 0 when unknown or paid. */
     val dailyHint: Int,
     val tagline: String,
+    /** Small free context window: send a lighter request (fewer tools, shorter results). */
+    val lite: Boolean = false,
 )
 
 object Providers {
@@ -100,7 +102,7 @@ object Providers {
         ),
         limitsNote = "Free tier, no card. Daily token allowance and shorter context than the others.",
         privacyNote = "Check Cerebras's terms for how free-tier data is handled.",
-        dailyHint = 1000, tagline = "Free, fast, good as a backup.",
+        dailyHint = 1000, tagline = "Free, fast, good as a backup.", lite = true,
     )
 
     val mistral = ProviderPreset(
@@ -193,6 +195,14 @@ object Providers {
     /** Free when the service is free and, for OpenRouter, the model is one of its free ones. */
     fun isFreeCall(p: ProviderPreset, model: String): Boolean =
         p.free && (p.id != "openrouter" || model.endsWith(":free") || model == "openrouter/free")
+
+    /** True when a 429 means "come back tomorrow" rather than "slow down for a moment". */
+    fun isDailyLimit(status: Int, retryAfterSec: Int, message: String): Boolean =
+        status == 429 && (retryAfterSec > 600 || Regex("per.?day|daily|quota|exhausted|RPD|tomorrow", RegexOption.IGNORE_CASE).containsMatchIn(message))
+
+    /** The tools a small free model gets: enough to research, track and draft. */
+    val liteTools = setOf("search_web", "fetch_official_page", "find_offices", "create_task", "add_contact", "log_interaction",
+        "queue_follow_up", "draft_document", "add_deadline", "add_event", "update_platform", "record_lesson")
 
     fun parseModels(csv: String): Map<String, String> = csv.split(';').mapNotNull { e ->
         val i = e.indexOf('=')
