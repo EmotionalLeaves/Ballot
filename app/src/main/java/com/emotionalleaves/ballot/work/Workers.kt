@@ -142,6 +142,18 @@ class HourlyWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx
             }
         }
 
+        // Sunday from 5pm: one plain "week ahead" notice from your own records (no AI), if there's anything in it.
+        if (!quiet && nowT.dayOfWeek == java.time.DayOfWeek.SUNDAY && nowT.hour >= 17 && s.weekAheadDay != today) runCatching {
+            g.settings.update { it.copy(weekAheadDay = today) }
+            val ahead = case.weekAhead()
+            if (ahead.isNotEmpty()) Notifications.post(applicationContext, Notifications.BRIEF, 3004, target = "briefing",
+                title = "Your week ahead: " + listOfNotNull(
+                    ahead.count { it.startsWith("Meeting") }.takeIf { it > 0 }?.let { if (it == 1) "1 meeting" else "$it meetings" },
+                    ahead.count { it.startsWith("Deadline") }.takeIf { it > 0 }?.let { if (it == 1) "1 deadline" else "$it deadlines" },
+                    ahead.count { it.startsWith("Promise") }.takeIf { it > 0 }?.let { if (it == 1) "1 promise" else "$it promises" },
+                ).joinToString(", ").ifBlank { "a few things" }, text = ahead.take(5).joinToString("\n"))
+        }
+
         case.seedPlaybook(Stage.of(p.stage))
         case.advanceIfReady()
         case.rescore()
