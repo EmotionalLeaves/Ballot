@@ -42,3 +42,4 @@ One line per loop iteration, newest last.
 - Fix (owner report): new AQ. Gemini keys did not work; Gemini now uses its native API. Release 0.2.2.
 - c1 p1 t1 i24 `system_check_and_update`: When the Chief has no AI service it now offers a one-tap card straight to AI services in Settings
 - c1 p1 t1 i25 `system_check_and_update`: Get-a-key flow shows the chosen service and its steps on one screen; the full list of services opens only when you ask
+- c1 p1 t1 i26 `system_check_and_update`: Adding an event takes two taps: pick a day chip and a time chip, with typing kept as a fallback

@@ -119,6 +119,13 @@ fun FieldScreen(nav: NavHostController) {
                 Field(title, { title = it }, "What", singleLine = true)
                 ChipRow(EventType.all, type, { it.replace('_', ' ').lowercase() }) { type = it }
                 Field(place, { place = it }, "Where", singleLine = true)
+                // Tap a day and a time instead of typing dates on a phone keyboard.
+                val days = (0..13).map { LocalDate.now().plusDays(it.toLong()) }
+                ChipRow(days, parseDay(date)?.let { LocalDate.ofEpochDay(it) }, { d ->
+                    when (d) { LocalDate.now() -> "Today"; LocalDate.now().plusDays(1) -> "Tomorrow"
+                        else -> d.format(java.time.format.DateTimeFormatter.ofPattern("EEE d")) }
+                }) { date = it.toString() }
+                ChipRow(listOf("09:00", "12:00", "16:30", "17:30", "18:00", "18:30", "19:00"), time, { it }) { time = it }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Field(date, { date = it }, "Date (YYYY-MM-DD)", Modifier.weight(1f), singleLine = true)
                     Field(time, { time = it }, "Time (HH:MM)", Modifier.weight(1f), singleLine = true)
