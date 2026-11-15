@@ -3,6 +3,6 @@
         <item name="android:windowBackground">@color/calm_paper</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@color/calm_paper</item>
-        <item name="android:colorAccent">@color/signal</item>
+        <item name="android:colorAccent">@color/calm_teal</item>
     </style>
 </resources>
