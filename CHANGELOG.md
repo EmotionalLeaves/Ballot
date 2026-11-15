@@ -202,3 +202,4 @@ One line per loop iteration, newest last.
 - Phase 5 end (cycle 1): green, pushed. FEATURES.md checked: five pairs of pages combined into tabbed pages; every function still reachable; no function removed.
 - c1 p6 t1 i1 `overhaul_system_architecture`: Snapshots are taken inside a write transaction and checked for size, so a daily or pre-import snapshot can never be a half-written copy (with a test that reads one back)
 - c1 p6 t1 i2 `overhaul_system_architecture`: Backup import clears and refills the case file in a single transaction, so a failure part-way leaves everything as it was instead of an empty app
+- c1 p6 t1 i3 `overhaul_system_architecture`: Release version codes come from VERSION (0.3.6 is 30600) instead of the CI run count, so updates can never be blocked by a reset counter

@@ -47,7 +47,12 @@ jobs:
           NAME="$(tr -d '[:space:]' < VERSION)"
           if [ "$GITHUB_REF_TYPE" = "tag" ]; then NAME="${GITHUB_REF_NAME#v}"; fi
           echo "BALLOT_VERSION_NAME=$NAME" >> "$GITHUB_ENV"
-          echo "BALLOT_VERSION_CODE=$((1000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
+          # The version code comes from VERSION itself (0.3.6 -> 30600), not from the CI run count, so it only ever
+          # goes up with the version and never resets if the workflow is renamed. Android refuses a lower code.
+          IFS=. read -r MA MI PA <<< "${NAME%%-*}"
+          CODE=$(( ${MA:-0} * 1000000 + ${MI:-0} * 10000 + ${PA:-0} * 100 ))
+          if [ "$CODE" -le 1100 ]; then echo "::error::Version code $CODE would not be above the old run-number codes"; exit 1; fi
+          echo "BALLOT_VERSION_CODE=$CODE" >> "$GITHUB_ENV"
       # Signed with the fixed key in signing/ so each release installs over the last and keeps data.
       # The fingerprint check stops a release that would not install over the previous one.
       - name: Build signed release APK
