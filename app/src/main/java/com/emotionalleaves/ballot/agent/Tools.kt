@@ -143,7 +143,7 @@ class ToolRegistry {
             val url = a.str("url")!!
             val page = PageFetcher.fetch(url)
             if (page.status !in 200..299) return@ToolDef ToolOutcome("The page returned status ${page.status}. Try another official page or tell the user whom to call.", isError = true)
-            val official = Verification.isOfficial(page.url, c.settings.officialDomains)
+            val official = page.secure && Verification.isOfficial(page.url, c.settings.officialDomains)
             val previous = c.case.db.sources().latestFor(page.url)
             // A second fetch only confirms the first when the page says the same thing both times.
             val cross = previous != null && previous.contentHash.isNotEmpty() && previous.contentHash == page.hash && previous.fetchedAt < now() - 60_000
@@ -153,7 +153,7 @@ class ToolRegistry {
                 official = official, crossChecked = cross, label = label, injectionFlagged = flags.isNotEmpty(), contentHash = page.hash,
                 confidence = label))
             val note = buildString {
-                append("Source S$id (${if (official) "official" else "not an official domain"}, label $label")
+                append("Source S$id (${if (official) "official" else if (!page.secure) "plain http, so not official: confirm by phone or another page" else "not an official domain"}, label $label")
                 if (Verification.isSummarySite(page.url)) append(", summary site: do not rely on it for rules")
                 append(").\n")
             }

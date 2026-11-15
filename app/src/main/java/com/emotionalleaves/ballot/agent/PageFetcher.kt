@@ -6,7 +6,10 @@ import okhttp3.Request
 import java.io.IOException
 import java.security.MessageDigest
 
-data class FetchedPage(val url: String, val status: Int, val title: String, val text: String, val hash: String)
+data class FetchedPage(val url: String, val status: Int, val title: String, val text: String, val hash: String) {
+    /** Only a page that arrived over https can count as official: plain http can be altered on the way. */
+    val secure: Boolean get() = url.startsWith("https://")
+}
 
 /** Direct fetches of official pages. Results are cached in the case file with source and date. */
 object PageFetcher {
@@ -16,11 +19,20 @@ object PageFetcher {
         val clean = url.trim()
         require(clean.startsWith("https://") || clean.startsWith("http://")) { "Only web addresses can be fetched." }
         val https = if (clean.startsWith("http://")) "https://" + clean.removePrefix("http://") else clean
+        try {
+            get(https)
+        } catch (e: LlmException) {
+            // Some small town and county sites still have no https. Read them anyway, but they can't count as official.
+            if (clean.startsWith("http://")) get(clean) else throw e
+        }
+    }
+
+    private suspend fun get(https: String): FetchedPage {
         val req = Request.Builder().url(https)
             .header("User-Agent", "Ballot/1.0 (personal civic research app)")
             .header("Accept", "text/html,application/xhtml+xml,text/plain;q=0.9,*/*;q=0.5")
             .build()
-        try {
+        return try {
             Http.pages.newCall(req).await().use { r ->
                 // The address that actually answered, after redirects: the official check must judge this one,
                 // or a .gov link that redirects elsewhere would pass as official.

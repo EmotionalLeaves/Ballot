@@ -219,7 +219,7 @@ class RuleRecheckWorker(ctx: Context, params: WorkerParameters) : CoroutineWorke
             if (page.status !in 200..299 || page.text.isBlank()) continue
             val prev = case.db.sources().get(rule.sourceId)
             val changed = prev != null && prev.contentHash.isNotEmpty() && prev.contentHash != page.hash
-            val official = com.emotionalleaves.ballot.core.Verification.isOfficial(page.url, s.officialDomains)
+            val official = page.secure && com.emotionalleaves.ballot.core.Verification.isOfficial(page.url, s.officialDomains)
             val label = com.emotionalleaves.ballot.core.Verification.label(official, fresh = true, crossChecked = !changed && prev != null)
             val newSource = case.db.sources().insert(com.emotionalleaves.ballot.data.SourceRecord(url = page.url, title = page.title.take(200),
                 excerpt = page.text.take(20_000), official = official, crossChecked = !changed && prev != null, label = label,
