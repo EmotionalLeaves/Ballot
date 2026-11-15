@@ -232,3 +232,4 @@ One line per loop iteration, newest last.
 - c1 p6 t1 i29 `overhaul_system_architecture`: Deadlines: ticking one done also ticks off its 'finish and file' task on Today, and a passed deadline says 'Passed, N days ago' with what to do instead of a negative count
 - c1 p6 t1 i30 `overhaul_system_architecture`: Notifications open their page: a deadline alert opens Records, a meeting reminder opens What's on locally, follow-ups open Approvals, the brief opens Briefing, the review reminder opens the weekly review
 - c1 p6 t1 i31 `overhaul_system_architecture`: Voter privacy: door-knocking household notes are cleared 90 days after election day, keeping only the totals as a lesson, audited
+- c1 p6 t1 i32 `overhaul_system_architecture`: Night shifts work: a shift that crosses midnight (say 10pm to 6am) now counts as work time until the next morning, so nothing is booked inside it (tested)

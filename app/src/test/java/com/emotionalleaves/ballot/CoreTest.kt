@@ -410,3 +410,18 @@ class PageFinderTest {
         assertTrue(P.find("hello there").isEmpty())
     }
 }
+
+class NightShiftTest {
+    @Test fun aShiftAcrossMidnightCountsAsWork() {
+        // Monday to Friday nights, 22:00 to 06:00.
+        val a = Availability(setOf(1, 2, 3, 4, 5), 22 * 60, 6 * 60, 14 * 60, 21 * 60)
+        val fri = java.time.LocalDateTime.of(2026, 11, 20, 23, 0)   // Friday 23:00
+        val satMorning = java.time.LocalDateTime.of(2026, 11, 21, 5, 0) // Saturday 05:00, end of Friday's shift
+        val sunMorning = java.time.LocalDateTime.of(2026, 11, 22, 5, 0) // no Saturday shift
+        val monEvening = java.time.LocalDateTime.of(2026, 11, 23, 19, 0)
+        assertTrue(Scheduling.insideWork(a, fri))
+        assertTrue(Scheduling.insideWork(a, satMorning))
+        assertFalse(Scheduling.insideWork(a, sunMorning))
+        assertFalse(Scheduling.insideWork(a, monEvening))
+    }
+}

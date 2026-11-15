@@ -16,9 +16,17 @@ data class Availability(
 object Scheduling {
     fun parseDays(csv: String): Set<Int> = csv.split(',').mapNotNull { it.trim().toIntOrNull() }.filter { it in 1..7 }.toSet()
 
+    /**
+     * Inside a work shift. Night shifts that cross midnight (start after end, e.g. 22:00 to 06:00) count from the
+     * start on a work day until the end the next morning.
+     */
     fun insideWork(a: Availability, t: LocalDateTime): Boolean {
         val m = t.hour * 60 + t.minute
-        return t.dayOfWeek.value in a.workDays && m >= a.workStartMin && m < a.workEndMin
+        if (a.workStartMin == a.workEndMin) return false
+        if (a.workStartMin < a.workEndMin) return t.dayOfWeek.value in a.workDays && m >= a.workStartMin && m < a.workEndMin
+        val startedToday = t.dayOfWeek.value in a.workDays && m >= a.workStartMin
+        val startedYesterday = t.minusDays(1).dayOfWeek.value in a.workDays && m < a.workEndMin
+        return startedToday || startedYesterday
     }
 
     fun insideSleep(a: Availability, t: LocalDateTime): Boolean {
