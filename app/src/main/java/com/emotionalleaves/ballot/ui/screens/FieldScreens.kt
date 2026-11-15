@@ -41,6 +41,7 @@ import com.emotionalleaves.ballot.ui.components.rememberMicGate
 import com.emotionalleaves.ballot.ui.components.rememberSpeechCapture
 import com.emotionalleaves.ballot.ui.theme.LocalBallotColors
 import com.emotionalleaves.ballot.work.Workers
+import com.emotionalleaves.ballot.ui.switchTab
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -53,7 +54,8 @@ fun BriefingScreen(nav: NavHostController) {
     val briefItems by g.db.brief().observeRecent().collectAsStateWithLifecycle(initialValue = emptyList())
     val work by androidx.work.WorkManager.getInstance(ctx).getWorkInfosForUniqueWorkFlow("brief_now").collectAsStateWithLifecycle(initialValue = emptyList())
     val c = LocalBallotColors.current
-    Screen("Local briefing", kicker = "What is happening near you", onBack = { nav.popBackStack() }, walkthrough = listOf(
+    Screen("What's on locally", kicker = "What is happening near you", onBack = { nav.popBackStack() },
+        tabs = localTabs(nav), selectedTab = 1, walkthrough = listOf(
         "A two-minute digest of local news, upcoming agendas and decisions that touch your issues.",
         "It is built in the background after work, so it is waiting when you open the app.",
         "Each item ends with one optional action.")) {
@@ -109,6 +111,12 @@ fun BriefingScreen(nav: NavHostController) {
     }
 }
 
+/** Meetings and the local briefing serve one job, knowing what's on near you, so they share one page with two tabs. */
+fun localTabs(nav: NavHostController) = listOf(
+    "Meetings and events" to { nav.switchTab(Routes.FIELD) },
+    "Briefing" to { nav.switchTab(Routes.BRIEFING) },
+)
+
 @Composable
 fun FieldScreen(nav: NavHostController) {
     val g = LocalContext.current.graph
@@ -127,7 +135,8 @@ fun FieldScreen(nav: NavHostController) {
     val mic = rememberMicGate()
     val c = LocalBallotColors.current
     val nowMs = now()
-    Screen("Meetings and events", kicker = "Showing up", onBack = { nav.popBackStack() }, walkthrough = listOf(
+    Screen("What's on locally", kicker = "Showing up", onBack = { nav.popBackStack() },
+        tabs = localTabs(nav), selectedTab = 0, walkthrough = listOf(
         "Your calendar of public meetings, community events and volunteer shifts, outside work hours.",
         "Before an event, tap Prep card: your goal, the issues it may touch and who you know there.",
         "After an event, tap Debrief and talk or type for a minute: who you met, what you promised. Save it, or let the Chief file the people and promises.",

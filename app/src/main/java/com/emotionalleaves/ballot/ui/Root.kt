@@ -108,6 +108,12 @@ fun parentTab(route: String?): String = when (route) {
     else -> Routes.MORE
 }
 
+/** Switches between sibling tabs of one combined page without stacking them on Back. */
+fun NavHostController.switchTab(route: String) {
+    val here = currentDestination?.route
+    navigate(route) { if (here != null) popUpTo(here) { inclusive = true }; launchSingleTop = true }
+}
+
 /** Opens whatever a Chief card points at. */
 fun NavHostController.openCard(card: Card) {
     val route = routeFor(card) ?: return

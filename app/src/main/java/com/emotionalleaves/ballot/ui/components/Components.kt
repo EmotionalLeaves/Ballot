@@ -88,6 +88,9 @@ fun Screen(
     onBack: (() -> Unit)? = null,
     walkthrough: List<String> = emptyList(),
     actions: @Composable RowScope.() -> Unit = {},
+    /** Sibling pages that share one job, shown as tabs under the title: (label, open it). */
+    tabs: List<Pair<String, () -> Unit>> = emptyList(),
+    selectedTab: Int = 0,
     content: LazyListScope.() -> Unit,
 ) {
     val c = LocalBallotColors.current
@@ -105,6 +108,12 @@ fun Screen(
             actions()
             if (walkthrough.isNotEmpty()) IconButton(onClick = { showHelp = true }, modifier = Modifier.size(48.dp)) {
                 Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = "Walk me through it", tint = c.muted)
+            }
+        }
+        if (tabs.size > 1) androidx.compose.material3.TabRow(selectedTabIndex = selectedTab, containerColor = c.bg, contentColor = c.signal) {
+            tabs.forEachIndexed { i, (label, open) ->
+                androidx.compose.material3.Tab(selected = i == selectedTab, onClick = { if (i != selectedTab) open() },
+                    text = { Text(label, style = MaterialTheme.typography.titleSmall, color = if (i == selectedTab) c.fg else c.muted) })
             }
         }
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(start = Gutter, end = Gutter, bottom = 40.dp, top = 4.dp),

@@ -81,7 +81,7 @@ class ToolDef(
 /** Pages the open_page tool can point at; the keys are the card targets the app knows how to open. */
 val PAGES: Map<String, String> = linkedMapOf(
     "home" to "Today", "path" to "Plan", "network" to "People", "compass" to "Who you are", "ground" to "Offices and races",
-    "field" to "Meetings and events", "briefing" to "Local briefing", "gym" to "Practice", "studio" to "Drafts",
+    "field" to "Meetings and events", "briefing" to "the local briefing", "gym" to "Practice", "studio" to "Drafts",
     "approvals" to "Waiting for your OK", "vault" to "Vault", "casefile" to "Case file", "review" to "Weekly review",
     "hq" to "Campaign HQ", "settings" to "Settings", "quiz" to "the town quiz", "gonogo" to "the run-or-wait check",
 )

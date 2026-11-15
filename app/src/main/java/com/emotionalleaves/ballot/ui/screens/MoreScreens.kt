@@ -55,8 +55,7 @@ private val groups: List<Pair<String, List<Module>>> = listOf(
     "Your campaign" to listOf(
         Module(Routes.COMPASS, "Who you are", "Your reason, issues, story and positions", androidx.compose.material.icons.Icons.Filled.Explore),
         Module(Routes.GROUND, "Offices and races", "Who represents you, race cards, the win number", androidx.compose.material.icons.Icons.Filled.AccountBalance),
-        Module(Routes.FIELD, "Meetings and events", "Your calendar, debriefs, boards to apply for", androidx.compose.material.icons.Icons.Filled.Event),
-        Module(Routes.BRIEFING, "Local briefing", "News and agendas that touch your issues", androidx.compose.material.icons.Icons.Filled.Newspaper),
+        Module(Routes.FIELD, "What's on locally", "Meetings, events and the local briefing", androidx.compose.material.icons.Icons.Filled.Event),
         Module(Routes.HQ, "Campaign HQ", "Launch, field, money and election day", androidx.compose.material.icons.Icons.Filled.Flag),
     ),
     "Skills and words" to listOf(
