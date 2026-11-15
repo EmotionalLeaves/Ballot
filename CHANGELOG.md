@@ -55,3 +55,4 @@ One line per loop iteration, newest last.
 - Redesign (owner request): calm theme, simpler Today, standard navigation bar, grouped More, collapsible Settings, compact Plan. Release 0.3.0.
 - c1 p1 t1 i35 `system_check_and_update`: Status bar icons follow Ballot's theme so they stay visible on the light screen; app opens on paper instead of a black flash; icon recoloured to the calm teal
 - c1 p1 t1 i36 `system_check_and_update`: Bottom bar no longer leaves a double gap above the phone's navigation area
+- c1 p1 t1 i37 `system_check_and_update`: Gemini gets enough output room for its thinking plus the answer, so replies no longer come back empty; a cut-off reply is retried

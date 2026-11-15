@@ -150,7 +150,8 @@ class GeminiClient(private val baseUrl: String = "https://generativelanguage.goo
                         }
                     }
                 }
-                putJsonObject("generationConfig") { put("maxOutputTokens", request.maxTokens.coerceAtLeast(256)) }
+                // Gemini's thinking counts toward the output limit, so leave room for it and the answer.
+                putJsonObject("generationConfig") { put("maxOutputTokens", maxOf(request.maxTokens * 4, 8192)) }
             }
         }
 
@@ -179,6 +180,9 @@ class GeminiClient(private val baseUrl: String = "https://generativelanguage.goo
             val finish = cand.str("finishReason") ?: "STOP"
             if (blocks.isEmpty() && finish in setOf("SAFETY", "RECITATION", "PROHIBITED_CONTENT", "BLOCKLIST", "SPII")) {
                 throw LlmException("Gemini stopped this reply ($finish). Try rewording the request.", retryable = false)
+            }
+            if (blocks.isEmpty() && finish == "MAX_TOKENS") {
+                throw LlmException("Gemini ran out of room while thinking. Ask again, or ask a shorter question.", retryable = true)
             }
             val usage = o.obj("usageMetadata")
             return LlmResponse(
