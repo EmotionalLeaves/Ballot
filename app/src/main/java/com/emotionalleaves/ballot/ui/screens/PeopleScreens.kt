@@ -83,6 +83,8 @@ fun PeopleScreen(nav: NavHostController) {
             }
         }
         item { ChipRow(listOf("All", "Cabinet", "Map", "Validators", "Press"), view, { it }) { view = it } }
+        // People the Chief finds land in the list below; its summary shows here, so there's no jump away.
+        item { ReplyPanel { nav.navigate(Routes.CHIEF) } }
         when (view) {
             "Cabinet" -> {
                 items(ContactRole.cabinet.size) { i ->
@@ -130,11 +132,9 @@ fun PeopleScreen(nav: NavHostController) {
                         PosterButton(if (adding) "Close" else "Add person", onClick = { adding = !adding })
                         if (view == "Validators") PosterButton("Build the pipeline", primary = false, onClick = {
                             askChief(g, "Build my endorsements and validators pipeline: people and groups whose support matters locally, ranked by influence in my district, from public sources. For each: what they care about, who can introduce me, the ask. Save them with add_contact role VALIDATOR.", "building the pipeline")
-                            nav.navigate(Routes.CHIEF)
                         })
                         if (view == "Press") PosterButton("Build press list", primary = false, onClick = {
                             askChief(g, "Build my local press list from public sources: outlets, reporters, their beats and recent local stories. Save each with add_contact role PRESS and beat.", "building press list")
-                            nav.navigate(Routes.CHIEF)
                         })
                     }
                 }
