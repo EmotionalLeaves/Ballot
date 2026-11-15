@@ -56,3 +56,4 @@ One line per loop iteration, newest last.
 - c1 p1 t1 i35 `system_check_and_update`: Status bar icons follow Ballot's theme so they stay visible on the light screen; app opens on paper instead of a black flash; icon recoloured to the calm teal
 - c1 p1 t1 i36 `system_check_and_update`: Bottom bar no longer leaves a double gap above the phone's navigation area
 - c1 p1 t1 i37 `system_check_and_update`: Gemini gets enough output room for its thinking plus the answer, so replies no longer come back empty; a cut-off reply is retried
+- c1 p1 t1 i38 `system_check_and_update`: Free reasoning models (gpt-oss on Groq and Cerebras, OpenRouter free) get room to think and answer; an empty cut-off reply moves to the next service

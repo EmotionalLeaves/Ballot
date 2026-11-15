@@ -230,9 +230,11 @@ class OpenAiClient(private val baseUrl: String, private val echoSignatures: Bool
                 }
             }
         }
+        // Reasoning models spend output tokens on thinking first; give them room so the answer fits.
+        val reasoning = Regex("gpt-oss|qwen|deepseek|reason|think|magistral|:free|openrouter/free", RegexOption.IGNORE_CASE).containsMatchIn(request.model)
         val body = buildJsonObject {
             put("model", request.model)
-            put("max_tokens", request.maxTokens)
+            put("max_tokens", if (reasoning) maxOf(request.maxTokens * 3, 6000) else request.maxTokens)
             put("messages", msgs)
             if (request.tools.isNotEmpty()) putJsonArray("tools") {
                 request.tools.forEach { t ->
@@ -260,6 +262,7 @@ class OpenAiClient(private val baseUrl: String, private val echoSignatures: Bool
             blocks += Block.ToolUse(t.str("id") ?: "", f.str("name") ?: "", args, t.obj("extra_content"))
         }
         val finish = choice.str("finish_reason") ?: "stop"
+        if (blocks.isEmpty() && finish == "length") throw LlmException("The AI ran out of room while thinking. Ask again, or ask a shorter question.", retryable = true)
         val usage = o.obj("usage")
         return LlmResponse(
             content = blocks,
