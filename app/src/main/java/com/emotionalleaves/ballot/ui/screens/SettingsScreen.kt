@@ -254,10 +254,9 @@ fun SettingsScreen(nav: NavHostController) {
                     if (pin.length >= 4) { g.secrets.setPin(pin); pin = ""; com.emotionalleaves.ballot.AppLock.locked = false; upd { it.copy(appLock = true) } }
                 })
                 var auto by remember(s.autoLockMinutes) { mutableStateOf(s.autoLockMinutes.toString()) }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Field(auto, { auto = it.filter(Char::isDigit) }, "Auto-lock after minutes away", Modifier.weight(1f), singleLine = true, number = true)
-                    LinkButton("Save", onClick = { auto.toIntOrNull()?.let { v -> upd { it.copy(autoLockMinutes = v.coerceIn(0, 120)) } } })
-                }
+                // Saves as you type: no separate Save button.
+                Field(auto, { t -> auto = t.filter(Char::isDigit).take(3); auto.toIntOrNull()?.let { v -> upd { it.copy(autoLockMinutes = v.coerceIn(0, 120)) } } },
+                    "Auto-lock after minutes away (0 to 120)", singleLine = true, number = true)
             }
         }
         item {
