@@ -86,3 +86,4 @@ One line per loop iteration, newest last.
 - Phase 1 end (cycle 1): green, pushed; patch release 0.3.4 (Gemini empty-answer retry and the backup-restore path help the owner's move to the fixed key).
 - c1 p2 t1 i1 `reduce_menus_and_buttons`: More hides Campaign HQ until you reach the run stage, instead of showing a locked door for months; the Chief can still open it
 - c1 p2 t1 i2 `reduce_menus_and_buttons`: Auto-lock minutes save as you type; its separate Save button is gone
+- c1 p2 t1 i3 `reduce_menus_and_buttons`: Cooling minutes, win margin and rule-check days save as you type; their Save button is gone

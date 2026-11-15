@@ -227,15 +227,15 @@ fun SettingsScreen(nav: NavHostController) {
                 var cooling by remember(s.coolingMinutes) { mutableStateOf(s.coolingMinutes.toString()) }
                 var margin by remember(s.safetyMarginPct) { mutableStateOf(s.safetyMarginPct.toString()) }
                 var fresh by remember(s.freshnessDaysRules) { mutableStateOf(s.freshnessDaysRules.toString()) }
+                // Each number saves as you type.
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Field(cooling, { cooling = it.filter(Char::isDigit) }, "Cooling min", Modifier.weight(1f), singleLine = true, number = true)
-                    Field(margin, { margin = it.filter(Char::isDigit) }, "Win margin %", Modifier.weight(1f), singleLine = true, number = true)
-                    Field(fresh, { fresh = it.filter(Char::isDigit) }, "Rule check days", Modifier.weight(1f), singleLine = true, number = true)
+                    Field(cooling, { t -> cooling = t.filter(Char::isDigit).take(4); cooling.toIntOrNull()?.let { v -> upd { it.copy(coolingMinutes = v) } } },
+                        "Cooling min", Modifier.weight(1f), singleLine = true, number = true)
+                    Field(margin, { t -> margin = t.filter(Char::isDigit).take(3); margin.toIntOrNull()?.let { v -> upd { it.copy(safetyMarginPct = v) } } },
+                        "Win margin %", Modifier.weight(1f), singleLine = true, number = true)
+                    Field(fresh, { t -> fresh = t.filter(Char::isDigit).take(2); fresh.toIntOrNull()?.let { v -> upd { it.copy(freshnessDaysRules = v.coerceIn(1, 30)) } } },
+                        "Rule check days", Modifier.weight(1f), singleLine = true, number = true)
                 }
-                LinkButton("Save", onClick = {
-                    upd { it.copy(coolingMinutes = cooling.toIntOrNull() ?: it.coolingMinutes, safetyMarginPct = margin.toIntOrNull() ?: it.safetyMarginPct,
-                        freshnessDaysRules = (fresh.toIntOrNull() ?: it.freshnessDaysRules).coerceIn(1, 30)) }
-                })
             }
         }
         item {
