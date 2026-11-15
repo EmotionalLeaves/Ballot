@@ -126,3 +126,4 @@ One line per loop iteration, newest last.
 - c1 p4 t1 i7 `test_core_functionality`: Flow test: every page in the app opens by asking the Chief
 - c1 p4 t1 i8 `test_core_functionality`: Flow test: settings by asking change theme and brief time, reject bad times, and can't turn spending on
 - c1 p4 t1 i9 `test_core_functionality`: Flow test: 'too much this week' leaves only the single most important task in the next seven days
+- c1 p4 t1 i10 `test_core_functionality`: Flow test: only real two-way conversations count toward your base, and the contact's last-talked date updates
