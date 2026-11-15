@@ -214,6 +214,11 @@ fun LockScreen(onUnlocked: () -> Unit) {
     val g = ctx.graph
     var pin by remember { mutableStateOf("") }
     var error by remember { mutableStateOf("") }
+    var fails by remember { mutableStateOf(0) }
+    var lockedUntil by remember { mutableStateOf(0L) }
+    LaunchedEffect(lockedUntil) {
+        if (lockedUntil > 0) { kotlinx.coroutines.delay(lockedUntil - System.currentTimeMillis()); lockedUntil = 0; error = "" }
+    }
     val activity = ctx as? FragmentActivity
     val canBio = remember {
         BiometricManager.from(ctx).canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK) == BiometricManager.BIOMETRIC_SUCCESS
@@ -233,8 +238,14 @@ fun LockScreen(onUnlocked: () -> Unit) {
         Field(pin, { pin = it.filter { ch -> ch.isDigit() }.take(12); error = "" }, "PIN", singleLine = true, number = true)
         if (error.isNotEmpty()) Body(error, color = LocalBallotColors.current.signal)
         Gap()
-        PosterButton("Unlock", onClick = {
-            if (g.secrets.checkPin(pin)) onUnlocked() else { error = "Wrong PIN."; pin = "" }
+        PosterButton("Unlock", enabled = System.currentTimeMillis() >= lockedUntil, onClick = {
+            if (g.secrets.checkPin(pin)) { fails = 0; onUnlocked() } else {
+                fails++
+                pin = ""
+                // After five wrong PINs, each further try waits 30 seconds.
+                if (fails >= 5) { lockedUntil = System.currentTimeMillis() + 30_000; error = "Wrong PIN. Wait 30 seconds before trying again." }
+                else error = "Wrong PIN."
+            }
         }, modifier = Modifier.fillMaxWidth())
         if (canBio) {
             Gap()
