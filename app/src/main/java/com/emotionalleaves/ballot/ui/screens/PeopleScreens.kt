@@ -103,20 +103,24 @@ fun PeopleScreen(nav: NavHostController) {
         item { ReplyPanel { nav.navigate(Routes.CHIEF) } }
         when (view) {
             "Cabinet" -> {
+                // Only the first empty seat is highlighted: one clear next ask, not a wall of loud cards.
+                val firstEmpty = ContactRole.cabinet.indexOfFirst { r -> contacts.none { it.role == r } }
                 items(ContactRole.cabinet.size) { i ->
                     val role = ContactRole.cabinet[i]
                     val who = contacts.filter { it.role == role }
-                    Panel(accent = who.isEmpty()) {
-                        Kicker(roleLabel(role), color = if (who.isEmpty()) com.emotionalleaves.ballot.ui.theme.Ink else c.muted)
+                    val loud = who.isEmpty() && i == firstEmpty
+                    val ink = if (loud) com.emotionalleaves.ballot.ui.theme.Ink else c.fg
+                    Panel(accent = loud) {
+                        Kicker(roleLabel(role), color = if (loud) com.emotionalleaves.ballot.ui.theme.Ink else c.muted)
                         Text(if (who.isEmpty()) "Empty seat" else who.joinToString { it.name }, style = MaterialTheme.typography.titleLarge,
-                            color = if (who.isEmpty()) com.emotionalleaves.ballot.ui.theme.Ink else c.fg)
+                            color = if (who.isEmpty() && !loud) c.muted else ink)
                         // People you already know well are the likeliest fits, so list them first, in plain code.
                         if (who.isEmpty()) {
                             val fits = contacts.filter { it.role.isBlank() && it.closeness >= 3 }.sortedByDescending { it.closeness }.take(3)
                             if (fits.isNotEmpty()) Text("People you know well: " + fits.joinToString { it.name }, style = MaterialTheme.typography.bodyMedium,
-                                color = com.emotionalleaves.ballot.ui.theme.Ink)
+                                color = ink)
                         }
-                        if (who.isEmpty()) LinkButton("Talk it through with the Chief", color = com.emotionalleaves.ballot.ui.theme.Ink, onClick = {
+                        if (who.isEmpty()) LinkButton("Talk it through with the Chief", color = if (loud) com.emotionalleaves.ballot.ui.theme.Ink else c.signal, onClick = {
                             askChief(g, "Help me find a ${roleLabel(role).lowercase()} for my kitchen cabinet. Who in my contacts could fit, who could introduce me, and how do I ask? Draft the ask as a follow-up.", "finding a ${roleLabel(role).lowercase()}")
                             nav.navigate(Routes.CHIEF)
                         })

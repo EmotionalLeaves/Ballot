@@ -253,3 +253,4 @@ One line per loop iteration, newest last.
 - c1 p6 t1 i50 `overhaul_system_architecture`: The Chief is told how the app now works: search the case file before saying 'I don't know', point to the by-hand pages (templates, quiz, prep cards, week ahead) when they fit, and never make a step depend on AI
 - c1 p6 t2 i1 `apply_bold_aesthetics`: Records is calmer: deadline counts at 32 (words like Passed or Today at reading size, not 44pt), and the money totals sit in three equal columns that fit a phone
 - c1 p6 t2 i2 `apply_bold_aesthetics`: Today reads cleaner: 'next deadline tomorrow' instead of 'in 1 days', notices that matter (work hours, notifications, a crash) sit under your task with the optional AI line last, and a task without steps gets plain ones
+- c1 p6 t2 i3 `apply_bold_aesthetics`: People, Cabinet is calmer: only the first empty seat is highlighted as the next ask; other empty seats are quiet cards, so the list isn't a wall of loud panels
