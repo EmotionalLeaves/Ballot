@@ -145,6 +145,19 @@ fun PathScreen(nav: NavHostController) {
                 })
             }
         }
+        // A go memo waiting for your agreement is the one thing between you and the Run stage: it never hides.
+        decisions.firstOrNull { it.kind == "GO_NO_GO" && it.choice.equals("GO", true) && !it.agreed }?.let { d ->
+            item {
+                Panel(accent = true) {
+                    Kicker("Waiting for you", color = com.emotionalleaves.ballot.ui.theme.Ink)
+                    Text(d.question, style = MaterialTheme.typography.titleMedium, color = com.emotionalleaves.ballot.ui.theme.Ink)
+                    Text("All seven points are yes. Read the memo under Decisions, then agree if you're sure.", style = MaterialTheme.typography.bodyMedium, color = com.emotionalleaves.ballot.ui.theme.Ink)
+                    LinkButton("I agree: go", color = com.emotionalleaves.ballot.ui.theme.Ink, onClick = {
+                        scope.launch { g.db.decisions().upsert(d.copy(agreed = true, updatedAt = now())); g.case.advanceIfReady() }
+                    })
+                }
+            }
+        }
         item { LinkButton(if (showRecord) "Hide decisions and lessons" else "Decisions (${decisions.size}) and lessons (${lessons.size})", onClick = { showRecord = !showRecord }, color = c.muted) }
         if (showRecord && decisions.isEmpty()) item { EmptyNote("Big decisions and their reasoning will be kept here.") }
         if (showRecord) items(decisions.size) { i ->
