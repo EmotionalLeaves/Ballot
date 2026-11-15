@@ -148,3 +148,4 @@ One line per loop iteration, newest last.
 - c1 p4 t2 i9 `verify_goal_completion`: Briefing: an item's suggested action can be added to your plan in one tap ('Add to my plan'), so news turns into something you do
 - c1 p4 t2 i10 `verify_goal_completion`: Speaking reps scored by the Chief are saved like Practice reps: they count in the weekly score, and a clear story rep counts toward the stage 1 exit
 - c1 p4 t2 i11 `verify_goal_completion`: Locking your story checks the stage 1 exit straight away, so a story already rated clear opens stage 2 at once instead of within the hour
+- c1 p4 t2 i12 `verify_goal_completion`: Serve stage: telling the Chief you got a role or finished a project records it, and either way the stage 4 exit is checked at once

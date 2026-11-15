@@ -117,7 +117,7 @@ fun PathScreen(nav: NavHostController) {
                             Stage.SERVE -> Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 PosterButton("Board finder", onClick = { nav.navigate(Routes.FIELD) })
                                 PosterButton(if (p.serveDone) "Role logged" else "I have a role", primary = false, onClick = {
-                                    scope.launch { g.case.updateProfile { it.copy(serveDone = !it.serveDone) } }
+                                    scope.launch { g.case.updateProfile { it.copy(serveDone = !it.serveDone) }; g.case.advanceIfReady() }
                                 })
                             }
                             Stage.RUN -> PosterButton("Campaign HQ", onClick = { nav.navigate(Routes.HQ) })

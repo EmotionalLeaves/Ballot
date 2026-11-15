@@ -623,6 +623,7 @@ class ToolRegistry {
                 "work_end" to S.s("HH:MM"), "energy" to S.e("Energy", listOf("LOW", "MEDIUM", "HIGH")), "weekly_hours" to S.i("Free hours a week"),
                 "off_limits" to S.s("Off limits"), "employer_rules" to S.s("Employer rules"), "ambition" to S.s("Ambition"), "timeline" to S.s("Timeline"),
                 "why" to S.s("Why they want this"), "issues" to S.s("Their issues"), "first_target" to S.s("First target"),
+                "serve_done" to S.b("They now hold a role (board, commission, appointment) or finished a project they can point to"),
             )), RoutineKind.TRACKER) { a, c ->
             fun hm(s: String?): Int? = s?.split(":")?.takeIf { it.size == 2 }?.let { (h, m) -> (h.toIntOrNull() ?: return@let null) * 60 + (m.toIntOrNull() ?: 0) }
             c.case.updateProfile { p ->
@@ -631,10 +632,12 @@ class ToolRegistry {
                     energy = a.str("energy") ?: p.energy, weeklyHours = a.int("weekly_hours") ?: p.weeklyHours,
                     offLimits = a.str("off_limits") ?: p.offLimits, employerRules = a.str("employer_rules") ?: p.employerRules,
                     ambition = a.str("ambition") ?: p.ambition, timeline = a.str("timeline") ?: p.timeline, why = a.str("why") ?: p.why,
-                    issues = a.str("issues") ?: p.issues, firstTarget = a.str("first_target") ?: p.firstTarget)
+                    issues = a.str("issues") ?: p.issues, firstTarget = a.str("first_target") ?: p.firstTarget,
+                    serveDone = a.bool("serve_done") ?: p.serveDone)
             }
+            val next = c.case.advanceIfReady()
             c.case.rescore()
-            ToolOutcome("Profile updated. The plan has been rescored.")
+            ToolOutcome("Profile updated. The plan has been rescored." + (next?.let { " The exit test is met: stage ${it.number}, ${it.title}, is now open." } ?: ""))
         })
 
         // Look-and-feel settings by asking. Nothing here can raise spending, loosen the autonomy dial or turn off the lock:
