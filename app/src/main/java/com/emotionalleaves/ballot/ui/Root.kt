@@ -146,14 +146,9 @@ fun routeFor(card: Card): String? {
     }
 }
 
-/** Opens a module by the short name tasks use. */
+/** Opens a module by the short name tasks use. One route table for cards and tasks: anything unknown opens the Chief. */
 fun NavHostController.openModule(module: String) {
-    val route = when (module) {
-        "compass" -> Routes.COMPASS; "ground" -> Routes.GROUND; "field" -> Routes.FIELD; "network" -> Routes.PEOPLE; "gym" -> Routes.GYM
-        "studio" -> Routes.STUDIO; "vault" -> Routes.VAULT; "hq" -> Routes.HQ; "path" -> Routes.PATH; "briefing" -> Routes.BRIEFING
-        "review" -> Routes.REVIEW
-        else -> Routes.CHIEF
-    }
+    val route = routeFor(Card("INFO", "", target = module)) ?: Routes.CHIEF
     navigate(route) { launchSingleTop = true }
 }
 
