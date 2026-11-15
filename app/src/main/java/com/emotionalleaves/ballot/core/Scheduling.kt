@@ -98,6 +98,22 @@ object WeeklyScore {
         history.size >= 3 && history[history.size - 1] < history[history.size - 2] && history[history.size - 2] < history[history.size - 3]
 
     fun flat(history: List<Int>): Boolean = history.size >= 2 && history.last() <= history[history.size - 2]
+
+    /**
+     * A quiet week, read in plain code: which kinds of work stopped, and one small step back into each.
+     * [stage] is the current stage number, so the suggestion fits where you are. Most useful first, at most three.
+     */
+    fun blockers(w: WeekCounts, stage: Int, openTasks: Int, skippedTasks: Int): List<String> {
+        val out = mutableListOf<String>()
+        if (skippedTasks >= 3) out += "Several tasks were skipped more than once. They're probably too big: tell the Chief to shrink them, or tap Not today and let them be cut to a first step."
+        if (openTasks > 15) out += "There are $openTasks open tasks. That's a lot to carry. Use 'Shrink this week' on Today so only one thing is due."
+        if (stage >= 3 && w.meetings == 0) out += "No meetings this week. Pick one public meeting for next week and just attend. No need to speak."
+        if (stage >= 5 && w.conversations == 0) out += "No real conversations logged. One coffee or call with someone you already know counts."
+        if (stage <= 2 && w.speakingReps == 0) out += "No speaking reps. One 30-second intro in Practice takes two minutes."
+        if (w.followUpsOnTime == 0 && w.newContacts > 0) out += "New people, no follow-ups yet. A two-line thank-you keeps each one warm."
+        if (out.isEmpty()) out += "Nothing stands out in the numbers. Often it's time or energy: pick one 5-minute task for next week and stop there."
+        return out.take(3)
+    }
 }
 
 /** Deterministic speaking scores. The Chief explains them but does not compute them. */

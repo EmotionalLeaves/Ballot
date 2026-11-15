@@ -303,3 +303,12 @@ class TemplatesTest {
         assertTrue(p, p.contains("Housing\n[What you'd do"))
     }
 }
+
+class BlockersTest {
+    @Test fun aQuietWeekGetsPlainSuggestions() {
+        val b = WeeklyScore.blockers(WeekCounts(), stage = 3, openTasks = 20, skippedTasks = 4)
+        assertEquals(3, b.size)
+        assertTrue(b[0], b[0].contains("skipped"))
+        assertTrue(WeeklyScore.blockers(WeekCounts(conversations = 2, meetings = 1, speakingReps = 1), stage = 1, openTasks = 3, skippedTasks = 0).single().contains("5-minute"))
+    }
+}

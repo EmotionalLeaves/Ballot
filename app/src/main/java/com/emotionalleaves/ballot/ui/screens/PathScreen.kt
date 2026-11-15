@@ -326,6 +326,7 @@ fun WeeklyReviewScreen(nav: NavHostController) {
     val g = LocalContext.current.graph
     val scope = rememberCoroutineScope()
     val open by g.db.tasks().observeOpen().collectAsStateWithLifecycle(initialValue = emptyList())
+    val profile by g.db.profile().observe().collectAsStateWithLifecycle(initialValue = null)
     var counts by remember { mutableStateOf(WeekCounts()) }
     var history by remember { mutableStateOf<List<Int>>(emptyList()) }
     var stop by remember { mutableStateOf("") }
@@ -364,7 +365,11 @@ fun WeeklyReviewScreen(nav: NavHostController) {
         if (WeeklyScore.flat(history)) item {
             Panel(accent = true) {
                 Text("A quiet week. That's information, not failure.", style = MaterialTheme.typography.titleMedium, color = com.emotionalleaves.ballot.ui.theme.Ink)
-                PosterButton("Name the blocker", primary = false, onClick = {
+                // Read from your own numbers in plain code; asking the Chief is optional.
+                WeeklyScore.blockers(counts, profile?.stage ?: 1, open.size, open.count { it.skippedCount >= 2 }).forEach { b ->
+                    Text("• $b", style = MaterialTheme.typography.bodyMedium, color = com.emotionalleaves.ballot.ui.theme.Ink)
+                }
+                LinkButton("Talk it through with the Chief", color = com.emotionalleaves.ballot.ui.theme.Ink, onClick = {
                     askChief(g, "My weekly score was flat (${history.joinToString()}). Name the most likely blocker from my case file and offer a smaller plan for next week.", "naming the blocker")
                     nav.navigate(Routes.CHIEF)
                 })
