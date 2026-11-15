@@ -79,6 +79,8 @@ object KeySetup {
 
     fun friendly(p: ProviderPreset, e: Throwable): String {
         val status = (e as? LlmException)?.status ?: 0
+        // The Gemini client already explains Google's specific key errors in plain words.
+        if (p.id == "gemini" && e is LlmException && status != 0) return e.message ?: "Gemini returned an error."
         return when (status) {
             401, 403 -> "${p.name} rejected that key. Go back to the key page, copy it again, and paste it here."
             429 -> "${p.name} says it's busy right now. Wait a minute and tap Connect again."

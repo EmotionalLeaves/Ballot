@@ -55,9 +55,10 @@ fun parseModelIds(body: String): List<String> = runCatching {
         .map { it.removePrefix("models/") }
 }.getOrDefault(emptyList())
 
-/** Builds the client for a service. Everything except Claude speaks the OpenAI chat format. */
+/** Builds the client for a service. Claude and Gemini use their own APIs; the rest speak the OpenAI chat format. */
 fun clientFor(providerId: String, customOpenAiBase: String = ""): LlmClient = when (providerId) {
     "anthropic" -> AnthropicClient()
+    "gemini" -> GeminiClient(Providers.gemini.baseUrl)
     "openai" -> OpenAiClient(customOpenAiBase.ifBlank { Providers.openAi.baseUrl })
     else -> OpenAiClient(Providers.byId(providerId).baseUrl)
 }

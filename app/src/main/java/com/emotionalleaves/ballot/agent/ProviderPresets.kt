@@ -38,15 +38,16 @@ object Providers {
     )
 
     val gemini = ProviderPreset(
-        id = "gemini", name = "Google Gemini", baseUrl = "https://generativelanguage.googleapis.com/v1beta/openai/",
-        keyUrl = "https://aistudio.google.com/apikey", keyPrefixes = listOf("AIza"), free = true, needsCard = false, webSearch = false,
+        id = "gemini", name = "Google Gemini", baseUrl = "https://generativelanguage.googleapis.com/v1beta",
+        // AI Studio now issues "AQ." auth keys; older keys start "AIza". Both work on the native API.
+        keyUrl = "https://aistudio.google.com/apikey", keyPrefixes = listOf("AIza", "AQ."), free = true, needsCard = false, webSearch = false,
         defaultModel = "gemini-2.5-flash", fallbackModel = "gemini-2.5-flash-lite",
         prefer = listOf(Regex("^gemini-[0-9.]+-flash$"), Regex("^gemini-[0-9.]+-flash-latest$"), Regex("^gemini-flash-latest$"), Regex("^gemini-[0-9.]+-flash"), Regex("flash-lite")),
         exclude = nonChat + Regex("pro", RegexOption.IGNORE_CASE) + Regex("preview-tts|live|thinking-exp|aqa|learnlm", RegexOption.IGNORE_CASE),
         steps = listOf(
             "Tap Open the key page. Sign in with any Google account.",
             "Tap Create API key. If it asks for a project, let it make one.",
-            "Tap the copy icon next to the new key.",
+            "Tap the copy icon next to the new key. New keys start with AQ. and that's normal.",
             "Come back here and tap Paste key.",
         ),
         limitsNote = "Free tier, no card. Limited requests per minute and per day; when you hit the cap it simply waits until tomorrow, it never charges you.",
