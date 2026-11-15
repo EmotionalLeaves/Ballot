@@ -191,7 +191,7 @@ fun QuizScreen(nav: NavHostController) {
             val system = "You write a 10-question multiple-choice quiz about the user's own town, using ONLY the facts below. Never invent facts. " +
                 "Each question cites the record it came from (O#, S#). Reply with JSON only: an array of {\"q\":..., \"options\":[4 strings], \"answer\":index 0-3, \"source\":\"S#\", \"explain\": one sentence}."
             val text = runCatching {
-                g.chief.simple(system, listOf(LlmMessage("user", listOf(Block.Text("Offices:\n$offices\n\nOfficial sources:\n$sources\n\nRecent explainers:\n$explainers"))), 3000)
+                g.chief.simple(system, listOf(LlmMessage("user", listOf(Block.Text("Offices:\n$offices\n\nOfficial sources:\n$sources\n\nRecent explainers:\n$explainers")))), 3000)
             }.getOrElse { error = it.message ?: "Could not build the quiz."; loading = false; return@launch }
             // Structured output is validated; invalid output is reported, never shown raw.
             val parsed = runCatching {

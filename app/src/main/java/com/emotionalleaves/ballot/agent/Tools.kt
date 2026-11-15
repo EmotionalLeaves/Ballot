@@ -185,7 +185,7 @@ class ToolRegistry {
                 "term" to S.s("Term length"), "next_election" to S.s("When it is next on the ballot"), "next_election_date" to S.s("YYYY-MM-DD if known"),
                 "incumbent" to S.s("Who holds it"), "part_time" to S.b("Part time?"), "appointed" to S.b("Filled by appointment?"),
                 "official_url" to S.s("Official page"), "source_id" to S.i("Source record id"),
-            )))))),
+            ))))),
             RoutineKind.TRACKER) { a, c ->
             val saved = mutableListOf<Card>()
             a.arr("offices")?.forEach { el ->
