@@ -41,7 +41,7 @@ object ChiefBusy {
     var label by mutableStateOf("")
     var lastReply by mutableStateOf<ChiefReply?>(null)
     /** Requests in flight, so Stop can cancel them. */
-    val jobs = mutableListOf<kotlinx.coroutines.Job>()
+    val jobs = java.util.concurrent.CopyOnWriteArrayList<kotlinx.coroutines.Job>()
 
     fun stopAll() {
         jobs.toList().forEach { it.cancel() }
