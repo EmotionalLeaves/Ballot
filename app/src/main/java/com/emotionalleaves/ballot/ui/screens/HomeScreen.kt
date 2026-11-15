@@ -70,7 +70,7 @@ fun HomeScreen(nav: NavHostController) {
     var exitFraction by remember { mutableStateOf(0f) }
     var weekScore by remember { mutableIntStateOf(0) }
     var insideWork by remember { mutableStateOf(false) }
-    var hasBrain by remember { mutableStateOf(true) }
+    val hasBrain by g.chief.aiConnected.collectAsStateWithLifecycle(initialValue = true)
     var stamp by remember { mutableStateOf(false) }
     var showDetail by remember { mutableStateOf<Pair<Task, Scored>?>(null) }
     var refresh by remember { mutableIntStateOf(0) }
@@ -85,7 +85,6 @@ fun HomeScreen(nav: NavHostController) {
         val ws = Scheduling.weekStart(LocalDate.now()).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
         weekScore = WeeklyScore.score(g.case.weekCounts(ws))
         insideWork = Scheduling.insideWork(g.case.availability(), LocalDateTime.now())
-        hasBrain = g.chief.hasKey()
     }
 
     val p = profile ?: return

@@ -53,8 +53,7 @@ fun BriefingScreen(nav: NavHostController) {
     val ctx = LocalContext.current
     val g = ctx.graph
     val briefItems by g.db.brief().observeRecent().collectAsStateWithLifecycle(initialValue = emptyList())
-    var hasAi by remember { androidx.compose.runtime.mutableStateOf(true) }
-    LaunchedEffect(Unit) { hasAi = g.chief.hasKey() }
+    val hasAi by g.chief.aiConnected.collectAsStateWithLifecycle(initialValue = true)
     val work by androidx.work.WorkManager.getInstance(ctx).getWorkInfosForUniqueWorkFlow("brief_now").collectAsStateWithLifecycle(initialValue = emptyList())
     val c = LocalBallotColors.current
     Screen("What's on locally", kicker = "What is happening near you", onBack = { nav.popBackStack() },

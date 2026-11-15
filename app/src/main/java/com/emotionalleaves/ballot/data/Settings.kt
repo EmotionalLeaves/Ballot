@@ -197,12 +197,16 @@ class SecretStore(context: Context) {
         else -> prefs.getString("key_$provider", "") ?: ""
     }
 
+    /** Ticks whenever a key is added or removed, so "is AI connected" can be observed instead of polled. */
+    val changes = kotlinx.coroutines.flow.MutableStateFlow(0)
+
     fun setKey(provider: String, key: String) {
         when (provider) {
             "anthropic" -> anthropicKey = key
             "openai" -> openAiKey = key
             else -> prefs.edit().putString("key_$provider", key.trim()).apply()
         }
+        changes.value++
     }
 
     fun removeKey(provider: String) = setKey(provider, "")
@@ -236,6 +240,7 @@ class SecretStore(context: Context) {
 
     fun wipe() {
         prefs.edit().clear().commit()
+        changes.value++
     }
 
     private fun hash(pin: String, salt: ByteArray): String {

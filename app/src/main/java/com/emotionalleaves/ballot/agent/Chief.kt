@@ -13,6 +13,7 @@ import com.emotionalleaves.ballot.data.SecretStore
 import com.emotionalleaves.ballot.data.SettingsStore
 import com.emotionalleaves.ballot.data.SourceRecord
 import com.emotionalleaves.ballot.data.UsageRecord
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.delay
 import kotlinx.serialization.builtins.ListSerializer
 import java.time.LocalDate
@@ -240,6 +241,10 @@ $brief
     }
 
     suspend fun hasKey(): Boolean = routes(settingsStore.get()).isNotEmpty()
+
+    /** One observable answer to "is any AI connected?", updated the moment a key or service changes. */
+    val aiConnected: kotlinx.coroutines.flow.Flow<Boolean> =
+        kotlinx.coroutines.flow.combine(settingsStore.flow, secrets.changes) { s, _ -> routes(s).isNotEmpty() }.distinctUntilChanged()
 
     /**
      * Talk to the Chief. Writes both sides to the chat thread and every tool call to the audit log.

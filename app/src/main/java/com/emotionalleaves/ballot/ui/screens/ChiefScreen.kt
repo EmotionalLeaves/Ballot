@@ -82,8 +82,7 @@ fun ChiefScreen(nav: NavHostController, thread: String = "main") {
     val mic = rememberMicGate()
     val scope = rememberCoroutineScope()
     val c = LocalBallotColors.current
-    var hasAi by remember { mutableStateOf(true) }
-    androidx.compose.runtime.LaunchedEffect(Unit) { hasAi = g.chief.hasKey() }
+    val hasAi by g.chief.aiConnected.collectAsStateWithLifecycle(initialValue = true)
     val byId = remember(sources) { sources.associateBy { it.id } }
     LaunchedEffect(messages.size, ChiefBusy.busy) { if (messages.isNotEmpty()) list.animateScrollToItem((messages.size - 1 + if (ChiefBusy.busy) 1 else 0).coerceAtLeast(0)) }
 
