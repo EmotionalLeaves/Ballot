@@ -3,6 +3,9 @@ package com.emotionalleaves.ballot.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Checkbox
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -189,17 +192,24 @@ private fun EventPanel(
     val c = LocalBallotColors.current
     var typed by remember(e.id) { mutableStateOf("") }
     Panel {
-        Kicker("${e.type.replace('_', ' ')} · ${dateTime(e.startAt)}")
+        Kicker("${pretty(e.type)} · ${dateTime(e.startAt)}")
         Text(e.title, style = MaterialTheme.typography.titleLarge, color = c.fg)
         if (e.place.isNotBlank()) Small(e.place, color = c.fg)
         if (e.goal.isNotBlank()) Small("Goal: ${e.goal}", color = c.signal)
         if (e.preCard.isNotBlank()) Text(chiefText(e.preCard), style = MaterialTheme.typography.bodyLarge, color = LocalBallotColors.current.fg)
         if (e.debrief.isNotBlank()) Small("Debrief: ${e.debrief.take(300)}")
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(e.attended, onCheckedChange = { v -> scope.launch { g.db.events().upsert(e.copy(attended = v, updatedAt = now())); g.case.advanceIfReady() } })
-            Small("Attended", color = c.fg)
-            Checkbox(e.gaveComment, onCheckedChange = { v -> scope.launch { g.db.events().upsert(e.copy(gaveComment = v, attended = e.attended || v, updatedAt = now())); g.case.advanceIfReady() } })
-            Small("Gave a comment", color = c.fg)
+        // Stage 3's exit test counts these two, so each is one tap on the whole label.
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(Modifier.toggleable(e.attended, role = androidx.compose.ui.semantics.Role.Checkbox) { v ->
+                scope.launch { g.db.events().upsert(e.copy(attended = v, updatedAt = now())); g.case.advanceIfReady() } }.heightIn(min = 48.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(e.attended, onCheckedChange = null); Small("Attended", Modifier.padding(start = 6.dp), color = c.fg)
+            }
+            Row(Modifier.toggleable(e.gaveComment, role = androidx.compose.ui.semantics.Role.Checkbox) { v ->
+                scope.launch { g.db.events().upsert(e.copy(gaveComment = v, attended = e.attended || v, updatedAt = now())); g.case.advanceIfReady() } }.heightIn(min = 48.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(e.gaveComment, onCheckedChange = null); Small("Gave a comment", Modifier.padding(start = 6.dp), color = c.fg)
+            }
         }
         Row {
             LinkButton("Pre-event card", onClick = {

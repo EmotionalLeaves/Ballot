@@ -144,3 +144,4 @@ One line per loop iteration, newest last.
 - c1 p4 t2 i5 `verify_goal_completion`: Town quiz (stage 2 exit): scores count out of 10 whatever the quiz length, and a quiz too short to judge says so instead of being impossible to pass
 - c1 p4 t2 i6 `verify_goal_completion`: Go or no-go: answers read Yes / No / Not sure, and after saving it says what happened next and opens the plan in one tap
 - c1 p4 t2 i7 `verify_goal_completion`: Weekly review: saving it ticks off the 'Weekly review' task on Today, and the lesson leaves out stop/keep/start lines you left blank
+- c1 p4 t2 i8 `verify_goal_completion`: Show up stage: 'Attended' and 'Gave a comment' are one tap on the whole label (they count toward the stage 3 exit), and event kinds read in sentence case
