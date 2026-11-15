@@ -138,3 +138,4 @@ One line per loop iteration, newest last.
 - c1 p4 t1 i19 `test_core_functionality`: Flow test: anything waiting for your OK is in the Chief's brief so it never claims it's done
 - c1 p4 t1 i20 `test_core_functionality`: Flow test found money logged as 'in' or 'In-kind' missed every total: directions are normalised, and $19.99 is stored as 1999 cents, not 1998
 - c1 p4 t2 i1 `verify_goal_completion`: Legal deadlines: confirmed they become a prepared draft and a top task inside seven days (alerts cover 14 days out); the flow test now checks that rule
+- c1 p4 t2 i2 `verify_goal_completion`: Deadline alerts: a filing deadline says 'due today', 'due tomorrow' or 'N days left' with the weekday, and follow-up reminders count only what's really there

@@ -132,7 +132,8 @@ class HourlyWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx
                 if (due.isNotEmpty()) {
                     val days = d.dueEpochDay - today
                     Notifications.post(applicationContext, Notifications.DEADLINES, (d.id % 100000).toInt() + 1000,
-                        "${d.title}: $days day(s)", "Due ${LocalDate.ofEpochDay(d.dueEpochDay)}. ${if (d.preparedDraftId != 0L) "Draft ready in the Vault." else "Open Ballot to prepare it."}")
+                        "${d.title}: " + when (days) { 0L -> "due today"; 1L -> "due tomorrow"; else -> "$days days left" },
+                        "Due ${LocalDate.ofEpochDay(d.dueEpochDay).format(java.time.format.DateTimeFormatter.ofPattern("EEEE d MMMM"))}. ${if (d.preparedDraftId != 0L) "Draft ready in the Vault." else "Open Ballot to prepare it."}")
                     case.db.deadlines().upsert(d.copy(alertsSent = (sent + due).joinToString(","), updatedAt = now()))
                 }
             }
@@ -142,11 +143,16 @@ class HourlyWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx
             if (promises.isNotEmpty() || staleFollowUps.isNotEmpty()) {
                 val key = "followup.$today"
                 if (case.db.tasks().countTemplate(key) == 0) {
-                    case.db.tasks().upsert(Task(stage = p.stage, title = "Clear ${promises.size + staleFollowUps.size} follow-up(s) and promise(s)",
+                    case.db.tasks().upsert(Task(stage = p.stage, title = "Clear " + listOfNotNull(
+                        staleFollowUps.size.takeIf { it > 0 }?.let { if (it == 1) "1 follow-up" else "$it follow-ups" },
+                        promises.size.takeIf { it > 0 }?.let { if (it == 1) "1 promise" else "$it promises" }).joinToString(" and "),
                         why = "Follow-ups lose value each day they wait.", doneLooksLike = "Each one done or rescheduled.", goodEnough = "Short messages are fine.",
                         humanContact = true, templateKey = key, module = "network", sizeMinutes = 15, followUpSince = now() - 3 * 86_400_000L))
                     Notifications.post(applicationContext, Notifications.FOLLOW_UPS, 2001, "Follow-ups waiting",
-                        "${promises.size} promise(s) due and ${staleFollowUps.size} follow-up(s) three days old.")
+                        listOfNotNull(
+                            promises.size.takeIf { it > 0 }?.let { if (it == 1) "1 promise due" else "$it promises due" },
+                            staleFollowUps.size.takeIf { it > 0 }?.let { if (it == 1) "1 follow-up three days old" else "$it follow-ups three days old" },
+                        ).joinToString(", ") + ".")
                 }
             }
             // The weekly review, on the day you chose.
