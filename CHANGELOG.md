@@ -110,3 +110,4 @@ One line per loop iteration, newest last.
 - c1 p3 t2 i12 `apply_professional_formatting`: Chief replies render markdown properly: bold as bold, headings as bold lines, dashes as bullets, no stray asterisks or backticks
 - c1 p3 t2 i13 `apply_professional_formatting`: The Chief's reply strip on module pages renders markdown too and stops at eight lines with an ellipsis instead of a wall of text
 - c1 p3 t2 i14 `apply_professional_formatting`: Meeting prep cards written by the Chief render their markdown (bold, bullets) instead of showing raw asterisks
+- c1 p3 t2 i15 `apply_professional_formatting`: Shared drafts and approved messages go out as clean text, without markdown asterisks or hashes

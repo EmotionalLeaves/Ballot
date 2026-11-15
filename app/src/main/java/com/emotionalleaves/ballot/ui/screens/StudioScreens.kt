@@ -174,7 +174,7 @@ fun DocumentScreen(nav: NavHostController, id: Long) {
                         g.case.audit("you", "Approved document", input = d.title, approvedBy = "you")
                     }
                 })
-                PosterButton("Share", primary = false, enabled = d.approved, onClick = { shareText(ctx, d.body, d.title) })
+                PosterButton("Share", primary = false, enabled = d.approved, onClick = { shareText(ctx, chiefText(d.body).text, d.title) })
             }
             if (!canApprove && !d.approved) Small(when {
                 holding -> "Waiting for the cooling period."

@@ -149,7 +149,7 @@ fun ApprovalsScreen(nav: NavHostController) {
                             // Put the result in the Chief's thread so the next request can build on it.
                             g.db.chat().insert(com.emotionalleaves.ballot.data.ChatMessage(thread = "main", role = "assistant", mode = "Clerk",
                                 text = "You approved: ${p.summary}\n${out.text.take(1500)}"))
-                            if (p.kind == PendingKind.SEND) shareText(ctx, draft, subject = "")
+                            if (p.kind == PendingKind.SEND) shareText(ctx, chiefText(draft).text, subject = "")
                         }
                     })
                     PosterButton("Decline", primary = false, onClick = {
