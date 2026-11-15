@@ -182,26 +182,14 @@ object FactCheck {
 }
 
 object MoneyChecks {
-    /** Warns before any limit or reporting trigger stored from the official rules. */
+    /** Warns before any limit or reporting trigger stored from the official rules (plain code: core LimitCheck). */
     suspend fun warnings(case: CaseFile): List<String> {
         val rules = case.db.rules().all().filter { it.limitCents > 0 }
         val money = case.db.money().all()
-        val out = mutableListOf<String>()
-        rules.filter { it.limitKind == "PER_DONOR" }.forEach { r ->
-            money.filter { it.direction != MoneyDirection.OUT && !it.ownFunds && it.person.isNotBlank() }
-                .groupBy { it.person.lowercase() }
-                .forEach { (_, list) ->
-                    val total = list.sumOf { it.amountCents }
-                    if (total >= r.limitCents * 0.8) out += "${list.first().person} has given $${total / 100} against a $${r.limitCents / 100} limit (${r.jurisdiction})."
-                }
-        }
-        rules.filter { it.limitKind == "REPORT_TRIGGER" }.forEach { r ->
-            val spent = money.filter { it.direction == MoneyDirection.OUT }.sumOf { it.amountCents }
-            val raised = money.filter { it.direction != MoneyDirection.OUT }.sumOf { it.amountCents }
-            if (maxOf(spent, raised) >= r.limitCents * 0.8) out += "Totals are near the $${r.limitCents / 100} reporting trigger (${r.jurisdiction}). Check the report rules."
-        }
-        if (money.isNotEmpty() && rules.isEmpty()) out += "No contribution limits loaded yet. Ask the Chief to fetch the official rules for your office."
-        return out
+        if (money.isNotEmpty() && rules.isEmpty()) return listOf("No contribution limits saved yet. Add them in Records, Rules (from the election office's page), so gifts can be checked.")
+        return com.emotionalleaves.ballot.core.LimitCheck.warnings(
+            money.map { com.emotionalleaves.ballot.core.LimitEntry(it.direction, it.amountCents, it.person, it.contactId, it.ownFunds) },
+            rules.map { com.emotionalleaves.ballot.core.Limit(it.limitKind, it.limitCents, it.jurisdiction) })
     }
 }
 

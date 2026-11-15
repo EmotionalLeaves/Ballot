@@ -389,3 +389,14 @@ class DateTextTest {
         assertEquals(java.time.LocalTime.of(21, 30), D.time("9:30\u202FPM"))
     }
 }
+
+class LimitCheckTest {
+    @Test fun donorsAreOnePersonWhateverTheSpellingAndOverTheLimitSaysWhatToDo() {
+        val L = com.emotionalleaves.ballot.core.LimitCheck
+        val e = listOf(com.emotionalleaves.ballot.core.LimitEntry("IN", 30000, "Ana Ruiz"), com.emotionalleaves.ballot.core.LimitEntry("IN", 25000, "ana  ruiz "),
+            com.emotionalleaves.ballot.core.LimitEntry("IN", 50000, "Me", ownFunds = true))
+        val w = L.warnings(e, listOf(com.emotionalleaves.ballot.core.Limit("PER_DONOR", 50000, "Lancaster County")))
+        assertEquals(1, w.size)
+        assertTrue(w[0], w[0].contains("over the $500 limit") && w[0].contains("$50"))
+    }
+}
