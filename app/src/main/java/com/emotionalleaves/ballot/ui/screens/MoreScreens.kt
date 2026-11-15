@@ -133,9 +133,12 @@ fun ApprovalsScreen(nav: NavHostController) {
                 } + " · ${shortDate(p.createdAt)}", color = c.signal)
                 Text(p.summary, style = MaterialTheme.typography.titleMedium, color = c.fg)
                 if (p.kind == PendingKind.SEND) Field(draft, { draft = it }, "Message", minLines = 3)
+                // A template's [gap] is yours to fill; nothing goes out with one left in.
+                val gap = p.kind == PendingKind.SEND && Regex("\\[[^\\]]{2,}]").containsMatchIn(draft)
+                if (gap) Small("Fill in the part in [brackets] first.", color = c.signal)
                 else if (p.kind == PendingKind.CONFIRM_VOICE || p.kind == PendingKind.ROUTINE) Small(prettyPayload(p.payload))
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    PosterButton(if (p.kind == PendingKind.SEND) "Approve and send" else "Approve", onClick = {
+                    PosterButton(if (p.kind == PendingKind.SEND) "Approve and send" else "Approve", enabled = !gap, onClick = {
                         scope.launch {
                             val input = runCatching { com.emotionalleaves.ballot.agent.BallotJson.parseToJsonElement(p.payload).jsonObject }.getOrDefault(JsonObject(emptyMap()))
                             val out = g.chief.tools.execute(p.tool, input, ToolCtx(g.case, g.settings.get(), approved = true, store = g.settings, app = ctx.applicationContext))
