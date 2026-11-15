@@ -261,7 +261,7 @@ fun <T> ChipRow(options: List<T>, selected: T?, label: (T) -> String, onSelect: 
                     .heightIn(min = 48.dp)
                     .background(if (on) c.fg else Color.Transparent)
                     .border(2.dp, c.fg)
-                    .semantics { selected = on }
+                    .semantics { this.selected = on }
                     .clickable(role = Role.Tab) { onSelect(o) }
                     .padding(horizontal = 14.dp, vertical = 10.dp),
                 contentAlignment = Alignment.Center,
