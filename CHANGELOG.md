@@ -192,3 +192,4 @@ One line per loop iteration, newest last.
 - c1 p5 t3 i1 `apply_intuitive_layout`: Today: your next task is the first thing on screen; the optional AI line moved to the bottom
 - c1 p5 t3 i2 `apply_intuitive_layout`: Who you are follows the stage order: values, issues, story, positions, and the one-page platform last, built from what's above it
 - c1 p5 t3 i3 `apply_intuitive_layout`: Your town: 'Add an office by hand' comes first, then the Chief's search; Score races is the main button once offices exist
+- c1 p5 t3 i4 `apply_intuitive_layout`: Settings opens on everyday things (quiet hours and look, lock, backup); AI services move below as an optional section

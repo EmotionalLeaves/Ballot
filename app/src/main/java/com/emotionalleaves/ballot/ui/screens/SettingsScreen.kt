@@ -113,12 +113,76 @@ fun SettingsScreen(nav: NavHostController) {
     }
 
     Screen("Settings", onBack = { nav.popBackStack() }, walkthrough = listOf(
-        "The AI key and spend cap control the Chief's brain and its cost.",
+        "AI is optional: it adds web research and first drafts. The spend cap limits any paid service.",
         "The autonomy dial moves routine work between 'does without asking' and 'asks first'. Anything sent, posted, filed, signed or spent always asks.",
         "Backups are encrypted with a passphrase you choose. Snapshots are taken automatically each day, seven kept.",
         "Panic wipe deletes everything on this phone.")) {
         item {
-            Collapsible("AI services", "Which AI the Chief uses, and free-only mode", startOpen = true) {
+            Collapsible("Quiet hours and look", "Sleep, brief time, review day, theme, text size", startOpen = true) {
+                var sleepStart by remember(s.sleepStartMin) { mutableStateOf(hm(s.sleepStartMin)) }
+                var sleepEnd by remember(s.sleepEndMin) { mutableStateOf(hm(s.sleepEndMin)) }
+                var brief by remember(s.briefMinuteOfDay) { mutableStateOf(hm(s.briefMinuteOfDay)) }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Field(sleepStart, { sleepStart = it }, "Sleep from", Modifier.weight(1f), singleLine = true)
+                    Field(sleepEnd, { sleepEnd = it }, "Sleep until", Modifier.weight(1f), singleLine = true)
+                    Field(brief, { brief = it }, "Brief at", Modifier.weight(1f), singleLine = true)
+                }
+                LinkButton("Save times", onClick = {
+                    upd { it.copy(sleepStartMin = parseHm(sleepStart) ?: it.sleepStartMin, sleepEndMin = parseHm(sleepEnd) ?: it.sleepEndMin, briefMinuteOfDay = parseHm(brief) ?: it.briefMinuteOfDay) }
+                })
+                Small("Work hours are part of your profile. Tell the Chief if they change.")
+                Kicker("Weekly review day")
+                ChipRow((1..7).toList(), reviewDay, { listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")[it - 1] }) { d ->
+                    reviewDay = d
+                    scope.launch { g.case.updateProfile { it.copy(weeklyReviewDay = d) } }
+                }
+                SwitchRow("Dark theme (for night use)", s.darkTheme, { v -> upd { it.copy(darkTheme = v) } })
+                var scale by remember(s.textScale) { mutableStateOf(s.textScale) }
+                Small("Text size ${"%.0f".format(scale * 100)}%")
+                // Saved when you let go, so dragging doesn't rewrite settings dozens of times.
+                Slider(value = scale, onValueChange = { scale = (it * 20).toInt() / 20f }, valueRange = 0.85f..1.5f,
+                    onValueChangeFinished = { val v = scale; upd { it.copy(textScale = v) } })
+            }
+        }
+        item {
+            Collapsible("Lock", "PIN and fingerprint") {
+                SwitchRow("App lock (PIN or biometric)", s.appLock && g.secrets.hasPin(), { v ->
+                    lockHint = if (!v || g.secrets.hasPin()) "" else "Set a PIN below first. Fingerprint or face unlock works once a PIN exists."
+                    if (!v) upd { it.copy(appLock = false) } else if (g.secrets.hasPin()) upd { it.copy(appLock = true) }
+                })
+                if (lockHint.isNotBlank()) Small(lockHint, color = c.signal)
+                Field(pin, { pin = it.filter(Char::isDigit).take(12) }, "Set a PIN (4 to 12 digits)", singleLine = true, number = true, secret = true)
+                LinkButton("Save PIN and turn lock on", onClick = {
+                    lockHint = if (pin.length >= 4) "Lock is on." else "A PIN needs at least 4 digits."
+                    if (pin.length >= 4) { g.secrets.setPin(pin); pin = ""; com.emotionalleaves.ballot.AppLock.locked = false; upd { it.copy(appLock = true) } }
+                })
+                var auto by remember(s.autoLockMinutes) { mutableStateOf(s.autoLockMinutes.toString()) }
+                // Saves as you type: no separate Save button.
+                Field(auto, { t -> auto = t.filter(Char::isDigit).take(3); auto.toIntOrNull()?.let { v -> upd { it.copy(autoLockMinutes = v.coerceIn(0, 120)) } } },
+                    "Auto-lock after minutes away (0 to 120)", singleLine = true, number = true)
+            }
+        }
+        item {
+            Collapsible("Backup", "Encrypted export and daily snapshots") {
+                Small("An encrypted file you keep somewhere safe. You choose the passphrase.")
+                Field(passphrase, { passphrase = it }, "Backup passphrase (8+ characters)", singleLine = true, secret = true)
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    PosterButton("Export", enabled = passphrase.length >= 8, onClick = { exportLauncher.launch("ballot-backup-${LocalDate.now()}.ballot") })
+                    PosterButton("Import", primary = false, enabled = passphrase.length >= 8, onClick = { importLauncher.launch(arrayOf("*/*")) })
+                }
+                if (backupStatus.isNotBlank()) Small(backupStatus, color = c.fg)
+                Kicker("Daily snapshots (${snapshots.size} of ${Snapshots.KEEP})")
+                snapshots.forEach { f ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Body(f.name.removePrefix("ballot-").removeSuffix(".db"), Modifier.weight(1f))
+                        LinkButton("Restore", onClick = { restoreFile = f })
+                    }
+                }
+                LinkButton("Take a snapshot now", onClick = { scope.launch { withContext(Dispatchers.IO) { Snapshots.take(ctx) }; refresh++ } })
+            }
+        }
+        item {
+            Collapsible("AI services", "Optional: web research and first drafts, and free-only mode") {
                 Small("Ballot tries your main service first, then any other you have connected. Free services cost nothing.")
                 ConnectedServices(outsideChange = aiChanged)
                 SwitchRow("Free only (never spend money)", s.freeOnly, { v -> upd { it.copy(freeOnly = v) } })
@@ -178,33 +242,6 @@ fun SettingsScreen(nav: NavHostController) {
             }
         }
         item {
-            Collapsible("Quiet hours and look", "Sleep, brief time, review day, theme, text size") {
-                var sleepStart by remember(s.sleepStartMin) { mutableStateOf(hm(s.sleepStartMin)) }
-                var sleepEnd by remember(s.sleepEndMin) { mutableStateOf(hm(s.sleepEndMin)) }
-                var brief by remember(s.briefMinuteOfDay) { mutableStateOf(hm(s.briefMinuteOfDay)) }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Field(sleepStart, { sleepStart = it }, "Sleep from", Modifier.weight(1f), singleLine = true)
-                    Field(sleepEnd, { sleepEnd = it }, "Sleep until", Modifier.weight(1f), singleLine = true)
-                    Field(brief, { brief = it }, "Brief at", Modifier.weight(1f), singleLine = true)
-                }
-                LinkButton("Save times", onClick = {
-                    upd { it.copy(sleepStartMin = parseHm(sleepStart) ?: it.sleepStartMin, sleepEndMin = parseHm(sleepEnd) ?: it.sleepEndMin, briefMinuteOfDay = parseHm(brief) ?: it.briefMinuteOfDay) }
-                })
-                Small("Work hours are part of your profile. Tell the Chief if they change.")
-                Kicker("Weekly review day")
-                ChipRow((1..7).toList(), reviewDay, { listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")[it - 1] }) { d ->
-                    reviewDay = d
-                    scope.launch { g.case.updateProfile { it.copy(weeklyReviewDay = d) } }
-                }
-                SwitchRow("Dark theme (for night use)", s.darkTheme, { v -> upd { it.copy(darkTheme = v) } })
-                var scale by remember(s.textScale) { mutableStateOf(s.textScale) }
-                Small("Text size ${"%.0f".format(scale * 100)}%")
-                // Saved when you let go, so dragging doesn't rewrite settings dozens of times.
-                Slider(value = scale, onValueChange = { scale = (it * 20).toInt() / 20f }, valueRange = 0.85f..1.5f,
-                    onValueChangeFinished = { val v = scale; upd { it.copy(textScale = v) } })
-            }
-        }
-        item {
             Collapsible("Facts and safety", "Official sites, cooling period, win margin") {
                 Small("Official sources are .gov, .mil and locality .us sites. Add your city or county site if it uses another domain (for example cityofexample.org).")
                 s.officialDomains.forEach { d -> Row(verticalAlignment = Alignment.CenterVertically) { Body(d, Modifier.weight(1f)); LinkButton("Remove", color = c.muted, onClick = { upd { it.copy(officialDomains = it.officialDomains - d) } }) } }
@@ -224,43 +261,6 @@ fun SettingsScreen(nav: NavHostController) {
                     Field(fresh, { t -> fresh = t.filter(Char::isDigit).take(2); fresh.toIntOrNull()?.let { v -> upd { it.copy(freshnessDaysRules = v.coerceIn(1, 30)) } } },
                         "Rule check days", Modifier.weight(1f), singleLine = true, number = true)
                 }
-            }
-        }
-        item {
-            Collapsible("Lock", "PIN and fingerprint") {
-                SwitchRow("App lock (PIN or biometric)", s.appLock && g.secrets.hasPin(), { v ->
-                    lockHint = if (!v || g.secrets.hasPin()) "" else "Set a PIN below first. Fingerprint or face unlock works once a PIN exists."
-                    if (!v) upd { it.copy(appLock = false) } else if (g.secrets.hasPin()) upd { it.copy(appLock = true) }
-                })
-                if (lockHint.isNotBlank()) Small(lockHint, color = c.signal)
-                Field(pin, { pin = it.filter(Char::isDigit).take(12) }, "Set a PIN (4 to 12 digits)", singleLine = true, number = true, secret = true)
-                LinkButton("Save PIN and turn lock on", onClick = {
-                    lockHint = if (pin.length >= 4) "Lock is on." else "A PIN needs at least 4 digits."
-                    if (pin.length >= 4) { g.secrets.setPin(pin); pin = ""; com.emotionalleaves.ballot.AppLock.locked = false; upd { it.copy(appLock = true) } }
-                })
-                var auto by remember(s.autoLockMinutes) { mutableStateOf(s.autoLockMinutes.toString()) }
-                // Saves as you type: no separate Save button.
-                Field(auto, { t -> auto = t.filter(Char::isDigit).take(3); auto.toIntOrNull()?.let { v -> upd { it.copy(autoLockMinutes = v.coerceIn(0, 120)) } } },
-                    "Auto-lock after minutes away (0 to 120)", singleLine = true, number = true)
-            }
-        }
-        item {
-            Collapsible("Backup", "Encrypted export and daily snapshots") {
-                Small("An encrypted file you keep somewhere safe. You choose the passphrase.")
-                Field(passphrase, { passphrase = it }, "Backup passphrase (8+ characters)", singleLine = true, secret = true)
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    PosterButton("Export", enabled = passphrase.length >= 8, onClick = { exportLauncher.launch("ballot-backup-${LocalDate.now()}.ballot") })
-                    PosterButton("Import", primary = false, enabled = passphrase.length >= 8, onClick = { importLauncher.launch(arrayOf("*/*")) })
-                }
-                if (backupStatus.isNotBlank()) Small(backupStatus, color = c.fg)
-                Kicker("Daily snapshots (${snapshots.size} of ${Snapshots.KEEP})")
-                snapshots.forEach { f ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Body(f.name.removePrefix("ballot-").removeSuffix(".db"), Modifier.weight(1f))
-                        LinkButton("Restore", onClick = { restoreFile = f })
-                    }
-                }
-                LinkButton("Take a snapshot now", onClick = { scope.launch { withContext(Dispatchers.IO) { Snapshots.take(ctx) }; refresh++ } })
             }
         }
         item {
