@@ -21,7 +21,7 @@ object PageFetcher {
             .header("Accept", "text/html,application/xhtml+xml,text/plain;q=0.9,*/*;q=0.5")
             .build()
         try {
-            Http.client.newCall(req).execute().use { r ->
+            Http.client.newCall(req).await().use { r ->
                 val body = r.body ?: return@use FetchedPage(https, r.code, "", "", "")
                 val type = body.contentType()?.toString() ?: ""
                 if (type.contains("pdf")) return@use FetchedPage(https, r.code, "PDF document", "[This is a PDF. Open it in a browser to read it.]", "")

@@ -25,7 +25,7 @@ private data class HttpReply(val status: Int, val body: String, val retryAfterSe
 
 private suspend fun send(req: Request): HttpReply = withContext(Dispatchers.IO) {
     try {
-        Http.client.newCall(req).execute().use { r ->
+        Http.client.newCall(req).await().use { r ->
             HttpReply(r.code, r.body?.string() ?: "", parseRetryAfter(r.header("Retry-After")))
         }
     } catch (e: IOException) {

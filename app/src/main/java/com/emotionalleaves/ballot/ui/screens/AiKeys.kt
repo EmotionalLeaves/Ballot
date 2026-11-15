@@ -35,35 +35,62 @@ import com.emotionalleaves.ballot.ui.components.Small
 import com.emotionalleaves.ballot.ui.theme.Go
 import com.emotionalleaves.ballot.ui.theme.LocalBallotColors
 import com.emotionalleaves.ballot.ui.theme.Numbers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 
 /** Connects one service: saves the key, asks the service for its models, picks one and tests it. */
 object KeySetup {
     data class Outcome(val ok: Boolean, val message: String, val model: String = "")
 
-    suspend fun connect(g: AppGraph, p: ProviderPreset, rawKey: String, makeMain: Boolean): Outcome {
+    /** Each try gets this long; the whole connect gives up after TOTAL_MS. */
+    const val TRY_MS = 25_000L
+    const val TOTAL_MS = 90_000L
+
+    suspend fun connect(g: AppGraph, p: ProviderPreset, rawKey: String, makeMain: Boolean, progress: (String) -> Unit = {}): Outcome {
         val key = Providers.cleanKey(rawKey)
         if (key.isBlank()) return Outcome(false, "Paste the key first.")
         val s = g.settings.get()
         val client = clientFor(p.id, s.openAiBaseUrl)
-        val models = runCatching { client.listModels(key) }
+        val started = System.currentTimeMillis()
+        progress("Checking the key with ${p.name}…")
+        val models = runCatching { kotlinx.coroutines.withTimeout(20_000) { client.listModels(key) } }
+        currentCoroutineContext().ensureActive()
         models.exceptionOrNull()?.let { e -> if (e is LlmException && isKeyProblem(e)) return Outcome(false, friendly(p, e)) }
+        val keyWorks = models.isSuccess && models.getOrDefault(emptyList()).isNotEmpty()
         // Try models best-first until one answers. A model can be retired or missing from the free
         // tier without anything being wrong with the key.
+        val candidates = Providers.candidates(p, models.getOrDefault(emptyList())).take(8)
         val tried = mutableListOf<String>()
         var last: Throwable? = null
-        for (model in Providers.candidates(p, models.getOrDefault(emptyList())).take(8)) {
+        var onlySlow = true
+        for ((i, model) in candidates.withIndex()) {
+            val left = TOTAL_MS - (System.currentTimeMillis() - started)
+            if (left < 5_000) break
             tried += model
-            val r = runCatching { client.test(key, model) }
+            progress("Trying $model (${i + 1} of ${candidates.size})…")
+            val r = runCatching { kotlinx.coroutines.withTimeout(minOf(TRY_MS, left)) { client.test(key, model) } }
+            currentCoroutineContext().ensureActive()
             if (r.isSuccess) return save(g, p, key, model, makeMain)
             val e = r.exceptionOrNull()
             last = e
             if (e is LlmException && isKeyProblem(e)) return Outcome(false, friendly(p, e))
             if (e is LlmException && e.status == 0) return Outcome(false, friendly(p, e))
+            val slow = e is kotlinx.coroutines.TimeoutCancellationException || (e is LlmException && e.status == 429 && !Providers.isModelProblem(429, e.message ?: ""))
+            if (!slow) onlySlow = false
         }
-        val detail = last?.message?.let { "\n\nLast answer from ${p.name}: $it" } ?: ""
-        return Outcome(false, "${p.name} accepted the key but none of the ${tried.size} models it was asked for would answer. " +
-            "This usually means the free tier is busy or changing: try again in a few minutes, or connect Groq as a second free service.$detail")
+        // The key is fine and the service is only slow or busy: save it and let the Chief retry later.
+        if (keyWorks && onlySlow && tried.isNotEmpty()) {
+            val out = save(g, p, key, tried.first(), makeMain)
+            return out.copy(message = "Connected to ${p.name}. It's slow or busy right now, so the first answer may take a while.")
+        }
+        val why = when (last) {
+            is kotlinx.coroutines.TimeoutCancellationException -> "It didn't answer in time."
+            null -> ""
+            else -> last.message ?: ""
+        }
+        return Outcome(false, "${p.name} didn't answer with any of ${tried.size} models. $why " +
+            "Try again in a few minutes, or connect Groq as a second free service.")
     }
 
     /** The key itself is wrong, so trying other models won't help. */
@@ -125,6 +152,7 @@ fun KeyConnector(makeMain: Boolean = true, onConnected: (String) -> Unit = {}) {
     var working by remember { mutableStateOf(false) }
     var refresh by remember { mutableIntStateOf(0) }
     var choosing by remember { mutableStateOf(false) }
+    var job by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
 
     fun accept(text: String) {
         val clean = Providers.cleanKey(text)
@@ -173,20 +201,28 @@ fun KeyConnector(makeMain: Boolean = true, onConnected: (String) -> Unit = {}) {
             Kicker("3 · Paste and connect")
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 PosterButton("Paste key", primary = false, onClick = { accept(readClipboard(ctx)) })
-                PosterButton(if (working) "Connecting…" else "Connect", enabled = key.isNotBlank() && !working, onClick = {
+                if (!working) PosterButton("Connect", enabled = key.isNotBlank(), onClick = {
                     working = true
-                    scope.launch {
-                        val out = KeySetup.connect(g, selected, key, makeMain)
-                        working = false
+                    ok = false
+                    job = scope.launch {
+                        val out = try {
+                            KeySetup.connect(g, selected, key, makeMain) { status = it }
+                        } catch (e: kotlinx.coroutines.CancellationException) {
+                            throw e
+                        } catch (e: Exception) {
+                            KeySetup.Outcome(false, e.message ?: "Something went wrong.")
+                        } finally {
+                            working = false
+                        }
                         ok = out.ok
                         status = out.message
                         refresh++
                         if (out.ok) { key = ""; onConnected(selected.id) }
                     }
-                })
+                }) else PosterButton("Cancel", primary = false, onClick = { job?.cancel(); working = false; status = "Cancelled." })
             }
             Field(key, { accept(it) }, "Or type the key", singleLine = true)
-            if (status.isNotBlank()) Text(status, style = MaterialTheme.typography.bodyMedium, color = if (ok) Go else c.signal)
+            if (status.isNotBlank()) Text(status, style = MaterialTheme.typography.bodyMedium, color = if (ok) Go else if (working) c.muted else c.warn)
             Small("The key is stored encrypted on this phone and only ever sent to ${selected.name}.")
         }
     }
@@ -225,16 +261,23 @@ fun ConnectedServices(outsideChange: Int = 0, onChanged: () -> Unit = {}) {
                 }
                 Small("Model ${models[p.id] ?: p.defaultModel} · key ••••${g.secrets.keyFor(p.id).takeLast(4)}", color = c.fg)
                 Small("Today: $used request(s)" + if (p.dailyHint > 0) " of roughly ${p.dailyHint} free" else "")
-                results[p.id]?.let { Small(it, color = if (it.startsWith("Connected")) Go else c.signal) }
+                results[p.id]?.let { Small(it, color = if (it.startsWith("Connected")) Go else if (testing == p.id) c.muted else c.warn) }
                 if (p.id in resting) Small("Used up its free allowance today. Ballot is using your other services until tomorrow.", color = c.signal)
                 Row {
                     if (p.id != main) LinkButton("Make main", onClick = { scope.launch { g.settings.update { it.copy(provider = p.id) }; refresh++; onChanged() } })
                     LinkButton(if (testing == p.id) "Testing…" else "Re-test", onClick = {
                         testing = p.id
                         scope.launch {
-                            val out = KeySetup.connect(g, p, g.secrets.keyFor(p.id), makeMain = false)
-                            results = results + (p.id to out.message)
-                            testing = ""; refresh++
+                            try {
+                                val out = KeySetup.connect(g, p, g.secrets.keyFor(p.id), makeMain = false) { results = results + (p.id to it) }
+                                results = results + (p.id to out.message)
+                            } catch (e: kotlinx.coroutines.CancellationException) {
+                                throw e
+                            } catch (e: Exception) {
+                                results = results + (p.id to (e.message ?: "Something went wrong."))
+                            } finally {
+                                testing = ""; refresh++
+                            }
                         }
                     })
                     LinkButton("Remove", color = c.muted, onClick = { g.secrets.removeKey(p.id); refresh++; onChanged() })

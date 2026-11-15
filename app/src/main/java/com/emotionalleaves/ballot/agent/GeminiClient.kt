@@ -32,7 +32,7 @@ class GeminiClient(private val baseUrl: String = "https://generativelanguage.goo
 
     private suspend fun call(req: Request): Triple<Int, String, Int> = withContext(Dispatchers.IO) {
         try {
-            Http.client.newCall(req).execute().use { r -> Triple(r.code, r.body?.string() ?: "", parseRetryAfter(r.header("Retry-After"))) }
+            Http.client.newCall(req).await().use { r -> Triple(r.code, r.body?.string() ?: "", parseRetryAfter(r.header("Retry-After"))) }
         } catch (e: IOException) {
             throw LlmException("Network problem: ${e.message ?: "no connection"}", retryable = true)
         }

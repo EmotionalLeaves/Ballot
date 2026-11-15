@@ -86,6 +86,20 @@ object NetLog {
     }
 }
 
+/**
+ * Runs a call so that cancelling the coroutine (a timeout, a Cancel button, leaving the screen)
+ * cancels the network request too, instead of waiting for it to finish.
+ */
+suspend fun okhttp3.Call.await(): Response = kotlinx.coroutines.suspendCancellableCoroutine { cont ->
+    enqueue(object : okhttp3.Callback {
+        override fun onFailure(call: okhttp3.Call, e: java.io.IOException) { if (cont.isActive) cont.resumeWith(Result.failure(e)) }
+        override fun onResponse(call: okhttp3.Call, response: Response) {
+            if (cont.isActive) cont.resumeWith(Result.success(response)) else response.close()
+        }
+    })
+    cont.invokeOnCancellation { runCatching { cancel() } }
+}
+
 object Http {
     val client: OkHttpClient by lazy {
         OkHttpClient.Builder()

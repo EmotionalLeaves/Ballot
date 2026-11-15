@@ -77,4 +77,21 @@ class OpenAiClientTest {
     }
 }
 
+class TimeoutTest {
+    @Test fun aTimeoutCancelsTheRequestInsteadOfHanging() = runBlocking {
+        val server = MockWebServer()
+        server.start()
+        server.enqueue(MockResponse().setHeadersDelay(20, java.util.concurrent.TimeUnit.SECONDS).setBody("{}"))
+        val client = OpenAiClient(server.url("/v1/").toString())
+        val started = System.currentTimeMillis()
+        val r = runCatching {
+            kotlinx.coroutines.withTimeout(500) { client.complete("key", LlmRequest("m", "sys", listOf(LlmMessage("user", listOf(Block.Text("hi")))))) }
+        }
+        val took = System.currentTimeMillis() - started
+        assertTrue("should give up in well under 20 s, took $took ms", took < 5_000)
+        assertTrue(r.exceptionOrNull() is kotlinx.coroutines.TimeoutCancellationException)
+        server.shutdown()
+    }
+}
+
 private fun MockWebServer.takeRequestCount() = requestCount
