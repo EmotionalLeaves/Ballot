@@ -137,12 +137,18 @@ object Snapshots {
 
     fun list(context: Context): List<File> = dir(context).listFiles { f -> f.name.endsWith(".db") }?.sortedByDescending { it.name } ?: emptyList()
 
-    fun take(context: Context, day: LocalDate = LocalDate.now()): File? {
+    /**
+     * Copies the database file. With [db] given, the copy is made inside a write transaction, so no other
+     * write can land halfway through it and the snapshot is never torn. The journal mode is TRUNCATE, so the
+     * main file holds every committed change.
+     */
+    fun take(context: Context, db: BallotDatabase? = null, day: LocalDate = LocalDate.now()): File? {
         val src = context.getDatabasePath(BallotDatabase.NAME)
         if (!src.exists()) return null
         val out = File(dir(context), "ballot-$day.db")
         val tmp = File(dir(context), "ballot-$day.db.tmp")
-        src.copyTo(tmp, overwrite = true)
+        if (db != null && db.isOpen) db.runInTransaction { src.copyTo(tmp, overwrite = true) } else src.copyTo(tmp, overwrite = true)
+        if (tmp.length() != src.length()) { tmp.delete(); return null }
         if (!tmp.renameTo(out)) { tmp.copyTo(out, overwrite = true); tmp.delete() }
         list(context).drop(KEEP).forEach { it.delete() }
         return out

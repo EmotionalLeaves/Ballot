@@ -679,7 +679,7 @@ class ToolRegistry {
                 "brief" -> { com.emotionalleaves.ballot.work.Workers.briefNow(app); ToolOutcome("Building today's Briefing now; you'll get a notification when it's ready.") }
                 "recheck_rules" -> { com.emotionalleaves.ballot.work.Workers.recheckNow(app); ToolOutcome("Re-checking every rule page now. A changed page becomes a task.") }
                 "snapshot" -> {
-                    val f = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { com.emotionalleaves.ballot.data.Snapshots.take(app) }
+                    val f = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { com.emotionalleaves.ballot.data.Snapshots.take(app, c.case.db) }
                     ToolOutcome(if (f != null) "Snapshot saved (${f.name}). Restore it from Settings, Backup." else "Nothing to snapshot yet.")
                 }
                 else -> ToolOutcome("Use brief, recheck_rules or snapshot.", isError = true)

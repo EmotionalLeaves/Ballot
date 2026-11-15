@@ -116,7 +116,7 @@ class HourlyWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx
 
         // Daily snapshot, seven kept.
         if (s.lastSnapshotDay != today) {
-            runCatching { Snapshots.take(applicationContext) }
+            runCatching { Snapshots.take(applicationContext, case.db) }
             g.settings.update { it.copy(lastSnapshotDay = today) }
         }
 

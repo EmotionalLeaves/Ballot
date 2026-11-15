@@ -268,5 +268,18 @@ class FlowTests {
         val quiz = com.emotionalleaves.ballot.core.QuizBuilder.build(offices, emptyList(), seed = 3)
         assertTrue("got ${quiz.size}", quiz.size >= 8)
     }
+
+    /** A snapshot taken while the app is open is a complete, readable copy of the case file. */
+    @Test fun aSnapshotIsACompleteReadableCopy() = runTest {
+        val live = Room.databaseBuilder(ctx, BallotDatabase::class.java, BallotDatabase.NAME).allowMainThreadQueries()
+            .setJournalMode(androidx.room.RoomDatabase.JournalMode.TRUNCATE).build()
+        try {
+            live.contacts().upsert(com.emotionalleaves.ballot.data.Contact(name = "Mia"))
+            val snap = com.emotionalleaves.ballot.data.Snapshots.take(ctx, live)
+            assertNotNull(snap)
+            val copy = Room.databaseBuilder(ctx, BallotDatabase::class.java, snap!!.absolutePath).allowMainThreadQueries().build()
+            try { assertEquals("Mia", copy.contacts().all().single().name) } finally { copy.close() }
+        } finally { live.close(); ctx.deleteDatabase(BallotDatabase.NAME) }
+    }
 }
 
