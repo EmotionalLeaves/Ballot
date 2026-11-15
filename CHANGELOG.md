@@ -181,3 +181,4 @@ One line per loop iteration, newest last.
 - c1 p5 t1 i10 `combine_screens`: no change: Settings stays separate from Records; settings change the app, records are your campaign
 - c1 p5 t2 i1 `remove_excess_navigation_elements`: One route table: tasks' 'Open' and the Chief's cards share routeFor, removing the duplicate module map
 - c1 p5 t2 i2 `remove_excess_navigation_elements`: Records: loading rules or disclaimer rules with the Chief no longer jumps to the Chief; the answer shows on the page
+- c1 p5 t2 i3 `remove_excess_navigation_elements`: Plan: asking the Chief to check for open seats answers on the plan itself instead of jumping to the Chief

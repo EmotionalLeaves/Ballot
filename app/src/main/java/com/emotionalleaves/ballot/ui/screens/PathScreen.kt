@@ -90,6 +90,7 @@ fun PathScreen(nav: NavHostController) {
         "Timings are defaults. The Chief adjusts them to your life.",
         "Fast lanes: an open seat can bring the race decision forward. An appointed board builds a record without an election.",
     )) {
+        item { ReplyPanel { nav.navigate(Routes.CHIEF) } }
         items(Stage.entries.size) { i ->
             val s = Stage.entries[i]
             val ex = StageRules.exit(s, stats)
@@ -147,7 +148,6 @@ fun PathScreen(nav: NavHostController) {
                 Small("Party: local party committees often have open volunteer and precinct roles. The Chief explains how each works; the choice is yours.", color = c.fg)
                 LinkButton("Have the Chief check official sources", color = c.muted, onClick = {
                     askChief(g, "Check official sources for any open, vacant or historically uncontested local seat I am eligible for, and any appointed boards with openings. Cite sources.", "checking seats")
-                    nav.navigate(Routes.CHIEF)
                 })
             }
         }
