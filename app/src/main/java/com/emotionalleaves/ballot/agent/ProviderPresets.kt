@@ -237,7 +237,7 @@ object Providers {
 
     /** The tools a small free model gets: enough to research, track and draft. */
     val liteTools = setOf("search_web", "fetch_official_page", "find_offices", "create_task", "complete_task", "list_plan", "add_contact", "find_contacts", "log_interaction",
-        "queue_follow_up", "draft_document", "add_deadline", "add_event", "update_platform", "record_lesson", "open_page")
+        "queue_follow_up", "draft_document", "add_deadline", "add_event", "update_platform", "record_lesson", "open_page", "search_case_file")
 
     fun parseModels(csv: String): Map<String, String> = csv.split(';').mapNotNull { e ->
         val i = e.indexOf('=')

@@ -25,7 +25,7 @@ Checked each phase. Controls may move or merge; a function is only removed when 
 
 ## The Chief
 - [x] One agent, five modes, mode shown on each reply
-- [x] Tool loop with 29 typed tools (open_page (one-tap card to any page), change_setting (everyday settings only), run_job (brief, rule re-check, snapshot), search_web (free search), find_contacts, list_plan, complete_task, update_event, search_web via provider, fetch_official_page, verify_claim, find_offices, get_race_card, add_contact, log_interaction, queue_follow_up, create_task, reschedule_plan, add_deadline, log_money, draft_document, score_speech, start_mock_room, update_platform, save_to_vault, add_event, record_lesson, record_decision, update_profile, save_brief_item)
+- [x] Tool loop with 30 typed tools (search_case_file (the same plain search as More), open_page (one-tap card to any page), change_setting (everyday settings only), run_job (brief, rule re-check, snapshot), search_web (free search), find_contacts, list_plan, complete_task, update_event, search_web via provider, fetch_official_page, verify_claim, find_offices, get_race_card, add_contact, log_interaction, queue_follow_up, create_task, reschedule_plan, add_deadline, log_money, draft_document, score_speech, start_mock_room, update_platform, save_to_vault, add_event, record_lesson, record_decision, update_profile, save_brief_item)
 - [x] Approval levels: does without asking / asks first / never; autonomy dial for routine kinds; SEND/POST/FILE/SIGN/SPEND fixed
 - [x] Voice input confirms changes to money, deadlines and contacts
 - [x] Verification gates: official source, freshness, cross-check, label; grounding gate with one repair pass

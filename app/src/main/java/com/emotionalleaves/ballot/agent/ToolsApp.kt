@@ -141,6 +141,15 @@ internal fun ToolRegistry.registerAppTools() {
         }
     })
 
+    // The same plain-code search as the More page, so the Chief looks things up instead of guessing.
+    reg(ToolDef("search_case_file", "Search the user's own case file (people, tasks, drafts, events, deadlines, offices, lessons) by words. Read only. Use before saying you don't know something about them.",
+        S.obj(listOf("query"), mapOf("query" to S.s("Words to find, e.g. 'library board'"))), RoutineKind.RESEARCH, required = listOf("query")) { a, c ->
+        val hits = c.case.search(a.str("query")!!, max = 12)
+        if (hits.isEmpty()) return@ToolDef ToolOutcome("Nothing in the case file matches \"${a.str("query")}\".")
+        ToolOutcome(hits.joinToString("\n") { "${it.kind}: ${it.title}" + if (it.line.isNotBlank()) " (${it.line.take(80)})" else "" },
+            cards = hits.filter { it.refId > 0 }.take(3).map { Card(if (it.target == "contact") "CONTACT" else "DOCUMENT", it.title, it.kind, it.target, it.refId) })
+    })
+
     // Everything in the app is reachable by asking: "take me to my drafts" gives a card that opens the page.
     reg(ToolDef("open_page", "Give the user a one-tap card that opens a page of the app, when they ask to go somewhere or see something there.",
         S.obj(listOf("page"), mapOf("page" to S.e("Page", PAGES.keys.toList()), "why" to S.s("One line on what they'll find"))),
