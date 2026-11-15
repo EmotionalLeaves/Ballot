@@ -160,6 +160,21 @@ class ToolRegistry {
                 cards = listOf(Card("SOURCE", page.title.ifBlank { Verification.host(page.url) }, "$label · ${Verification.host(page.url)}", page.url, id)))
         })
 
+        reg(ToolDef("search_web",
+            "Search the web for official pages (election office, clerk, council, state law) and local news. Results are leads, not sources: " +
+                "fetch the page with fetch_official_page before stating anything from it. Add site to search one domain, e.g. sos.state.mn.us.",
+            S.obj(listOf("query"), mapOf("query" to S.s("What to search for, with the place name"), "site" to S.s("Optional domain to search within"))),
+            RoutineKind.RESEARCH, required = listOf("query")) { a, c ->
+            val q = a.str("query")!!.trim().let { q -> a.str("site")?.trim()?.takeIf { it.isNotBlank() }?.let { "$q site:$it" } ?: q }
+            val hits = FreeSearch.search(q)
+            if (hits.isEmpty()) return@ToolDef ToolOutcome("No results for \"$q\". Try different words, or fetch the state or county election office site directly.")
+            val lines = hits.mapIndexed { i, h ->
+                val official = Verification.isOfficial(h.url, c.settings.officialDomains)
+                "${i + 1}. ${h.title} — ${h.url}${if (official) " [official domain]" else ""}\n   ${h.snippet.take(240)}"
+            }
+            ToolOutcome("Search results for \"$q\" (leads only; fetch before citing):\n" + InjectionDefense.quote("search:$q", lines.joinToString("\n"), 6000))
+        })
+
         reg(ToolDef("verify_claim",
             "Cross-check a claim containing numbers or dates against stored source records. Two matching sources (or two fetches of an official page) make it VERIFIED.",
             S.obj(listOf("claim", "source_ids"), mapOf("claim" to S.s("The exact claim"), "source_ids" to S.intArr("Source record ids to check against"))),
