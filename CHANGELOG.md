@@ -142,3 +142,4 @@ One line per loop iteration, newest last.
 - c1 p4 t2 i3 `verify_goal_completion`: Deadline alerts: a deadline found late gets one alert at the tightest lead time instead of three alerts an hour apart
 - c1 p4 t2 i4 `verify_goal_completion`: Follow-ups: an approved message is recorded in the contact's history as one-way, so you can see what you sent and it only counts toward your base once they reply
 - c1 p4 t2 i5 `verify_goal_completion`: Town quiz (stage 2 exit): scores count out of 10 whatever the quiz length, and a quiz too short to judge says so instead of being impossible to pass
+- c1 p4 t2 i6 `verify_goal_completion`: Go or no-go: answers read Yes / No / Not sure, and after saving it says what happened next and opens the plan in one tap

@@ -283,7 +283,7 @@ fun GoNoGoScreen(nav: NavHostController) {
         items(goNoGoPoints.size) { i ->
             Panel {
                 Text(goNoGoPoints[i], style = MaterialTheme.typography.titleMedium, color = c.fg)
-                ChipRow(listOf("YES", "NO", "UNSURE"), answers[i].ifBlank { null }, { it.lowercase() }) { answers[i] = it }
+                ChipRow(listOf("YES", "NO", "UNSURE"), answers[i].ifBlank { null }, { when (it) { "YES" -> "Yes"; "NO" -> "No"; else -> "Not sure" } }) { answers[i] = it }
                 Field(notes[i], { notes[i] = it }, "Evidence or note")
             }
         }
@@ -305,7 +305,10 @@ fun GoNoGoScreen(nav: NavHostController) {
                     saved = true
                 }
             })
-            Small("Then mark the memo 'I agree' on the Plan tab.")
+            if (saved) {
+                Small(if (answers.all { it == "YES" }) "Read the memo on your plan and tap 'I agree' when you're sure." else "Each point that isn't a yes is now a task on your plan.")
+                com.emotionalleaves.ballot.ui.components.LinkButton("Open my plan", onClick = { nav.navigate(Routes.PATH) { launchSingleTop = true } })
+            } else Small("Then mark the memo 'I agree' on the Plan tab.")
         }
     }
 }
