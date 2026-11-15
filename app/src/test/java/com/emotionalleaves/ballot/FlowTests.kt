@@ -247,5 +247,14 @@ class FlowTests {
         assertEquals(1000L, m.filter { it.direction == "OUT" }.sumOf { it.amountCents })
         assertEquals("cents are rounded, not cut", 1999L, m.single { it.direction == "IN_KIND" }.amountCents)
     }
+
+    @Test fun anApprovedFollowUpShowsInTheContactsHistoryButIsNotTwoWay() = runTest {
+        tools.execute("add_contact", obj("name" to "Ana"), ToolCtx(case, AppSettings()))
+        tools.execute("queue_follow_up", obj("contact" to "Ana", "message" to "Thanks for coffee!"), ToolCtx(case, AppSettings(), approved = true))
+        val i = db.interactions().all().single()
+        assertTrue(i.notes.contains("Thanks for coffee!"))
+        assertFalse(i.twoWay)
+        assertEquals(0, case.stats().twoWayContacts)
+    }
 }
 

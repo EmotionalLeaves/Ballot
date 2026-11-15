@@ -359,8 +359,13 @@ class ToolRegistry {
             )), PendingKind.SEND, required = listOf("contact", "message")) { a, c ->
             // Reached only after approval: the user sends it themselves from the approval card.
             val contact = c.case.db.contacts().byName(a.str("contact")!!)
-            contact?.let { c.case.db.contacts().upsert(it.copy(lastContactAt = now(), updatedAt = now())) }
-            ToolOutcome("Approved. The user is sending it themselves.")
+            contact?.let {
+                c.case.db.contacts().upsert(it.copy(lastContactAt = now(), updatedAt = now()))
+                // The contact's history shows what went out. One-way: it only counts toward the base once they answer.
+                c.case.db.interactions().upsert(Interaction(contactId = it.id, channel = when (a.str("channel")) { "EMAIL" -> "EMAIL"; "PHONE_SCRIPT" -> "PHONE"; else -> "TEXT" },
+                    notes = "Follow-up sent: " + a.str("message")!!.take(300), twoWay = false))
+            }
+            ToolOutcome("Approved. The user is sending it themselves." + if (contact == null) " ${a.str("contact")} isn't in the contact book yet." else "")
         })
 
         reg(ToolDef("create_task", "Create a task. Keep it small, say why it matters and what done looks like. Never inside work hours.",

@@ -140,3 +140,4 @@ One line per loop iteration, newest last.
 - c1 p4 t2 i1 `verify_goal_completion`: Legal deadlines: confirmed they become a prepared draft and a top task inside seven days (alerts cover 14 days out); the flow test now checks that rule
 - c1 p4 t2 i2 `verify_goal_completion`: Deadline alerts: a filing deadline says 'due today', 'due tomorrow' or 'N days left' with the weekday, and follow-up reminders count only what's really there
 - c1 p4 t2 i3 `verify_goal_completion`: Deadline alerts: a deadline found late gets one alert at the tightest lead time instead of three alerts an hour apart
+- c1 p4 t2 i4 `verify_goal_completion`: Follow-ups: an approved message is recorded in the contact's history as one-way, so you can see what you sent and it only counts toward your base once they reply
