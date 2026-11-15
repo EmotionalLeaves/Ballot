@@ -1,10 +1,9 @@
-# Ballot 0.2.0
+# Ballot 0.2.1
 
-**Free AI.** The Chief now runs on free AI services with no card: Google Gemini (recommended), Groq, OpenRouter's free models, Cerebras and Mistral. Claude and OpenAI are still there if you want to pay.
+A fix release from the improvement loop.
 
-- **Easy keys:** pick a service, tap Open the key page, copy the key, tap Paste key, then Connect. Ballot works out which service a key is for, finds a model that works today and tests it.
-- **Backups:** connect two free services and Ballot switches when one is busy or out for the day. "Free only" makes sure nothing ever costs money.
-- **Research on free services:** a keyless web search finds official pages; the Chief still reads the page before stating any rule or deadline.
-- Fixes from the improvement loop: real per-week scores in the weekly review, the daily brief waits until after work, a falling-score check-in, safer vault file opening, screen-reader labels, win numbers that use your margin, offline requests that resume on the next start.
-
-Upgrading from 0.1.0: your case file is kept. Your Claude or OpenAI key, if you added one, still works.
+- **Gemini works through multi-step tasks.** Newer Gemini models refuse a follow-up step unless the app hands back a signature from the step before. Ballot now does, so research, filing offices and drafting no longer stop halfway on the free Gemini service.
+- **The Chief can do more by itself:** look people up in your contact book, read the whole plan, and mark a task done or a meeting attended when you tell it.
+- Approved items report back in the Chief's thread. Re-fetched pages only count as cross-checked when they say the same thing.
+- Door-knocking math no longer double-counts your safety margin; the call-time script uses your own reason.
+- Small fixes: duplicate go or no-go tasks, double-saved weekly reviews, the lock switch explains it needs a PIN, the spend panel explains free services.

@@ -17,3 +17,4 @@ Each design choice and its reason. Reversing one needs a stronger, logged reason
 - **2026-11-14 · Everything but Claude uses the OpenAI chat format.** Gemini, Groq, OpenRouter, Cerebras and Mistral all offer OpenAI-compatible endpoints, so one client covers them.
 - **2026-11-14 · Keyless search via DuckDuckGo.** Free services have no built-in web search. Results are passed as untrusted leads and are not stored as sources, so the grounding gate still requires a fetched page.
 - **2026-11-14 · No schema change for per-service usage.** Usage records store "service:model" in the existing model column, so no migration was needed.
+- **2026-11-15 · Patch releases for broken free paths.** Releases normally wait for the end of a cycle, but a defect that breaks the recommended free service (Gemini multi-step tool calls) ships as a patch release as soon as CI is green.
