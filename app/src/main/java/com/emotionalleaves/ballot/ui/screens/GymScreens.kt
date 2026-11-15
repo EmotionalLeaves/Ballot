@@ -131,7 +131,7 @@ fun GymScreen(nav: NavHostController) {
                 recorder.file?.takeIf { !recorder.recording && it.exists() }?.let { f ->
                     LinkButton("Play last recording", onClick = {
                         player?.release()
-                        player = MediaPlayer().apply { setDataSource(f.absolutePath); prepare(); start() }
+                        player = runCatching { MediaPlayer().apply { setDataSource(f.absolutePath); prepare(); start() } }.getOrNull()
                     })
                 }
             }

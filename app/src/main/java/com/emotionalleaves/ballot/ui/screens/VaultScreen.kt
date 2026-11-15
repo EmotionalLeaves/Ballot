@@ -75,17 +75,22 @@ object VaultFiles {
         return name to f.absolutePath
     }
 
-    /** Decrypts to a private cache file and opens it with whatever app handles the type. */
-    fun open(ctx: Context, path: String, name: String) {
+    /** Decrypts to a private cache file (cleared each time). Call off the main thread. */
+    fun prepare(ctx: Context, path: String, name: String): File? {
         val src = File(path)
-        if (!src.exists()) return
+        if (!src.exists()) return null
         val shareDir = File(ctx.cacheDir, "vault_open").apply { mkdirs(); listFiles()?.forEach { it.delete() } }
         val out = File(shareDir, name.replace(Regex("[^A-Za-z0-9._-]"), "_"))
         EncryptedFile.Builder(ctx, src, key(ctx), EncryptedFile.FileEncryptionScheme.AES256_GCM_HKDF_4KB).build()
             .openFileInput().use { input -> out.outputStream().use { input.copyTo(it) } }
-        val uri = FileProvider.getUriForFile(ctx, "${ctx.packageName}.files", out)
-        val type = ctx.contentResolver.getType(uri) ?: "*/*"
+        return out
+    }
+
+    /** Opens a prepared file with whatever app handles its type. */
+    fun view(ctx: Context, out: File) {
         runCatching {
+            val uri = FileProvider.getUriForFile(ctx, "${ctx.packageName}.files", out)
+            val type = ctx.contentResolver.getType(uri) ?: "*/*"
             ctx.startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(uri, type).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK))
         }
     }
@@ -297,7 +302,10 @@ private fun PaperTab(nav: NavHostController) {
         }
         if (vault.isEmpty()) EmptyNote("Forms, receipts and filings live here, encrypted.")
         vault.forEach { d ->
-            Panel(onClick = { if (d.filePath.isNotBlank()) VaultFiles.open(ctx, d.filePath, d.title) else nav.navigate(Routes.document(d.id)) }, padding = 12.dp) {
+            Panel(onClick = {
+                if (d.filePath.isBlank()) nav.navigate(Routes.document(d.id))
+                else scope.launch { withContext(Dispatchers.IO) { runCatching { VaultFiles.prepare(ctx, d.filePath, d.title) }.getOrNull() }?.let { VaultFiles.view(ctx, it) } }
+            }, padding = 12.dp) {
                 Kicker("${d.type} · ${shortDate(d.createdAt)}")
                 Text(d.title, style = MaterialTheme.typography.titleMedium, color = c.fg)
             }

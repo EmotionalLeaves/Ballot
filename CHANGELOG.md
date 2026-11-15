@@ -16,3 +16,4 @@ One line per loop iteration, newest last.
 - c1 p1 t1 i6 `system_check_and_update`: Screen readers now hear tappable panels as buttons and chips as selected or not; chips grow to 48dp tap targets
 - c1 p1 t1 i7 `system_check_and_update`: Chief replies that span several tool steps are joined with a paragraph break instead of running words together
 - c1 p1 t1 i8 `system_check_and_update`: Requests queued offline in an earlier session now run when the app next starts with a connection
+- c1 p1 t1 i9 `system_check_and_update`: Opening a vault file decrypts off the main thread and can no longer crash the app; a bad recording no longer crashes playback
