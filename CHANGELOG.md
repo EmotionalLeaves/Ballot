@@ -134,3 +134,4 @@ One line per loop iteration, newest last.
 - c1 p4 t1 i15 `test_core_functionality`: Flow test: locking a clear story and finishing a task opens stage 2 with its own plan, and says so
 - c1 p4 t1 i16 `test_core_functionality`: Flow test: finishing tasks alone never skips a stage before its exit test is met
 - c1 p4 t1 i17 `test_core_functionality`: Flow test: a legal deadline from an official page goes straight to the top of Today
+- c1 p4 t1 i18 `test_core_functionality`: Flow test: drafts always wait for approval, and one with an unsourced claim says so on its card ('some claims need a source', not BLOCKED)
