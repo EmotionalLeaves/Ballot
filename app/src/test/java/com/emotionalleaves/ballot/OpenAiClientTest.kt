@@ -90,7 +90,8 @@ class TimeoutTest {
         val took = System.currentTimeMillis() - started
         assertTrue("should give up in well under 20 s, took $took ms", took < 5_000)
         assertTrue(r.exceptionOrNull() is kotlinx.coroutines.TimeoutCancellationException)
-        server.shutdown()
+        // The server is still sitting on the delayed reply; it may complain while shutting down.
+        runCatching { server.shutdown() }
     }
 }
 
