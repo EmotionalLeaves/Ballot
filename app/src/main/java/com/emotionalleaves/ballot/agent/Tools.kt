@@ -55,6 +55,8 @@ data class ToolCtx(
     val approved: Boolean = false,
     /** Lets change_setting save; null where settings can't change. */
     val store: com.emotionalleaves.ballot.data.SettingsStore? = null,
+    /** Lets run_job start background work; null where it can't. */
+    val app: android.content.Context? = null,
 )
 
 data class ToolOutcome(
@@ -643,6 +645,22 @@ class ToolRegistry {
             }
             c.case.audit("chief", "Changed a setting", input = "${a.str("setting")} = $v")
             ToolOutcome("Done: ${a.str("setting")} is now $v.")
+        })
+
+        // Background jobs by asking: "build my brief now", "check the rule pages", "take a snapshot".
+        reg(ToolDef("run_job", "Start a background job now when the user asks: brief (build today's Briefing), recheck_rules (re-read every rule page for changes), snapshot (save a copy of the case file).",
+            S.obj(listOf("job"), mapOf("job" to S.e("Job", listOf("brief", "recheck_rules", "snapshot")))),
+            RoutineKind.TRACKER, required = listOf("job")) { a, c ->
+            val app = c.app ?: return@ToolDef ToolOutcome("Jobs can't start from here.", isError = true)
+            when (a.str("job")) {
+                "brief" -> { com.emotionalleaves.ballot.work.Workers.briefNow(app); ToolOutcome("Building today's Briefing now; you'll get a notification when it's ready.") }
+                "recheck_rules" -> { com.emotionalleaves.ballot.work.Workers.recheckNow(app); ToolOutcome("Re-checking every rule page now. A changed page becomes a task.") }
+                "snapshot" -> {
+                    val f = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { com.emotionalleaves.ballot.data.Snapshots.take(app) }
+                    ToolOutcome(if (f != null) "Snapshot saved (${f.name}). Restore it from Settings, Backup." else "Nothing to snapshot yet.")
+                }
+                else -> ToolOutcome("Use brief, recheck_rules or snapshot.", isError = true)
+            }
         })
 
         // Everything in the app is reachable by asking: "take me to my drafts" gives a card that opens the page.

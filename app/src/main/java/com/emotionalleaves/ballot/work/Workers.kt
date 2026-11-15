@@ -88,6 +88,12 @@ object Workers {
                 .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()).build())
     }
 
+    fun recheckNow(context: Context) {
+        WorkManager.getInstance(context).enqueueUniqueWork("rule_recheck_now", ExistingWorkPolicy.KEEP,
+            OneTimeWorkRequestBuilder<RuleRecheckWorker>().setInputData(androidx.work.workDataOf("force" to true))
+                .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()).build())
+    }
+
     fun briefNow(context: Context) {
         WorkManager.getInstance(context).enqueueUniqueWork("brief_now", ExistingWorkPolicy.REPLACE,
             OneTimeWorkRequestBuilder<BriefWorker>().setInputData(androidx.work.workDataOf("force" to true))
@@ -213,7 +219,7 @@ class RuleRecheckWorker(ctx: Context, params: WorkerParameters) : CoroutineWorke
         for (rule in case.db.rules().all()) {
             if (rule.officialUrl.isBlank()) continue
             val due = deadlines.filter { it.ruleId == rule.id }.minOfOrNull { it.dueEpochDay } ?: (today + 365)
-            if (!DeadlineLogic.recheckDue(rule.lastChecked, now(), due, today, s.freshnessDaysRules)) continue
+            if (!inputData.getBoolean("force", false) && !DeadlineLogic.recheckDue(rule.lastChecked, now(), due, today, s.freshnessDaysRules)) continue
             val page = runCatching { PageFetcher.fetch(rule.officialUrl) }.getOrNull() ?: continue
             // An error page (404, 500, a maintenance notice) is not a rule change: try again next time.
             if (page.status !in 200..299 || page.text.isBlank()) continue

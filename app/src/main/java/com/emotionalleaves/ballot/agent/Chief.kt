@@ -271,7 +271,7 @@ $brief
         val messages = (history + LlmMessage("user", listOf(Block.Text(userText + if (fromVoice) "\n\n(This came from voice input. Changes to money, deadlines or contacts will be shown to the user for confirmation.)" else ""))))
             .let { mergeSameRole(it) }.toMutableList()
         val system = systemPrompt(case.brief(), LocalDateTime.now().format(DateTimeFormatter.ofPattern("EEEE d MMMM yyyy, HH:mm")))
-        val ctx = ToolCtx(case, s, fromVoice = fromVoice, store = settingsStore)
+        val ctx = ToolCtx(case, s, fromVoice = fromVoice, store = settingsStore, app = context)
         val cards = mutableListOf<Card>()
         val sourceIds = mutableListOf<Long>()
         val toolsUsed = mutableListOf<String>()
