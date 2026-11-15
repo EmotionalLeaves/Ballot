@@ -240,3 +240,4 @@ One line per loop iteration, newest last.
 - c1 p6 t1 i37 `overhaul_system_architecture`: Search your case file from More, in plain code: people, tasks, drafts, events, deadlines, offices and lessons, matching every word you type, each one tap away
 - c1 p6 t1 i38 `overhaul_system_architecture`: The Chief gets the same plain-code case-file search as More (search_case_file), so it looks things up before saying it doesn't know
 - c1 p6 t1 i39 `overhaul_system_architecture`: Each release now ships a SHA-256 checksum file beside the APK and states the signing fingerprint in its notes, so a download can be checked against what was built
+- c1 p6 t1 i40 `overhaul_system_architecture`: Briefing starts with 'Your week ahead', built in plain code from your own records (meetings, deadlines, promises due, changed rule pages), so it's useful with or without AI

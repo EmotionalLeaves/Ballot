@@ -442,5 +442,14 @@ class FlowTests {
         assertEquals(listOf("Priya Shah"), case.search("board priya").map { it.title })
         assertTrue(case.search("x").isEmpty())
     }
+
+    @Test fun theWeekAheadComesFromYourOwnRecords() = runTest {
+        val at = com.emotionalleaves.ballot.data.now()
+        db.events().upsert(com.emotionalleaves.ballot.data.Event(title = "Council", startAt = at + 2 * 86_400_000L))
+        case.addDeadlineByHand("Report due", at / 86_400_000L + 1, legal = false)
+        val w = case.weekAhead(at)
+        assertTrue(w.toString(), w.any { it.startsWith("Meeting") && it.endsWith("Council") })
+        assertTrue(w.toString(), w.any { it == "Deadline · tomorrow: Report due" })
+    }
 }
 

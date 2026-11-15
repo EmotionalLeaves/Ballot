@@ -462,5 +462,31 @@ class CaseFile(val db: BallotDatabase, private val settings: SettingsStore) {
         db.lessons().all().filter { hit(it.what, it.change) }.forEach { out += Hit("Lesson", it.what.take(80), it.change, "casefile") }
         return out.take(max)
     }
+
+    /**
+     * The week ahead from your own records, no AI: meetings in the next 7 days, deadlines in the next 14,
+     * promises coming due and rule pages that changed. Each line says when.
+     */
+    suspend fun weekAhead(at: Long = now()): List<String> {
+        val day = 86_400_000L
+        val today = at / day
+        val zone = ZoneId.systemDefault()
+        val out = mutableListOf<String>()
+        db.events().all().filter { it.startAt in at..(at + 7 * day) }.sortedBy { it.startAt }.forEach { e ->
+            val t = java.time.Instant.ofEpochMilli(e.startAt).atZone(zone)
+            out += "Meeting · ${t.dayOfWeek.getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.getDefault())} " +
+                "${t.toLocalTime().format(java.time.format.DateTimeFormatter.ofLocalizedTime(java.time.format.FormatStyle.SHORT))}: ${e.title}"
+        }
+        db.deadlines().all().filter { !it.done && it.dueEpochDay in today..(today + 14) }.sortedBy { it.dueEpochDay }.forEach { d ->
+            val left = d.dueEpochDay - today
+            out += "Deadline · ${if (left == 0L) "today" else if (left == 1L) "tomorrow" else "in $left days"}: ${d.title}"
+        }
+        db.interactions().all().filter { it.promisesByYou.isNotBlank() && it.promiseDueEpochDay in today..(today + 7) }.forEach { i ->
+            val who = db.contacts().get(i.contactId)?.name ?: "someone"
+            out += "Promise to $who: ${i.promisesByYou.take(60)}"
+        }
+        db.rules().all().filter { it.status == "CHANGED" }.forEach { out += "Rule page changed: ${it.summary.take(60)}" }
+        return out
+    }
 }
 

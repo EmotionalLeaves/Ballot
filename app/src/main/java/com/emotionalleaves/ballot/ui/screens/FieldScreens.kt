@@ -61,6 +61,16 @@ fun BriefingScreen(nav: NavHostController) {
         "A two-minute digest of local news, upcoming agendas and decisions that touch your issues.",
         "It is built in the background after work, so it is waiting when you open the app.",
         "Each item ends with one optional action.")) {
+        // The week ahead comes from your own records in plain code, with or without AI.
+        item {
+            var ahead by remember { androidx.compose.runtime.mutableStateOf(emptyList<String>()) }
+            LaunchedEffect(Unit) { ahead = g.case.weekAhead() }
+            Panel {
+                Title("Your week ahead")
+                if (ahead.isEmpty()) Small("Nothing on the calendar, no deadlines in the next two weeks, and no promises due.")
+                ahead.forEach { Small(it, color = LocalBallotColors.current.fg) }
+            }
+        }
         item { ReplyPanel { nav.navigate(Routes.CHIEF) } }
         // The briefing is read from the web, so it's the one page that needs AI. Without it, say so plainly instead of offering buttons that do nothing.
         if (!hasAi) item {
