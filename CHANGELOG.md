@@ -69,3 +69,4 @@ One line per loop iteration, newest last.
 - c1 p1 t1 i45 `system_check_and_update`: PINs, the backup passphrase and typed AI keys are masked and kept out of the keyboard's learned words
 - c1 p1 t1 i46 `system_check_and_update`: Importing a backup snapshots the current case file first, so an import can be undone
 - c1 p1 t1 i47 `system_check_and_update`: Setup's first screen can restore a backup file, so a reinstall or new phone skips the eight setup steps
+- c1 p1 t1 i48 `system_check_and_update`: verify_claim checks for source_ids up front like its schema says, and a test keeps every tool's checks matched to its schema

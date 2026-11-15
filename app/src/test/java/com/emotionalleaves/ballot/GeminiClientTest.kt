@@ -126,4 +126,12 @@ class GeminiSchemaTest {
             assertTrue("${t.name} name must suit Gemini", Regex("^[a-zA-Z_][a-zA-Z0-9_]{0,63}$").matches(t.name))
         }
     }
+
+    /** The registry checks ToolDef.required before running a handler; it must match what the model is told is required. */
+    @Test fun registryChecksTheSameRequiredFieldsTheModelSees() {
+        com.emotionalleaves.ballot.agent.ToolRegistry().all().forEach { d ->
+            val req = (d.schema["required"] as? kotlinx.serialization.json.JsonArray)?.map { (it as kotlinx.serialization.json.JsonPrimitive).content }?.toSet() ?: emptySet()
+            org.junit.Assert.assertEquals("${d.name} required", req, d.required.toSet())
+        }
+    }
 }

@@ -179,7 +179,7 @@ class ToolRegistry {
         reg(ToolDef("verify_claim",
             "Cross-check a claim containing numbers or dates against stored source records. Two matching sources (or two fetches of an official page) make it VERIFIED.",
             S.obj(listOf("claim", "source_ids"), mapOf("claim" to S.s("The exact claim"), "source_ids" to S.intArr("Source record ids to check against"))),
-            RoutineKind.RESEARCH, required = listOf("claim")) { a, c ->
+            RoutineKind.RESEARCH, required = listOf("claim", "source_ids")) { a, c ->
             val claim = a.str("claim")!!
             val ids = a.arr("source_ids")?.longs() ?: emptyList()
             val sources = c.case.db.sources().getMany(ids)
