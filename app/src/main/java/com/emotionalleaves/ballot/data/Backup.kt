@@ -110,6 +110,12 @@ object Backup {
         return SecretKeySpec(k, "AES")
     }
 
+    /** Opens a backup without importing it and says what's inside, e.g. "42 tasks, 12 people". Throws if it can't be opened. */
+    fun verify(data: ByteArray, passphrase: CharArray): String {
+        val b = decode(decrypt(data, passphrase))
+        return listOf("${b.tasks.size} tasks", "${b.contacts.size} people", "${b.events.size} events", "${b.documents.size} drafts").joinToString(", ")
+    }
+
     fun encode(b: BackupBundle): ByteArray = BallotJson.encodeToString(b).toByteArray()
     fun decode(bytes: ByteArray): BackupBundle = BallotJson.decodeFromString(BackupBundle.serializer(), String(bytes))
 

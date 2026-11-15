@@ -93,10 +93,14 @@ fun SettingsScreen(nav: NavHostController) {
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
         if (uri != null) scope.launch {
             backupStatus = runCatching {
-                val bytes = Backup.export(g.db, passphrase.toCharArray(), g.settings).also { g.settings.update { s -> s.copy(lastBackupAt = com.emotionalleaves.ballot.data.now()) } }
-                withContext(Dispatchers.IO) { ctx.contentResolver.openOutputStream(uri)?.use { it.write(bytes) } }
-                g.case.audit("you", "Exported a backup")
-                "Backup saved. Keep the passphrase safe: without it the file cannot be opened."
+                val bytes = Backup.export(g.db, passphrase.toCharArray(), g.settings)
+                withContext(Dispatchers.IO) { ctx.contentResolver.openOutputStream(uri, "wt")?.use { it.write(bytes) } ?: error("Couldn't write the file there.") }
+                // Read the saved file back and open it with the passphrase, so "saved" means it will really restore.
+                val check = withContext(Dispatchers.IO) { ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() } } ?: error("Couldn't read the file back.")
+                val counts = Backup.verify(check, passphrase.toCharArray())
+                g.settings.update { s -> s.copy(lastBackupAt = com.emotionalleaves.ballot.data.now()) }
+                g.case.audit("you", "Exported a backup", outcome = "checked: $counts")
+                "Backup saved and checked ($counts). Keep the passphrase safe: without it the file cannot be opened."
             }.getOrElse { it.message ?: "Export failed." }
         }
     }

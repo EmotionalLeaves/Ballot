@@ -414,5 +414,14 @@ class FlowTests {
         assertEquals(0L, db.money().all().single().contactId)
         assertEquals("Ana", db.money().all().single().person)
     }
+
+    @Test fun aBackupCanBeCheckedWithoutImportingIt() = runTest {
+        finishSetup()
+        case.logInteraction("Ana", "Coffee")
+        val file = com.emotionalleaves.ballot.data.Backup.export(db, "passphrase1".toCharArray())
+        val summary = com.emotionalleaves.ballot.data.Backup.verify(file, "passphrase1".toCharArray())
+        assertTrue(summary, summary.contains("1 people"))
+        assertTrue(runCatching { com.emotionalleaves.ballot.data.Backup.verify(file, "wrong pass".toCharArray()) }.isFailure)
+    }
 }
 
