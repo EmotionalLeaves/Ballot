@@ -110,7 +110,13 @@ fun parentTab(route: String?): String = when (route) {
 
 /** Opens whatever a Chief card points at. */
 fun NavHostController.openCard(card: Card) {
-    val route = when (card.target) {
+    val route = routeFor(card) ?: return
+    navigate(route) { launchSingleTop = true }
+}
+
+/** The page a card's target names, or null when the app has no such page. */
+fun routeFor(card: Card): String? {
+    return when (card.target) {
         "contact" -> if (card.refId > 0) Routes.contact(card.refId) else Routes.PEOPLE
         "document" -> if (card.refId > 0) Routes.document(card.refId) else Routes.STUDIO
         "approvals" -> Routes.APPROVALS
@@ -131,8 +137,7 @@ fun NavHostController.openCard(card: Card) {
         "quiz" -> Routes.QUIZ
         "gonogo" -> Routes.GONOGO
         else -> null
-    } ?: return
-    navigate(route) { launchSingleTop = true }
+    }
 }
 
 /** Opens a module by the short name tasks use. */
