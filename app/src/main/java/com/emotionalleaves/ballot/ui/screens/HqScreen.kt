@@ -128,7 +128,10 @@ fun HqScreen(nav: NavHostController) {
                 }
             }
             "Call time" -> item { CallTime(contacts.filter { it.role != ContactRole.PRESS }.sortedByDescending { it.closeness }) }
-            "Doors" -> item { Doors(doors, cards.maxByOrNull { it.score }?.let { CampaignMath.winNumber(it.pastTurnout, it.seats, settings.safetyMarginPct) } ?: 0) }
+            "Doors" -> item {
+                val weeksLeft = if (p.electionDateEpochDay > 0) ((p.electionDateEpochDay - LocalDate.now().toEpochDay()) / 7).toInt().coerceAtLeast(1) else 0
+                Doors(doors, cards.maxByOrNull { it.score }?.let { CampaignMath.winNumber(it.pastTurnout, it.seats, settings.safetyMarginPct) } ?: 0, weeksLeft, settings.contactsPerHour)
+            }
             "Volunteers" -> {
                 val vols = contacts.filter { it.role == ContactRole.VOLUNTEER }
                 if (vols.isEmpty()) item { EmptyNote("No volunteers yet. Mark people as Volunteer on their contact page.") }
@@ -214,7 +217,7 @@ private fun CallTime(list: List<com.emotionalleaves.ballot.data.Contact>) {
 }
 
 @Composable
-private fun Doors(doors: List<VoterContact>, winNumber: Int) {
+private fun Doors(doors: List<VoterContact>, winNumber: Int, weeksLeft: Int, contactsPerHour: Int) {
     val g = LocalContext.current.graph
     val scope = rememberCoroutineScope()
     var route by remember { mutableStateOf("") }
@@ -250,8 +253,11 @@ private fun Doors(doors: List<VoterContact>, winNumber: Int) {
         }
         val measured = if (talked >= 20) supporters * 100 / talked else 0
         if (measured > 0 && winNumber > 0) {
-            val r = CampaignMath.run(MathInput(expectedTurnout = (winNumber * 2), supportRatePct = measured, weeksRemaining = 8, yourHoursPerWeek = 6, supportersIdentified = supporters))
-            Small("At your measured ${measured}% support rate you need about ${r.conversationsNeeded} more conversations.", color = c.fg)
+            // The win number already includes the safety margin, so work from it directly.
+            val convs = CampaignMath.conversationsNeeded((winNumber - supporters).coerceAtLeast(0), measured)
+            val hours = CampaignMath.hoursNeeded(convs, contactsPerHour)
+            Small("At your measured ${measured}% support rate you need about $convs more conversations, roughly $hours hours at the doors" +
+                if (weeksLeft > 0) ": ${(convs + weeksLeft - 1) / weeksLeft} conversations a week for $weeksLeft weeks." else ". Set election day above for weekly targets.", color = c.fg)
         }
     }
 }
