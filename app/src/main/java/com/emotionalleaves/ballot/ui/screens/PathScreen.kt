@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -75,6 +76,7 @@ fun PathScreen(nav: NavHostController) {
     val lessons by g.db.lessons().observe().collectAsStateWithLifecycle(initialValue = emptyList())
     var stats by remember { mutableStateOf(CaseStats()) }
     var showRecord by remember { mutableStateOf(false) }
+    var debriefOpen by remember { mutableStateOf(false) }
     var showLanes by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     LaunchedEffect(profile) { stats = g.case.stats() }
@@ -123,10 +125,7 @@ fun PathScreen(nav: NavHostController) {
                                 })
                             }
                             Stage.RUN -> PosterButton("Campaign HQ", onClick = { nav.navigate(Routes.HQ) })
-                            Stage.AFTER -> PosterButton("Write the debrief", onClick = {
-                                askChief(g, "Walk me through the stage 8 debrief: what worked, what did not, who to thank, and the next target. Record it with record_decision kind DEBRIEF when we finish.", "debrief")
-                                nav.navigate(Routes.CHIEF)
-                            })
+                            Stage.AFTER -> PosterButton("Write the debrief", onClick = { debriefOpen = true })
                             else -> {}
                         }
                     }
@@ -184,6 +183,36 @@ fun PathScreen(nav: NavHostController) {
             val l = lessons[i]
             Panel { Kicker("${pretty(l.kind)} · ${shortDate(l.at)}"); Body(l.what); if (l.change.isNotBlank()) Small("Change: ${l.change}") }
         }
+    }
+    // The stage 8 debrief is four plain questions; talking it through with the Chief is optional.
+    if (debriefOpen) {
+        val answers = remember { androidx.compose.runtime.mutableStateListOf("", "", "", "") }
+        val qs = listOf("What worked?", "What didn't?", "Who do you need to thank?", "What's your next target?")
+        androidx.compose.material3.AlertDialog(onDismissRequest = { debriefOpen = false },
+            title = { Text("Debrief", style = MaterialTheme.typography.titleLarge) },
+            text = {
+                Column(Modifier.verticalScroll(androidx.compose.foundation.rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    qs.forEachIndexed { i, q -> com.emotionalleaves.ballot.ui.components.Field(answers[i], { answers[i] = it }, q, minLines = 2) }
+                    LinkButton("Talk it through with the Chief instead", color = c.muted, onClick = {
+                        debriefOpen = false
+                        askChief(g, "Walk me through the stage 8 debrief: what worked, what did not, who to thank, and the next target. Record it with record_decision kind DEBRIEF when we finish.", "debrief")
+                        nav.navigate(Routes.CHIEF)
+                    })
+                }
+            },
+            confirmButton = {
+                androidx.compose.material3.TextButton(enabled = answers.any { it.isNotBlank() }, onClick = {
+                    val memo = qs.indices.filter { answers[it].isNotBlank() }.joinToString("\n") { "${qs[it]} ${answers[it].trim()}" }
+                    scope.launch {
+                        g.db.decisions().upsert(Decision(kind = "DEBRIEF", question = "Election debrief", choice = answers[3].trim(), reasoning = memo, agreed = true))
+                        g.db.lessons().upsert(Lesson(kind = "QUARTER", what = answers[0].trim().ifBlank { "Debrief" }, change = answers[1].trim()))
+                        g.case.audit("you", "Wrote the debrief")
+                        g.case.advanceIfReady()
+                    }
+                    debriefOpen = false
+                }) { Text("Save") }
+            },
+            dismissButton = { androidx.compose.material3.TextButton(onClick = { debriefOpen = false }) { Text("Cancel") } })
     }
 }
 

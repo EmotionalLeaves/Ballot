@@ -167,3 +167,4 @@ One line per loop iteration, newest last.
 - c1 p4 t2 i17 `verify_goal_completion`: Race cards can be filled in by hand (signatures, fee, deadline, past turnout and spend, open seat), so race scores and the win number work with no AI
 - c1 p4 t2 i18 `verify_goal_completion`: A filing deadline typed into a race card goes on the deadline wall as a legal deadline, so it gets alerts and a prepared draft like any other
 - c1 p4 t2 i19 `verify_goal_completion`: Fast lanes: open, retiring-incumbent and often-uncontested seats are read from your own race cards in plain code; the Chief's source check is optional
+- c1 p4 t2 i20 `verify_goal_completion`: Stage 8 debrief is four plain questions saved as the debrief decision and a lesson, which meets the stage 8 exit with no AI
