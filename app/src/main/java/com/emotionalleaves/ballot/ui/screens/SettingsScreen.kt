@@ -66,6 +66,7 @@ fun SettingsScreen(nav: NavHostController) {
     val spend by g.db.usage().observeSpendSince(monthStart).collectAsStateWithLifecycle(initialValue = 0L)
     var model by remember(s.provider, s.providerModels) { mutableStateOf(Providers.parseModels(s.providerModels)[s.provider] ?: "") }
     var showAdd by remember { mutableStateOf(false) }
+    var lockHint by remember { mutableStateOf("") }
     var showAdvanced by remember { mutableStateOf(false) }
     var baseUrl by remember(s.openAiBaseUrl) { mutableStateOf(s.openAiBaseUrl) }
     var cap by remember(s.monthlyCapCents) { mutableStateOf((s.monthlyCapCents / 100).toString()) }
@@ -231,11 +232,15 @@ fun SettingsScreen(nav: NavHostController) {
                 Title("Lock")
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("App lock (PIN or biometric)", style = MaterialTheme.typography.bodyLarge, color = c.fg, modifier = Modifier.weight(1f))
-                    Switch(checked = s.appLock && g.secrets.hasPin(), onCheckedChange = { v -> if (!v) upd { it.copy(appLock = false) } else if (g.secrets.hasPin()) upd { it.copy(appLock = true) } })
+                    Switch(checked = s.appLock && g.secrets.hasPin(), onCheckedChange = { v ->
+                        if (!v) upd { it.copy(appLock = false) } else if (g.secrets.hasPin()) upd { it.copy(appLock = true) } else lockHint = "Set a PIN below first. Fingerprint or face unlock works once a PIN exists."
+                    })
                 }
+                if (lockHint.isNotBlank()) Small(lockHint, color = c.signal)
                 Field(pin, { pin = it.filter(Char::isDigit).take(12) }, "Set a PIN (4 to 12 digits)", singleLine = true, number = true)
                 LinkButton("Save PIN and turn lock on", onClick = {
-                    if (pin.length >= 4) { g.secrets.setPin(pin); pin = ""; com.emotionalleaves.ballot.AppLock.locked = false; upd { it.copy(appLock = true) } }
+                    if (pin.length >= 4) { g.secrets.setPin(pin); pin = ""; lockHint = "Lock is on."; com.emotionalleaves.ballot.AppLock.locked = false; upd { it.copy(appLock = true) } }
+                    else lockHint = "A PIN needs at least 4 digits."
                 })
                 var auto by remember(s.autoLockMinutes) { mutableStateOf(s.autoLockMinutes.toString()) }
                 Row(verticalAlignment = Alignment.CenterVertically) {

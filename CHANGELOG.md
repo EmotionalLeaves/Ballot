@@ -30,3 +30,4 @@ One line per loop iteration, newest last.
 - c1 p1 t1 i12 `system_check_and_update`: Two-way contact count on People refreshes after every logged conversation, not only when someone is added
 - c1 p1 t1 i13 `system_check_and_update`: Rewriting the go or no-go memo no longer piles up duplicate get-to-yes tasks
 - c1 p1 t1 i14 `system_check_and_update`: Weekly review saves once, so a double tap no longer writes duplicate lessons
+- c1 p1 t1 i15 `system_check_and_update`: App lock switch explains that a PIN is needed instead of silently doing nothing; short PINs say why they were refused
