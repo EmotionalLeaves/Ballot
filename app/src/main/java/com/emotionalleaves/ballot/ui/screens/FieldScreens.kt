@@ -193,7 +193,7 @@ private fun EventPanel(
         Text(e.title, style = MaterialTheme.typography.titleLarge, color = c.fg)
         if (e.place.isNotBlank()) Small(e.place, color = c.fg)
         if (e.goal.isNotBlank()) Small("Goal: ${e.goal}", color = c.signal)
-        if (e.preCard.isNotBlank()) Body(e.preCard)
+        if (e.preCard.isNotBlank()) Text(chiefText(e.preCard), style = MaterialTheme.typography.bodyLarge, color = LocalBallotColors.current.fg)
         if (e.debrief.isNotBlank()) Small("Debrief: ${e.debrief.take(300)}")
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(e.attended, onCheckedChange = { v -> scope.launch { g.db.events().upsert(e.copy(attended = v, updatedAt = now())); g.case.advanceIfReady() } })
