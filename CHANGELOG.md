@@ -160,3 +160,4 @@ One line per loop iteration, newest last.
 - AI-reliance: offices and rules can be added by hand (from a city page, a sample ballot or a call to the clerk), saved as 'you said'; the quiz, race scoring and limit warnings work from them with no AI. The Chief's research is the second button.
 - AI-reliance: follow-ups and intro asks on a contact start from a short template waiting in Approvals; empty cabinet seats list people you know well; the Chief is the optional second choice.
 - AI-reliance: Campaign HQ thank-yous (donors and volunteers) are plain templates waiting in Approvals, and a gift adds a task to collect donor details for your report.
+- AI-reliance pass done (owner request): patch release 0.3.5 so the owner gets it now. Loop resumes at c1 p4 t2 i14.

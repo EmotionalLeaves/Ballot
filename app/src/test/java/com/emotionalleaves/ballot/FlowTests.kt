@@ -256,5 +256,17 @@ class FlowTests {
         assertFalse(i.twoWay)
         assertEquals(0, case.stats().twoWayContacts)
     }
+
+    /** With no AI at all: offices typed in by hand are enough for the stage 2 quiz. */
+    @Test fun withNoAiHandEnteredOfficesBuildTheTownQuiz() = runTest {
+        listOf(
+            com.emotionalleaves.ballot.data.Office(body = "City Council", district = "Ward 2", level = "LOCAL", incumbent = "Rosa Lee", term = "4 years", nextElection = "Nov 2027", powers = "Budget and zoning"),
+            com.emotionalleaves.ballot.data.Office(body = "School Board", level = "SCHOOL", incumbent = "Tom Hale", term = "4 years", nextElection = "May 2027", powers = "Schools"),
+            com.emotionalleaves.ballot.data.Office(body = "County Board", level = "COUNTY", incumbent = "Ann Cho", term = "2 years", nextElection = "Nov 2026", powers = "Roads"),
+        ).forEach { db.offices().upsert(it) }
+        val offices = db.offices().all().map { o -> com.emotionalleaves.ballot.core.QuizOffice(o.id, o.body, o.title, o.district, o.level, o.powers, o.term, o.nextElection, o.incumbent, o.partTime, o.appointed) }
+        val quiz = com.emotionalleaves.ballot.core.QuizBuilder.build(offices, emptyList(), seed = 3)
+        assertTrue("got ${quiz.size}", quiz.size >= 8)
+    }
 }
 

@@ -1,20 +1,21 @@
-# Ballot 0.3.4
+# Ballot 0.3.5
 
-Installs straight over 0.3.3 and keeps everything.
+Installs straight over 0.3.4 and keeps everything.
 
-**Fixes**
-- When Gemini garbles a step and sends back nothing, the Chief asks again instead of showing an empty answer.
-- Free services that send tool calls in a loose format (empty ids, "stop" while calling tools) now work with the Chief.
-- Tool ids written as S12, [T4] or #7 are read correctly.
-- A slow website gives up after 30 seconds, so one page can't stall an answer.
-- Rule re-checks ignore error pages, so an outage no longer raises a false "rule page changed" alert.
-- A .gov link that redirects to another site is no longer marked official.
-- A queued request that fails three times tells you in the chat instead of vanishing.
+**Ballot now works without AI.** You asked for less reliance on AI, so everything at the core runs on your phone in plain code. AI is optional: it adds web research and first drafts, and every AI button now has a by-hand way beside it.
 
-**Moving and restoring**
-- Setup's first screen has "I have a Ballot backup file", so a reinstall or new phone skips the eight setup steps.
-- Importing a backup snapshots what was there first, so an import can be undone.
+- **Town quiz** (the stage 2 test) is built from the offices and rules in your case file. No AI, nothing invented, works offline.
+- **Values interview** is a five-question form in Who you are.
+- **Drafts** start from a template for each kind (public comment, stump speech, letter, palm card…) filled with your own words. The **one-page platform** is built the same way.
+- **Offices and rules** can be added by hand, from your city page, a sample ballot or a call to the clerk.
+- **Prep cards** for meetings are built from your goal, issues, stances and the people you know.
+- **Debriefs** save straight away, with a lesson. Having the Chief file the people and promises is optional.
+- **Follow-ups, intro asks and thank-yous** start from a short template waiting in Approvals.
+- **A quiet week** shows likely blockers read from your own numbers.
+- Setup now has "Continue without AI", and Today only mentions AI in a quiet line.
 
-**Privacy**
-- PINs, the backup passphrase and typed AI keys are masked and kept out of the keyboard's learned words.
-- With the app lock on, the recent-apps preview is blank (Android 13+), and lock-screen notifications show only their heading.
+**Also since 0.3.4**
+- Fewer buttons: one mic/send button in the Chief, one "How and why" on Today, settings that save as you type, Campaign HQ hidden until the run stage.
+- One name for each page everywhere, sentence case throughout, and Chief replies show bold and bullets properly.
+- The Chief can open any page, change everyday settings, and start jobs (brief, rule re-check, snapshot) when asked.
+- Fixes: a deadline found late gets one alert, not three; money logged as "in" now counts in totals; the weekly review ticks off its own task; a go memo waiting for you shows at the top of the plan; and more.

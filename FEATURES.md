@@ -2,6 +2,15 @@
 
 Checked each phase. Controls may move or merge; a function is only removed when phase 4 judged it useless, with the reason in DECISIONS.md.
 
+## Works without AI (owner rule, 2026-11-15)
+- [x] Plan, Today, scoring, stages and reminders run in plain code
+- [x] Town quiz built from your offices and rules (QuizBuilder)
+- [x] Values interview form; one-page platform and every draft type from templates (Templates)
+- [x] Offices and rules added by hand; events and contacts by hand
+- [x] Pre-event prep card (PrepCard), debrief saved by hand, quiet-week blockers (WeeklyScore.blockers)
+- [x] Follow-ups, intro asks and HQ thank-yous from templates, waiting in Approvals
+- [x] AI optional: web research and first drafts only, each beside a by-hand path
+
 ## Spine
 - [x] Setup walkthrough: 8 steps, one question per screen, skippable, resumable (setup step saved)
 - [x] AI key entry and test, cost explained plainly, Claude or OpenAI-compatible provider
