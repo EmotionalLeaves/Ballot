@@ -59,7 +59,8 @@ fun PeopleScreen(nav: NavHostController) {
     var howMet by remember { mutableStateOf("") }
     var twoWay by remember { mutableIntStateOf(0) }
     val c = LocalBallotColors.current
-    LaunchedEffect(contacts.size) { twoWay = g.case.stats().twoWayContacts }
+    // Keyed on the whole list: logging a conversation updates lastContactAt, which refreshes the count.
+    LaunchedEffect(contacts) { twoWay = g.case.stats().twoWayContacts }
     val followUps = pending.filter { it.kind == PendingKind.SEND }
     Screen("People", kicker = "Relationships, not names", walkthrough = listOf(
         "Your private contact book. It never leaves this phone.",
