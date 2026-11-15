@@ -163,3 +163,4 @@ One line per loop iteration, newest last.
 - AI-reliance pass done (owner request): patch release 0.3.5 so the owner gets it now. Loop resumes at c1 p4 t2 i14.
 - c1 p4 t2 i14 `verify_goal_completion`: Mock rooms work without AI: each room has its own question bank, and Score me gives a plain-code score on fillers and length
 - c1 p4 t2 i15 `verify_goal_completion`: Drafts fact-check without AI: 'Find facts to check' lists every number, date and record claim, and each can be sourced by pasting an official page that must say the same thing
+- c1 p4 t2 i16 `verify_goal_completion`: Fact check leaves your own story alone ('My two kids…') but still catches public claims, including ones about your opponent, so approval isn't blocked by facts no official page could hold

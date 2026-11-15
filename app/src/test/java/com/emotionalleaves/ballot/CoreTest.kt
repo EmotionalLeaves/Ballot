@@ -327,7 +327,7 @@ class PrepCardTest {
 class ClaimFinderTest {
     @Test fun findsCheckableSentencesAndSkipsGaps() {
         val found = com.emotionalleaves.ballot.core.ClaimFinder.find(
-            "Good evening. The park budget fell 40% since 2020. [One fact from your life, e.g. 3 kids]\nI'm asking you to vote no. Our ward has the most potholes in the city.")
-        assertEquals(listOf("The park budget fell 40% since 2020.", "Our ward has the most potholes in the city."), found)
+            "Good evening. The park budget fell 40% since 2020. [One fact from your life, e.g. 3 kids]\nI'm asking you to vote no. Our ward has the most potholes in the city. My two kids walk there every day. My opponent voted against it 3 times.")
+        assertEquals(listOf("The park budget fell 40% since 2020.", "Our ward has the most potholes in the city.", "My opponent voted against it 3 times."), found)
     }
 }
