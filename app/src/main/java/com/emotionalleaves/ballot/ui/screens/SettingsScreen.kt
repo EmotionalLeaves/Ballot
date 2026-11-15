@@ -233,14 +233,15 @@ fun SettingsScreen(nav: NavHostController) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("App lock (PIN or biometric)", style = MaterialTheme.typography.bodyLarge, color = c.fg, modifier = Modifier.weight(1f))
                     Switch(checked = s.appLock && g.secrets.hasPin(), onCheckedChange = { v ->
-                        if (!v) upd { it.copy(appLock = false) } else if (g.secrets.hasPin()) upd { it.copy(appLock = true) } else lockHint = "Set a PIN below first. Fingerprint or face unlock works once a PIN exists."
+                        lockHint = if (!v || g.secrets.hasPin()) "" else "Set a PIN below first. Fingerprint or face unlock works once a PIN exists."
+                        if (!v) upd { it.copy(appLock = false) } else if (g.secrets.hasPin()) upd { it.copy(appLock = true) }
                     })
                 }
                 if (lockHint.isNotBlank()) Small(lockHint, color = c.signal)
                 Field(pin, { pin = it.filter(Char::isDigit).take(12) }, "Set a PIN (4 to 12 digits)", singleLine = true, number = true)
                 LinkButton("Save PIN and turn lock on", onClick = {
-                    if (pin.length >= 4) { g.secrets.setPin(pin); pin = ""; lockHint = "Lock is on."; com.emotionalleaves.ballot.AppLock.locked = false; upd { it.copy(appLock = true) } }
-                    else lockHint = "A PIN needs at least 4 digits."
+                    lockHint = if (pin.length >= 4) "Lock is on." else "A PIN needs at least 4 digits."
+                    if (pin.length >= 4) { g.secrets.setPin(pin); pin = ""; com.emotionalleaves.ballot.AppLock.locked = false; upd { it.copy(appLock = true) } }
                 })
                 var auto by remember(s.autoLockMinutes) { mutableStateOf(s.autoLockMinutes.toString()) }
                 Row(verticalAlignment = Alignment.CenterVertically) {
