@@ -1,5 +1,6 @@
 package com.emotionalleaves.ballot
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -41,9 +42,20 @@ object AppLock {
     }
 }
 
+/** A page a notification asked to open; Root consumes it once the app is unlocked and set up. */
+object PendingOpen {
+    val target = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
+}
+
 class MainActivity : FragmentActivity() {
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        intent.getStringExtra(com.emotionalleaves.ballot.work.Notifications.OPEN)?.let { PendingOpen.target.value = it }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (savedInstanceState == null) intent?.getStringExtra(com.emotionalleaves.ballot.work.Notifications.OPEN)?.let { PendingOpen.target.value = it }
         enableEdgeToEdge()
         AppLock.install()
         setContent {

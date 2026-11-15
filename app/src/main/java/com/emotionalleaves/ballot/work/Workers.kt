@@ -41,6 +41,8 @@ object Notifications {
     const val FOLLOW_UPS = "followups"
     const val EVENTS = "events"
 
+    fun defaultTarget(channel: String) = when (channel) { DEADLINES -> "vault"; EVENTS -> "field"; FOLLOW_UPS -> "approvals"; BRIEF -> "briefing"; else -> "home" }
+
     fun createChannels(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val nm = context.getSystemService(NotificationManager::class.java)
@@ -50,9 +52,13 @@ object Notifications {
         nm.createNotificationChannel(NotificationChannel(EVENTS, "Meetings starting soon", NotificationManager.IMPORTANCE_DEFAULT).apply { description = "A meeting or event on your calendar starts in a few hours" })
     }
 
-    fun post(context: Context, channel: String, id: Int, title: String, text: String) {
+    /** Extra naming the page a notification opens (a card target such as "vault" or "field"). */
+    const val OPEN = "ballot.open"
+
+    /** [target] is the page tapping the notification opens; by default the channel decides. */
+    fun post(context: Context, channel: String, id: Int, title: String, text: String, target: String = defaultTarget(channel)) {
         if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
-        val open = PendingIntent.getActivity(context, id, Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+        val open = PendingIntent.getActivity(context, id, Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP).putExtra(OPEN, target),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val n = NotificationCompat.Builder(context, channel)
             .setSmallIcon(R.drawable.ic_stat_ballot)
@@ -178,7 +184,7 @@ class HourlyWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx
                 case.db.tasks().upsert(Task(stage = p.stage, title = "Weekly review", why = "Ten minutes: see the score, pick one thing to stop, start and keep, and next week's three priorities.",
                     doneLooksLike = "Review saved.", goodEnough = "Rough answers are fine.", templateKey = reviewKey, module = "review", sizeMinutes = 15,
                     dueEpochDay = today, movesExit = true))
-                Notifications.post(applicationContext, Notifications.BRIEF, 3003, "Weekly review", "Ten minutes to look back and pick next week's three priorities.")
+                Notifications.post(applicationContext, Notifications.BRIEF, 3003, target = "review", title = "Weekly review", text = "Ten minutes to look back and pick next week's three priorities.")
             }
             // Proactive trigger: the weekly score dropped two weeks in a row.
             val ws = Scheduling.weekStart(LocalDate.now()).atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
@@ -188,7 +194,7 @@ class HourlyWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx
                 case.db.tasks().upsert(Task(stage = p.stage, title = "Shrink the plan: your score dropped two weeks running",
                     why = "A falling score means something is in the way. Naming it is the fix.", doneLooksLike = "A smaller plan for this week agreed with the Chief.",
                     goodEnough = "One honest sentence about the blocker.", templateKey = dropKey, module = "path", sizeMinutes = 5))
-                Notifications.post(applicationContext, Notifications.BRIEF, 3002, "Two quieter weeks", "Tap to shrink this week's plan to what fits.")
+                Notifications.post(applicationContext, Notifications.BRIEF, 3002, target = "home", title = "Two quieter weeks", text = "Tap to shrink this week's plan to what fits.")
             }
             // Mentor requirement: by stage 4 there must be a mentor in the kitchen cabinet.
             if (p.stage >= 4 && case.db.contacts().all().none { it.role == ContactRole.MENTOR } && case.db.tasks().countTemplate("s4.mentor") == 0) {

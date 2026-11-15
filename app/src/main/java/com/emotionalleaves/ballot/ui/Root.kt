@@ -165,6 +165,11 @@ fun BallotRoot() {
         return
     }
     val nav = rememberNavController()
+    // Tapping a notification opens its page (a deadline opens Records, a meeting reminder opens What's on locally).
+    val opening by com.emotionalleaves.ballot.PendingOpen.target.collectAsStateWithLifecycle()
+    LaunchedEffect(opening) {
+        opening?.let { t -> if (t != "home") nav.openCard(Card("INFO", "", target = t)); com.emotionalleaves.ballot.PendingOpen.target.value = null }
+    }
     val c = LocalBallotColors.current
     val entry by nav.currentBackStackEntryAsState()
     val current = entry?.destination?.route
