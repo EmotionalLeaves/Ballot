@@ -35,7 +35,9 @@ import java.time.format.DateTimeFormatter
 
 /** Whether the Chief is working on something, so every screen can show it. */
 object ChiefBusy {
-    var busy by mutableStateOf(false)
+    /** Number of requests in flight; busy stays true until the last one returns. */
+    var running by mutableStateOf(0)
+    val busy: Boolean get() = running > 0
     var label by mutableStateOf("")
     var lastReply by mutableStateOf<ChiefReply?>(null)
 }
@@ -45,7 +47,7 @@ object ChiefBusy {
  * chat thread and the case file; screens observe those.
  */
 fun askChief(g: AppGraph, prompt: String, label: String = "Working", thread: String = "main", fromVoice: Boolean = false, onReply: (ChiefReply) -> Unit = {}) {
-    ChiefBusy.busy = true
+    ChiefBusy.running += 1
     ChiefBusy.label = label
     g.scope.launch {
         val r = runCatching { g.chief.ask(prompt, thread = thread, fromVoice = fromVoice) }.getOrElse {
@@ -53,7 +55,7 @@ fun askChief(g: AppGraph, prompt: String, label: String = "Working", thread: Str
         }
         if (r.queued) Workers.drainQueueWhenOnline(g.context)
         withContext(Dispatchers.Main) {
-            ChiefBusy.busy = false
+            ChiefBusy.running = (ChiefBusy.running - 1).coerceAtLeast(0)
             ChiefBusy.lastReply = r
             onReply(r)
         }
