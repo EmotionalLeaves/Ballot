@@ -43,3 +43,4 @@ One line per loop iteration, newest last.
 - c1 p1 t1 i24 `system_check_and_update`: When the Chief has no AI service it now offers a one-tap card straight to AI services in Settings
 - c1 p1 t1 i25 `system_check_and_update`: Get-a-key flow shows the chosen service and its steps on one screen; the full list of services opens only when you ask
 - c1 p1 t1 i26 `system_check_and_update`: Adding an event takes two taps: pick a day chip and a time chip, with typing kept as a fallback
+- c1 p1 t1 i27 `system_check_and_update`: The weekly review now actually arrives: a task and one reminder on the day you choose in Settings (Sunday by default)

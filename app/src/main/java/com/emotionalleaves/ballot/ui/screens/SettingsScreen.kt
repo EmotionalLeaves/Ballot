@@ -67,6 +67,8 @@ fun SettingsScreen(nav: NavHostController) {
     var model by remember(s.provider, s.providerModels) { mutableStateOf(Providers.parseModels(s.providerModels)[s.provider] ?: "") }
     var showAdd by remember { mutableStateOf(false) }
     var lockHint by remember { mutableStateOf("") }
+    var reviewDay by remember { mutableStateOf(7) }
+    LaunchedEffect(Unit) { reviewDay = g.case.profile().weeklyReviewDay }
     var showAdvanced by remember { mutableStateOf(false) }
     var baseUrl by remember(s.openAiBaseUrl) { mutableStateOf(s.openAiBaseUrl) }
     var cap by remember(s.monthlyCapCents) { mutableStateOf((s.monthlyCapCents / 100).toString()) }
@@ -197,6 +199,11 @@ fun SettingsScreen(nav: NavHostController) {
                     upd { it.copy(sleepStartMin = parseHm(sleepStart) ?: it.sleepStartMin, sleepEndMin = parseHm(sleepEnd) ?: it.sleepEndMin, briefMinuteOfDay = parseHm(brief) ?: it.briefMinuteOfDay) }
                 })
                 Small("Work hours are part of your profile. Tell the Chief if they change.")
+                Kicker("Weekly review day")
+                ChipRow((1..7).toList(), reviewDay, { listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")[it - 1] }) { d ->
+                    reviewDay = d
+                    scope.launch { g.case.updateProfile { it.copy(weeklyReviewDay = d) } }
+                }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("Dark theme (light is better outdoors)", style = MaterialTheme.typography.bodyLarge, color = c.fg, modifier = Modifier.weight(1f))
                     Switch(checked = s.darkTheme, onCheckedChange = { v -> upd { it.copy(darkTheme = v) } })

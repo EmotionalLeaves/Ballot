@@ -124,6 +124,7 @@ fun NavHostController.openModule(module: String) {
     val route = when (module) {
         "compass" -> Routes.COMPASS; "ground" -> Routes.GROUND; "field" -> Routes.FIELD; "network" -> Routes.PEOPLE; "gym" -> Routes.GYM
         "studio" -> Routes.STUDIO; "vault" -> Routes.VAULT; "hq" -> Routes.HQ; "path" -> Routes.PATH; "briefing" -> Routes.BRIEFING
+        "review" -> Routes.REVIEW
         else -> Routes.CHIEF
     }
     navigate(route) { launchSingleTop = true }

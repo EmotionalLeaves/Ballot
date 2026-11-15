@@ -139,6 +139,14 @@ class HourlyWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx
                         "${promises.size} promise(s) due and ${staleFollowUps.size} follow-up(s) three days old.")
                 }
             }
+            // The weekly review, on the day you chose.
+            val reviewKey = "review.${Scheduling.weekStart(LocalDate.now())}"
+            if (LocalDate.now().dayOfWeek.value == p.weeklyReviewDay && case.db.tasks().countTemplate(reviewKey) == 0) {
+                case.db.tasks().upsert(Task(stage = p.stage, title = "Weekly review", why = "Ten minutes: see the score, pick one thing to stop, start and keep, and next week's three priorities.",
+                    doneLooksLike = "Review saved.", goodEnough = "Rough answers are fine.", templateKey = reviewKey, module = "review", sizeMinutes = 15,
+                    dueEpochDay = today, movesExit = true))
+                Notifications.post(applicationContext, Notifications.BRIEF, 3003, "Weekly review", "Ten minutes to look back and pick next week's three priorities.")
+            }
             // Proactive trigger: the weekly score dropped two weeks in a row.
             val ws = Scheduling.weekStart(LocalDate.now()).atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
             val history = (3 downTo 1).map { w -> com.emotionalleaves.ballot.core.WeeklyScore.score(case.weekCounts(ws - w * 7 * 86_400_000L)) }
