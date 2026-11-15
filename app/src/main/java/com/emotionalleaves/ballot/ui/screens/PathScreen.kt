@@ -385,6 +385,7 @@ fun WeeklyReviewScreen(nav: NavHostController) {
     Screen("Your plan", kicker = "Weekly review · score, stop, start, keep, three priorities", onBack = { nav.popBackStack() }, tabs = planTabs(nav, profile?.stage ?: 1), selectedTab = 1, walkthrough = listOf(
         "The score counts only real things: conversations, meetings, comments, contacts, follow-ups, reps.", "Time in the app never counts.",
         "Pick one thing to stop, one to start, one to keep.", "Pick next week's three priorities. The plan changes accordingly.")) {
+        item { ReplyPanel { nav.navigate(Routes.CHIEF) } }
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 BigNumber(score.toString(), "This week", color = c.signal)
@@ -437,11 +438,9 @@ fun WeeklyReviewScreen(nav: NavHostController) {
             })
             LinkButton("Monthly check: is the target still right?", onClick = {
                 askChief(g, "Monthly check: re-test your own assumptions about my target office and timeline against my case file. Is the timeline honest? Be direct.", "monthly check")
-                nav.navigate(Routes.CHIEF)
             })
             LinkButton("Quarterly state-of-the-effort memo", onClick = {
                 askChief(g, "Write a quarterly state-of-the-effort memo from my case file: trends, stage progress, relationships, what to change. Save it with draft_document type OTHER.", "quarterly memo")
-                nav.navigate(Routes.CHIEF)
             })
         }
     }
