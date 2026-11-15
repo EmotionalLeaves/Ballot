@@ -57,7 +57,7 @@ private val groups: List<Pair<String, List<Module>>> = listOf(
         Module(Routes.GROUND, "Offices and races", "Who represents you, race cards, the win number", androidx.compose.material.icons.Icons.Filled.AccountBalance),
         Module(Routes.FIELD, "Meetings and events", "Your calendar, debriefs, boards to apply for", androidx.compose.material.icons.Icons.Filled.Event),
         Module(Routes.BRIEFING, "Local briefing", "News and agendas that touch your issues", androidx.compose.material.icons.Icons.Filled.Newspaper),
-        Module(Routes.HQ, "Campaign HQ", "Opens when you decide to run", androidx.compose.material.icons.Icons.Filled.Flag),
+        Module(Routes.HQ, "Campaign HQ", "Launch, field, money and election day", androidx.compose.material.icons.Icons.Filled.Flag),
     ),
     "Skills and words" to listOf(
         Module(Routes.GYM, "Practice", "Speaking reps and mock interviews", androidx.compose.material.icons.Icons.Filled.RecordVoiceOver),
@@ -77,11 +77,14 @@ private val groups: List<Pair<String, List<Module>>> = listOf(
 fun MoreScreen(nav: NavHostController) {
     val g = LocalContext.current.graph
     val pending by g.db.pending().observeWaiting().collectAsStateWithLifecycle(initialValue = emptyList())
+    val profile by g.db.profile().observe().collectAsStateWithLifecycle(initialValue = null)
+    // Campaign HQ only appears once you reach the run stage; before that it would be a locked door on the list.
+    val hqOpen = (profile?.stage ?: 0) >= com.emotionalleaves.ballot.core.Stage.RUN.number
     val c = LocalBallotColors.current
     Screen("More", kicker = "Or just ask the Chief for any of these", walkthrough = listOf(
         "Every page here can also be reached by asking the Chief in plain words.",
         "Waiting for your OK holds anything that would go out in your name.")) {
-        groups.forEach { (heading, list) ->
+        groups.map { (h, l) -> h to l.filter { it.route != Routes.HQ || hqOpen } }.forEach { (heading, list) ->
             item { Kicker(heading) }
             item {
                 Panel(padding = 0.dp) {

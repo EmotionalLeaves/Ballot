@@ -84,3 +84,4 @@ One line per loop iteration, newest last.
 - c1 p1 t2 i10 `system_check_and_update`: An http-only site gets a plain 'no secure version, open it in a browser or call' message; the http fallback is dropped because cleartext stays off app-wide
 - c1 p1 t3 i1 `system_check_and_update`: Phase 1 inventory: FEATURES.md lists restore at setup, pre-import snapshot, privacy masking and fixed release signing; nothing removed
 - Phase 1 end (cycle 1): green, pushed; patch release 0.3.4 (Gemini empty-answer retry and the backup-restore path help the owner's move to the fixed key).
+- c1 p2 t1 i1 `reduce_menus_and_buttons`: More hides Campaign HQ until you reach the run stage, instead of showing a locked door for months; the Chief can still open it
