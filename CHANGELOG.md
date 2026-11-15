@@ -216,3 +216,4 @@ One line per loop iteration, newest last.
 - c1 p6 t1 i13 `overhaul_system_architecture`: Rule-page change checks fingerprint the page's words, not its clock (dates, visitor counts, copyright years are ignored), so rules only flag when their wording moves; old fingerprints re-baseline quietly
 - c1 p6 t1 i14 `overhaul_system_architecture`: Approvals left waiting for 30 days close as 'expired' (kept and audited, never sent), checked once a day, so old drafts can't go out late or bury what's current
 - c1 p6 t1 i15 `overhaul_system_architecture`: Meeting reminders: an event starting within three hours gets one notification with its prep card ready (schema 2 adds Event.remindedAt, with a tested 1-to-2 migration)
+- c1 p6 t1 i16 `overhaul_system_architecture`: The Chief's tools are split by area into five files (research, people, plan, records, app) instead of one 800-line file; behaviour unchanged, same tests
