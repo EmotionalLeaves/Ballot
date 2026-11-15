@@ -87,6 +87,7 @@ fun HqScreen(nav: NavHostController) {
         "Doors: big buttons at each door. Supporters count against your win number.",
         "Voter lists come only from the lawful voter file and are used only as that source permits.",
         "Contact hours are tracked first. Desk work never replaces voter contact.")) {
+        item { ReplyPanel { nav.navigate(Routes.CHIEF) } }
         if (!unlocked) {
             item {
                 Panel {
@@ -167,7 +168,6 @@ fun HqScreen(nav: NavHostController) {
                     PosterButton("Build the turnout plan", onClick = {
                         askChief(g, "Build my turnout plan for early vote and election day from official election calendars: key dates, what to tell each identified supporter, " +
                             "reminder timing, and volunteer shifts. Create the tasks with create_task. Never schedule inside my work hours.", "turnout plan")
-                        nav.navigate(Routes.CHIEF)
                     })
                 }
             }
