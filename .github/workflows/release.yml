@@ -112,11 +112,19 @@ jobs:
           V="$(tr -d '[:space:]' < VERSION)"
           if [ "$GITHUB_REF_TYPE" = "tag" ]; then V="${GITHUB_REF_NAME#v}"; fi
           echo "TAG=v$V" >> "$GITHUB_ENV"
+      # A checksum and the signing fingerprint beside the APK, so a download can be checked against what was built.
+      - name: Checksum
+        run: |
+          for f in Ballot-*.apk; do sha256sum "$f" > "$f.sha256"; done
+          printf '\n\nSigning certificate SHA-256: %s\n' "$(tr -d '[:space:]' < signing/FINGERPRINT)" >> RELEASE_NOTES.md
+          cat Ballot-*.apk.sha256
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.TAG }}
           target_commitish: ${{ github.sha }}
           name: Ballot ${{ env.TAG }}
-          files: Ballot-*.apk
+          files: |
+            Ballot-*.apk
+            Ballot-*.apk.sha256
           body_path: RELEASE_NOTES.md
           fail_on_unmatched_files: true
