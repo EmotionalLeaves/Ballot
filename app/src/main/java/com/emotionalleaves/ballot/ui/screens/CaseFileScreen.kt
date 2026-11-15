@@ -97,7 +97,14 @@ fun CaseFileScreen(nav: NavHostController) {
                 }
             }
         }
-        if (entries.isEmpty()) item { EmptyNote("Nothing here yet.") }
+        if (entries.isEmpty()) item { EmptyNote(when (tab) {
+            "Ground" -> "No offices or rules yet. They arrive when the Chief finds your offices or loads your election rules."
+            "Sources" -> "No sources yet. Every official page the Chief reads is kept here with its date."
+            "Record" -> "Nothing public yet. Positions you've stated in public and drafts you've approved show here."
+            "Plan" -> "No tasks or decisions yet. Your plan fills in as you move through the stages."
+            "Lessons" -> "No lessons yet. After an event or a weekly review, one lesson goes here."
+            else -> "Nothing here yet."
+        }) }
         items(entries.size) { i ->
             val e = entries[i]
             Panel(onClick = e.onOpen, padding = 12.dp) {
