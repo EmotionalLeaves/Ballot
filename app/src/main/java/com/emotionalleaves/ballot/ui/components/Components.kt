@@ -248,12 +248,20 @@ fun Field(
     minLines: Int = 1,
     number: Boolean = false,
     placeholder: String = "",
+    secret: Boolean = false,
 ) {
     OutlinedTextField(
         value = value, onValueChange = onChange, label = { Text(label) }, modifier = modifier.fillMaxWidth(),
         singleLine = singleLine, minLines = if (singleLine) 1 else minLines, shape = RoundedCornerShape(12.dp),
         placeholder = { if (placeholder.isNotEmpty()) Text(placeholder) },
-        keyboardOptions = if (number) KeyboardOptions(keyboardType = KeyboardType.Number) else KeyboardOptions.Default,
+        keyboardOptions = when {
+            secret && number -> KeyboardOptions(keyboardType = KeyboardType.NumberPassword, autoCorrectEnabled = false)
+            secret -> KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrectEnabled = false)
+            number -> KeyboardOptions(keyboardType = KeyboardType.Number)
+            else -> KeyboardOptions.Default
+        },
+        // Secrets are masked and kept out of the keyboard's learned words.
+        visualTransformation = if (secret) androidx.compose.ui.text.input.PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
         textStyle = MaterialTheme.typography.bodyLarge,
     )
 }

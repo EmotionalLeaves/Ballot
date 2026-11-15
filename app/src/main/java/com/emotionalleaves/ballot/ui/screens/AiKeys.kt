@@ -221,7 +221,7 @@ fun KeyConnector(makeMain: Boolean = true, onConnected: (String) -> Unit = {}) {
                     }
                 }) else PosterButton("Cancel", primary = false, onClick = { job?.cancel(); working = false; status = "Cancelled." })
             }
-            Field(key, { accept(it) }, "Or type the key", singleLine = true)
+            Field(key, { accept(it) }, "Or type the key", singleLine = true, secret = true)
             if (status.isNotBlank()) Text(status, style = MaterialTheme.typography.bodyMedium, color = if (ok) Go else if (working) c.muted else c.warn)
             Small("The key is stored encrypted on this phone and only ever sent to ${selected.name}.")
         }

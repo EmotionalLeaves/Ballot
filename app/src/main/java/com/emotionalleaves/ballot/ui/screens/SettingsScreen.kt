@@ -245,7 +245,7 @@ fun SettingsScreen(nav: NavHostController) {
                     })
                 }
                 if (lockHint.isNotBlank()) Small(lockHint, color = c.signal)
-                Field(pin, { pin = it.filter(Char::isDigit).take(12) }, "Set a PIN (4 to 12 digits)", singleLine = true, number = true)
+                Field(pin, { pin = it.filter(Char::isDigit).take(12) }, "Set a PIN (4 to 12 digits)", singleLine = true, number = true, secret = true)
                 LinkButton("Save PIN and turn lock on", onClick = {
                     lockHint = if (pin.length >= 4) "Lock is on." else "A PIN needs at least 4 digits."
                     if (pin.length >= 4) { g.secrets.setPin(pin); pin = ""; com.emotionalleaves.ballot.AppLock.locked = false; upd { it.copy(appLock = true) } }
@@ -260,7 +260,7 @@ fun SettingsScreen(nav: NavHostController) {
         item {
             Collapsible("Backup", "Encrypted export and daily snapshots") {
                 Small("An encrypted file you keep somewhere safe. You choose the passphrase.")
-                Field(passphrase, { passphrase = it }, "Backup passphrase (8+ characters)", singleLine = true)
+                Field(passphrase, { passphrase = it }, "Backup passphrase (8+ characters)", singleLine = true, secret = true)
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     PosterButton("Export", enabled = passphrase.length >= 8, onClick = { exportLauncher.launch("ballot-backup-${LocalDate.now()}.ballot") })
                     PosterButton("Import", primary = false, enabled = passphrase.length >= 8, onClick = { importLauncher.launch(arrayOf("*/*")) })

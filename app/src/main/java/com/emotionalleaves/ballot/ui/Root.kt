@@ -245,7 +245,7 @@ fun LockScreen(onUnlocked: () -> Unit) {
         Text("Ballot", style = MaterialTheme.typography.displayMedium, color = LocalBallotColors.current.signal)
         Small("Locked. Your case file is encrypted on this phone.")
         Gap(24.dp)
-        Field(pin, { pin = it.filter { ch -> ch.isDigit() }.take(12); error = "" }, "PIN", singleLine = true, number = true)
+        Field(pin, { pin = it.filter { ch -> ch.isDigit() }.take(12); error = "" }, "PIN", singleLine = true, number = true, secret = true)
         if (error.isNotEmpty()) Body(error, color = LocalBallotColors.current.signal)
         Gap()
         PosterButton("Unlock", enabled = System.currentTimeMillis() >= lockedUntil, onClick = {
