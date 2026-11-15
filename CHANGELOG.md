@@ -152,3 +152,4 @@ One line per loop iteration, newest last.
 - c1 p4 t2 i13 `verify_goal_completion`: Choose stage: a go memo waiting for your agreement shows at the top of the plan with 'I agree: go', instead of hidden under Decisions
 - AI-reliance (owner request): CLAUDE.md and DECISIONS.md set the rule that every core job works without AI; AI is for research and optional first drafts.
 - AI-reliance: the stage 2 town quiz is built in plain code from your offices and rules (QuizBuilder, with tests); no AI and nothing invented.
+- AI-reliance: the values interview is a five-question form in Who you are, saved to your profile; the Chief version is optional.

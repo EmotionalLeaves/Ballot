@@ -265,3 +265,16 @@ class QuizBuilderTest {
         assertTrue(com.emotionalleaves.ballot.core.QuizBuilder.build(emptyList(), emptyList(), 1).isEmpty())
     }
 }
+
+class ValuesInterviewTest {
+    private val v = com.emotionalleaves.ballot.core.ValuesInterview
+    @Test fun answersRoundTrip() {
+        val a = listOf("Potholes", "Fix the bus line", "Night-shift workers", "My mum's clinic closed", "Lie about opponents")
+        assertEquals(a, v.decode(v.encode(a)))
+        assertEquals(5, v.answered(v.encode(a)))
+    }
+    @Test fun oldFreeTextIsKept() {
+        assertEquals("Fairness and plain talk", v.decode("Fairness and plain talk")[0])
+        assertEquals(0, v.answered(""))
+    }
+}

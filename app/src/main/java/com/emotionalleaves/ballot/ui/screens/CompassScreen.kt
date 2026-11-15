@@ -47,6 +47,7 @@ fun CompassScreen(nav: NavHostController) {
     var story3 by remember(p.id) { mutableStateOf(p.story3) }
     var story10 by remember(p.id) { mutableStateOf(p.story10) }
     var issues by remember(p.id) { mutableStateOf(p.issues) }
+    val values = remember(p.id) { androidx.compose.runtime.mutableStateListOf(*com.emotionalleaves.ballot.core.ValuesInterview.decode(p.coreValues).toTypedArray()) }
     var voice by remember(p.id) { mutableStateOf(p.voiceProfile) }
     var version by remember { mutableStateOf("60") }
     var editing by remember { mutableStateOf<Position?>(null) }
@@ -58,17 +59,29 @@ fun CompassScreen(nav: NavHostController) {
         "Each position holds your stance, the strongest counter-argument and the facts with sources.",
         "Anything you say publicly is checked against what you said before.")) {
         item { BusyBar() }
+        // The values interview is a plain form: your answers, in your words, no AI needed.
         item {
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                PosterButton("Values interview", onClick = {
-                    askChief(g, "Run my values interview: ask me one question at a time (what makes me angry, what I would fix, who I want to help, a moment that shaped me, what I will never do). " +
-                        "After five answers, sum up my values in my own words and suggest three issues for me to confirm.", "interviewing")
+            Panel {
+                Title("Values interview")
+                Small("Five questions. Rough answers are fine. ${com.emotionalleaves.ballot.core.ValuesInterview.answered(p.coreValues)} of 5 saved.")
+                com.emotionalleaves.ballot.core.ValuesInterview.questions.forEachIndexed { i, q ->
+                    Field(values[i], { values[i] = it }, q, minLines = 2)
+                }
+                val encoded = com.emotionalleaves.ballot.core.ValuesInterview.encode(values)
+                PosterButton("Save answers", enabled = encoded != p.coreValues && values.any { it.isNotBlank() }, onClick = {
+                    scope.launch { g.case.updateProfile { it.copy(coreValues = encoded) }; g.case.audit("you", "Saved values interview", outcome = "${values.count { it.isNotBlank() }} of 5") }
+                })
+                LinkButton("Or do it out loud with the Chief", color = c.muted, onClick = {
+                    askChief(g, "Run my values interview: ask me these five questions one at a time: " + com.emotionalleaves.ballot.core.ValuesInterview.questions.joinToString(" ") +
+                        " After five answers, read them back in my own words and suggest three issues for me to confirm.", "interviewing")
                     nav.navigate(Routes.CHIEF)
                 })
-                PosterButton("One-page platform", primary = false, onClick = {
-                    askChief(g, "Turn my values, issues and positions into a one-page platform in my own words. No positions I have not stated. Save it with draft_document type PLATFORM.", "writing platform")
-                })
             }
+        }
+        item {
+            LinkButton("Write a one-page platform with the Chief", color = c.muted, onClick = {
+                askChief(g, "Turn my values, issues and positions into a one-page platform in my own words. No positions I have not stated. Save it with draft_document type PLATFORM.", "writing platform")
+            })
         }
         item { ReplyPanel { nav.navigate(Routes.CHIEF) } }
         item {
