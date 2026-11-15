@@ -35,3 +35,4 @@ One line per loop iteration, newest last.
 - c1 p1 t1 i17 `system_check_and_update`: Call-time script fills in your own reason from your story and the suggested ask instead of placeholders
 - c1 p1 t1 i18 `system_check_and_update`: Spend panel says plainly that free services never count and when Free only guarantees nothing is spent
 - c1 p1 t1 i19 `system_check_and_update`: A re-fetched page only counts as cross-checked when its content matches the earlier fetch; a changed page no longer earns Verified
+- c1 p1 t1 i20 `system_check_and_update`: The Chief can now look people up in your contact book (find_contacts), so suggestions about who to ask come from your real network

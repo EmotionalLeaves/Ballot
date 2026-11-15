@@ -296,6 +296,26 @@ class ToolRegistry {
                 cards = listOf(Card("CONTACT", contact.name, contact.howMet.ifBlank { contact.role.ifBlank { "Contact" } }, "contact", id)))
         })
 
+        reg(ToolDef("find_contacts",
+            "Look up people in the user's private contact book by name, interest, role or district. Read only. Use it before suggesting who to ask for anything.",
+            S.obj(props = mapOf("query" to S.s("Words to match in name, how met, interests or district; blank lists the closest people"),
+                "role" to S.e("Only this role", ContactRole.all.filter { it.isNotEmpty() }), "in_district_only" to S.b("Only people who live in the district"))),
+            RoutineKind.RESEARCH) { a, c ->
+            val q = a.str("query")?.trim()?.lowercase().orEmpty()
+            val role = a.str("role")
+            val all = c.case.db.contacts().all()
+            val hits = all.filter { p ->
+                (role == null || p.role == role) && (a.bool("in_district_only") != true || p.livesInDistrict) &&
+                    (q.isEmpty() || listOf(p.name, p.howMet, p.interests, p.district, p.beat).any { it.lowercase().contains(q) })
+            }.sortedWith(compareByDescending<Contact> { it.closeness }.thenByDescending { it.lastContactAt }).take(25)
+            if (hits.isEmpty()) return@ToolDef ToolOutcome(if (all.isEmpty()) "The contact book is empty." else "No one matches \"$q\". ${all.size} people in the book.")
+            ToolOutcome(hits.joinToString("\n") { p ->
+                "C${p.id} ${p.name}" + listOfNotNull(p.role.takeIf { it.isNotBlank() }?.lowercase(), "closeness ${p.closeness}/5",
+                    p.howMet.takeIf { it.isNotBlank() }?.let { "met: $it" }, p.interests.takeIf { it.isNotBlank() }?.let { "cares about: $it" },
+                    if (p.livesInDistrict) "in district" else null, p.nextStep.takeIf { it.isNotBlank() }?.let { "next: $it" }).joinToString(", ", " (", ")")
+            } + if (hits.size == 25) "\n(first 25 shown)" else "")
+        })
+
         reg(ToolDef("log_interaction", "Log a conversation with a contact, including promises made in both directions. Two-way contact is what counts.",
             S.obj(listOf("contact"), mapOf(
                 "contact" to S.s("Contact name"), "channel" to S.e("Channel", listOf("IN_PERSON", "PHONE", "TEXT", "EMAIL", "EVENT", "VIDEO")),

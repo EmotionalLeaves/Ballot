@@ -201,7 +201,7 @@ object Providers {
         status == 429 && (retryAfterSec > 600 || Regex("per.?day|daily|quota|exhausted|RPD|tomorrow", RegexOption.IGNORE_CASE).containsMatchIn(message))
 
     /** The tools a small free model gets: enough to research, track and draft. */
-    val liteTools = setOf("search_web", "fetch_official_page", "find_offices", "create_task", "add_contact", "log_interaction",
+    val liteTools = setOf("search_web", "fetch_official_page", "find_offices", "create_task", "add_contact", "find_contacts", "log_interaction",
         "queue_follow_up", "draft_document", "add_deadline", "add_event", "update_platform", "record_lesson")
 
     fun parseModels(csv: String): Map<String, String> = csv.split(';').mapNotNull { e ->
