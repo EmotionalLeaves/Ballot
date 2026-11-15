@@ -244,7 +244,8 @@ $brief
     /**
      * Talk to the Chief. Writes both sides to the chat thread and every tool call to the audit log.
      */
-    suspend fun ask(userText: String, thread: String = "main", fromVoice: Boolean = false, persist: Boolean = true, webSearch: Boolean = true): ChiefReply {
+    /** [queue]: on a retryable failure, keep the request to run later. Background jobs and the queue itself say no. */
+    suspend fun ask(userText: String, thread: String = "main", fromVoice: Boolean = false, persist: Boolean = true, webSearch: Boolean = true, queue: Boolean = true): ChiefReply {
         val s = settingsStore.get()
         if (persist) case.db.chat().insert(ChatMessage(thread = thread, role = "user", text = userText))
 
@@ -259,7 +260,7 @@ $brief
                 listOf(Card("INFO", "Connect a free AI", "Opens AI services in Settings", "settings")), emptyList(), persist, error = true)
         }
         if (!online()) {
-            case.db.queue().insert(QueuedRequest(thread = thread, prompt = userText))
+            if (queue) case.db.queue().insert(QueuedRequest(thread = thread, prompt = userText))
             return finish(thread, "You're offline. I've queued this and will run it when the connection returns.", Mode.CLERK, emptyList(), emptyList(), persist, queued = true)
         }
 
@@ -308,7 +309,7 @@ $brief
             }
         } catch (e: LlmException) {
             if (e.retryable) {
-                case.db.queue().insert(QueuedRequest(thread = thread, prompt = userText))
+                if (queue) case.db.queue().insert(QueuedRequest(thread = thread, prompt = userText))
                 return finish(thread, "${e.message} I've queued the request and will retry when I can.", Mode.CLERK, cards, sourceIds, persist, queued = true, error = true)
             }
             return finish(thread, e.message ?: "Something went wrong.", Mode.STRATEGIST, cards, sourceIds, persist, error = true)
@@ -379,15 +380,12 @@ $brief
         for (q in case.db.queue().all()) {
             if (q.attempts >= 3) { case.db.queue().delete(q); continue }
             case.db.queue().upsert(q.copy(attempts = q.attempts + 1))
-            val r = ask(q.prompt, q.thread, persist = false)
+            val r = ask(q.prompt, q.thread, persist = false, queue = false)
             if (!r.queued) {
                 case.db.chat().insert(ChatMessage(thread = q.thread, role = "assistant", text = "(Queued request) ${q.prompt.take(80)}\n\n${r.text}", mode = r.mode.label,
                     cards = BallotJson.encodeToString(ListSerializer(Card.serializer()), r.cards)))
                 case.db.queue().delete(q)
                 done++
-            } else {
-                // ask() re-queued it: drop the duplicate it created.
-                case.db.queue().all().lastOrNull { it.prompt == q.prompt && it.id != q.id }?.let { case.db.queue().delete(it) }
             }
         }
         return done

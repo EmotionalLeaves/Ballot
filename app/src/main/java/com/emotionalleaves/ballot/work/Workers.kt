@@ -191,7 +191,7 @@ class BriefWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx,
                 "Background job: build today's Briefing for ZIP ${p.zip.ifBlank { "unknown" }}. Search for local news from the last few days, upcoming public meeting agendas, " +
                     "open seats, retirements or filing windows that touch these issues: $issues. Save up to five items with save_brief_item, each with a source link and one optional action. " +
                     "If a seat opened or a filing window was announced, say so first. Then reply with one sentence.",
-                thread = "background", persist = false,
+                thread = "background", persist = false, queue = false,
             )
         }.getOrNull() ?: return Result.retry()
         if (r.queued) return Result.retry()

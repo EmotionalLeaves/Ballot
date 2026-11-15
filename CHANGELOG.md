@@ -77,3 +77,4 @@ One line per loop iteration, newest last.
 - c1 p1 t2 i3 `system_check_and_update`: With the app lock on, the recent-apps preview is blank (Android 13+), so the case file can't be read from the app switcher
 - c1 p1 t2 i4 `system_check_and_update`: When Gemini garbles a tool call and sends back nothing, the Chief asks again once instead of showing an empty answer
 - c1 p1 t2 i5 `system_check_and_update`: OpenAI-style services that leave tool-call ids empty, say 'stop' while calling tools, or answer with a refusal field now work with the Chief
+- c1 p1 t2 i6 `system_check_and_update`: Background briefs and queued retries no longer re-queue themselves, so a failed brief can't turn up later as a stray chat message or delete a real queued request
