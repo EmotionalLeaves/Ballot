@@ -131,7 +131,7 @@ fun GroundScreen(nav: NavHostController) {
             }, onExplain = {
                 askChief(g, "Explain in plain language what the ${o.body} ${o.district} really controls, how it makes decisions, and how often it meets. Then ask me one teach-back question.", "explaining")
                 nav.navigate(Routes.CHIEF)
-            }, onDelete = { scope.launch { g.db.offices().delete(o) } }, onOpen = { openUrl(ctx, it) })
+            }, onDelete = { scope.launch { g.case.deleteOffice(o) } }, onOpen = { openUrl(ctx, it) })
         }
         item { WinNumberCalculator(cards.maxByOrNull { it.score }) }
     }

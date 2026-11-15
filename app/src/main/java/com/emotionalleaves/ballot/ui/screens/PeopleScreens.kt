@@ -277,5 +277,5 @@ fun ContactScreen(nav: NavHostController, id: Long) {
         item { LinkButton("Delete contact", onClick = { confirmDelete = true }, color = c.muted) }
     }
     if (confirmDelete) ConfirmDialog("Delete ${p.name}?", "This removes them from your contact book. Logged conversations stay in the record.", "Delete",
-        onConfirm = { scope.launch { g.db.contacts().delete(p); nav.popBackStack() } }, onDismiss = { confirmDelete = false })
+        onConfirm = { scope.launch { g.case.deleteContact(p); nav.popBackStack() } }, onDismiss = { confirmDelete = false })
 }

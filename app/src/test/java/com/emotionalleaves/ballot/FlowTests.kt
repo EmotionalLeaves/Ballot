@@ -405,5 +405,14 @@ class FlowTests {
         assertTrue(db.voterContacts().all().isEmpty())
         assertTrue(db.lessons().all().any { it.what.contains("1 doors, 1 supporters") })
     }
+
+    @Test fun deletingAPersonRemovesTheirConversationsButKeepsGifts() = runTest {
+        val a = case.logInteraction("Ana", "Coffee")
+        db.money().upsert(com.emotionalleaves.ballot.data.Money(direction = "IN", amountCents = 2500, person = "Ana", contactId = a.id))
+        case.deleteContact(db.contacts().get(a.id)!!)
+        assertTrue(db.interactions().all().isEmpty())
+        assertEquals(0L, db.money().all().single().contactId)
+        assertEquals("Ana", db.money().all().single().person)
+    }
 }
 

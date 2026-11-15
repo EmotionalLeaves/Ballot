@@ -417,5 +417,25 @@ class CaseFile(val db: BallotDatabase, private val settings: SettingsStore) {
         audit("you", if (done) "Marked a deadline done" else "Reopened a deadline", input = d.title)
         rescore()
     }
+
+    /** Deleting a person removes their conversations too, and unlinks (but keeps) gifts, which reports still need. */
+    suspend fun deleteContact(c: Contact) {
+        db.withTransaction {
+            db.interactions().all().filter { it.contactId == c.id }.forEach { db.interactions().delete(it) }
+            db.money().all().filter { it.contactId == c.id }.forEach { db.money().upsert(it.copy(contactId = 0, person = it.person.ifBlank { c.name })) }
+            db.contacts().all().filter { it.introducedById == c.id }.forEach { db.contacts().upsert(it.copy(introducedById = 0)) }
+            db.contacts().delete(c)
+        }
+        audit("you", "Deleted a contact", input = c.name)
+    }
+
+    /** Deleting an office removes its race card with it. */
+    suspend fun deleteOffice(o: Office) {
+        db.withTransaction {
+            db.raceCards().all().filter { it.officeId == o.id }.forEach { db.raceCards().delete(it) }
+            db.offices().delete(o)
+        }
+        audit("you", "Deleted an office", input = o.body)
+    }
 }
 

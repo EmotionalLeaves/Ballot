@@ -66,7 +66,7 @@ fun CaseFileScreen(nav: NavHostController) {
             )
         } ?: emptyList()
         "Ground" -> offices.map { o -> Entry("Office · ${shortDate(o.updatedAt)} · ${o.source}", "${o.body} ${o.district}", o.powers.ifBlank { o.officialUrl }, o.confidence,
-            { scope.launch { g.db.offices().delete(o) } }, { nav.navigate(Routes.GROUND) }) } +
+            { scope.launch { g.case.deleteOffice(o) } }, { nav.navigate(Routes.GROUND) }) } +
             rules.map { r -> Entry("Rule · checked ${shortDate(r.lastChecked)}", r.jurisdiction, r.summary, r.status, { scope.launch { g.db.rules().delete(r) } }, { openUrl(ctx, r.officialUrl) }) }
         "Sources" -> sources.map { s -> Entry("S${s.id} · ${dateTime(s.fetchedAt)}${if (s.injectionFlagged) " · contains instructions (ignored)" else ""}", s.title.ifBlank { s.url }, s.url, s.label, null, { openUrl(ctx, s.url) }) }
         "Record" -> positions.filter { it.statedPubliclyAt > 0 }.map { p -> Entry("Said publicly ${shortDate(p.statedPubliclyAt)}", p.issue, p.stance, "STATED", null) { nav.navigate(Routes.COMPASS) } } +
