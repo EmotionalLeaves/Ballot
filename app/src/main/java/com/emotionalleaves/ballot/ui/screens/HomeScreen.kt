@@ -116,8 +116,8 @@ fun HomeScreen(nav: NavHostController) {
                 if (top == null) {
                     Panel(padding = 20.dp) {
                         Text("Nothing due right now", style = MaterialTheme.typography.headlineSmall, color = c.fg)
-                        Small("Ask the Chief what would help most, or take the evening off.")
-                        PosterButton("Ask the Chief", onClick = { nav.navigate(Routes.CHIEF) })
+                        Small("Look ahead on your plan, or take the evening off.")
+                        PosterButton("Open your plan", onClick = { nav.navigate(Routes.PATH) { launchSingleTop = true } })
                     }
                 } else {
                     val (t, s) = top
