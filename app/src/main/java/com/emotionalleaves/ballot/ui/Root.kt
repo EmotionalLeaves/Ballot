@@ -192,7 +192,8 @@ fun BallotRoot() {
             }
         }
         // Five fixed destinations with a calm pill indicator. Everything else is one tap down in More.
-        NavigationBar(containerColor = c.raised, tonalElevation = 0.dp) {
+        // The root already pads for system bars, so the bar adds no insets of its own (no double gap at the bottom).
+        NavigationBar(containerColor = c.raised, tonalElevation = 0.dp, windowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0)) {
             tabs.forEach { t ->
                 val on = parentTab(current) == t.route
                 NavigationBarItem(
