@@ -255,18 +255,23 @@ class OpenAiClient(private val baseUrl: String, private val echoSignatures: Bool
         val msg = choice.obj("message") ?: JsonObject(emptyMap())
         val blocks = mutableListOf<Block>()
         msg.str("content")?.takeIf { it.isNotBlank() }?.let { blocks += Block.Text(it) }
+        if (blocks.isEmpty()) msg.str("refusal")?.takeIf { it.isNotBlank() }?.let { blocks += Block.Text(it) }
+        var n = 0
         msg.arr("tool_calls")?.forEach { tc ->
             val t = tc as? JsonObject ?: return@forEach
             val f = t.obj("function") ?: return@forEach
             val args = runCatching { BallotJson.parseToJsonElement(f.str("arguments") ?: "{}").jsonObject }.getOrDefault(JsonObject(emptyMap()))
-            blocks += Block.ToolUse(t.str("id") ?: "", f.str("name") ?: "", args, t.obj("extra_content"))
+            // Some free services leave the id empty; each call needs its own so its result can be matched.
+            val id = t.str("id")?.takeIf { it.isNotBlank() } ?: "call_${System.nanoTime()}_${n++}"
+            blocks += Block.ToolUse(id, f.str("name") ?: "", args, t.obj("extra_content"))
         }
         val finish = choice.str("finish_reason") ?: "stop"
         if (blocks.isEmpty() && finish == "length") throw LlmException("The AI ran out of room while thinking. Ask again, or ask a shorter question.", retryable = true)
         val usage = o.obj("usage")
         return LlmResponse(
             content = blocks,
-            stopReason = if (finish == "tool_calls") "tool_use" else "end_turn",
+            // Some services say "stop" even when they called tools, so go by what came back.
+            stopReason = if (finish == "tool_calls" || blocks.any { it is Block.ToolUse }) "tool_use" else "end_turn",
             usage = Usage(usage?.long("prompt_tokens") ?: 0, usage?.long("completion_tokens") ?: 0, 0),
         )
     }

@@ -97,3 +97,21 @@ class TimeoutTest {
 }
 
 private fun MockWebServer.takeRequestCount() = requestCount
+
+class OpenAiLooseRepliesTest {
+    @Test fun toolCallsWithStopAndNoIdsStillWork() = runBlocking {
+        val server = MockWebServer(); server.start()
+        try {
+            server.enqueue(MockResponse().setBody("""{"choices":[{"finish_reason":"stop","message":{"content":"",
+                "tool_calls":[{"id":"","type":"function","function":{"name":"list_plan","arguments":"{}"}},
+                {"type":"function","function":{"name":"list_plan","arguments":"{}"}}]}}]}"""))
+            val r = OpenAiClient(server.url("/v1/").toString()).complete("key", LlmRequest("m", "sys", listOf(LlmMessage("user", listOf(Block.Text("hi")))),
+                listOf(ToolSpec("list_plan", "Read the plan", Schema.obj(props = emptyMap())))))
+            assertEquals("tool_use", r.stopReason)
+            assertEquals(2, r.toolUses.size)
+            assertTrue(r.toolUses.all { it.id.isNotBlank() })
+            assertTrue(r.toolUses[0].id != r.toolUses[1].id)
+        } finally { runCatching { server.shutdown() } }
+        Unit
+    }
+}
