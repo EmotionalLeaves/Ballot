@@ -53,6 +53,8 @@ data class ToolCtx(
     val settings: AppSettings,
     val fromVoice: Boolean = false,
     val approved: Boolean = false,
+    /** Lets change_setting save; null where settings can't change. */
+    val store: com.emotionalleaves.ballot.data.SettingsStore? = null,
 )
 
 data class ToolOutcome(
@@ -611,6 +613,36 @@ class ToolRegistry {
             }
             c.case.rescore()
             ToolOutcome("Profile updated. The plan has been rescored.")
+        })
+
+        // Look-and-feel settings by asking. Nothing here can raise spending, loosen the autonomy dial or turn off the lock:
+        // those stay in Settings, behind your own taps.
+        reg(ToolDef("change_setting", "Change an everyday setting when the user asks: free_only (on only), use_backups, dark_theme, text_size, brief_time, sleep_start, sleep_end.",
+            S.obj(listOf("setting", "value"), mapOf(
+                "setting" to S.e("Setting", listOf("free_only", "use_backups", "dark_theme", "text_size", "brief_time", "sleep_start", "sleep_end")),
+                "value" to S.s("true/false, a size from 0.85 to 1.5, or a time as HH:MM"))),
+            RoutineKind.TRACKER, required = listOf("setting", "value")) { a, c ->
+            val store = c.store ?: return@ToolDef ToolOutcome("Settings can't be changed from here. Open Settings.", isError = true)
+            val v = a.str("value")!!.trim().lowercase()
+            fun flag(): Boolean? = when (v) { "true", "on", "yes" -> true; "false", "off", "no" -> false; else -> null }
+            fun hm(): Int? {
+                val parts = v.split(":"); if (parts.size != 2) return null
+                val hh = parts[0].toIntOrNull() ?: return null; val mm = parts[1].toIntOrNull() ?: return null
+                return if (hh in 0..23 && mm in 0..59) hh * 60 + mm else null
+            }
+            val bad = ToolOutcome("That value doesn't fit ${a.str("setting")}.", isError = true)
+            when (a.str("setting")) {
+                "free_only" -> { if (flag() != true) return@ToolDef ToolOutcome("Turning free-only off allows spending, so only you can do that in Settings.", isError = true); store.update { it.copy(freeOnly = true) } }
+                "use_backups" -> { val f = flag() ?: return@ToolDef bad; store.update { it.copy(useBackups = f) } }
+                "dark_theme" -> { val f = flag() ?: return@ToolDef bad; store.update { it.copy(darkTheme = f) } }
+                "text_size" -> { val f = v.toFloatOrNull()?.takeIf { it in 0.85f..1.5f } ?: return@ToolDef bad; store.update { it.copy(textScale = f) } }
+                "brief_time" -> { val m = hm() ?: return@ToolDef bad; store.update { it.copy(briefMinuteOfDay = m) } }
+                "sleep_start" -> { val m = hm() ?: return@ToolDef bad; store.update { it.copy(sleepStartMin = m) } }
+                "sleep_end" -> { val m = hm() ?: return@ToolDef bad; store.update { it.copy(sleepEndMin = m) } }
+                else -> return@ToolDef bad
+            }
+            c.case.audit("chief", "Changed a setting", input = "${a.str("setting")} = $v")
+            ToolOutcome("Done: ${a.str("setting")} is now $v.")
         })
 
         // Everything in the app is reachable by asking: "take me to my drafts" gives a card that opens the page.

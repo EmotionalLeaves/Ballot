@@ -169,7 +169,7 @@ fun HomeScreen(nav: NavHostController) {
                     LinkButton("Shrink this week", color = c.muted, onClick = {
                         scope.launch {
                             g.chief.tools.execute("reschedule_plan", JsonObject(mapOf("shrink_week" to JsonPrimitive(true), "reason" to JsonPrimitive("Too much"))),
-                                ToolCtx(g.case, g.settings.get(), approved = true))
+                                ToolCtx(g.case, g.settings.get(), approved = true, store = g.settings))
                             refresh++
                         }
                     })
