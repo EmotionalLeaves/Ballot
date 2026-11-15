@@ -129,14 +129,14 @@ fun FieldScreen(nav: NavHostController) {
     val nowMs = now()
     Screen("Meetings and events", kicker = "Showing up", onBack = { nav.popBackStack() }, walkthrough = listOf(
         "Your calendar of public meetings, community events and volunteer shifts, outside work hours.",
-        "Before an event, tap Pre-event card: who will be there, what to say, one goal.",
-        "After an event, tap Debrief and just talk for a minute: who you met, what you promised. The Chief files contacts and follow-ups for you to confirm.",
+        "Before an event, tap Prep card: your goal, the issues it may touch and who you know there.",
+        "After an event, tap Debrief and talk or type for a minute: who you met, what you promised. Save it, or let the Chief file the people and promises.",
         "First meeting? Go once silently. Listening counts.")) {
         item { BusyBar() }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 PosterButton(if (adding) "Close" else "Add event", onClick = { adding = !adding })
-                PosterButton("Find meetings", primary = false, onClick = {
+                PosterButton("Find meetings with the Chief", primary = false, onClick = {
                     askChief(g, "Find upcoming public meetings (council, school board, county, planning) and community events near me from official calendars. " +
                         "Add the ones outside my work hours with add_event, with agenda links when posted.", "finding meetings")
                 })

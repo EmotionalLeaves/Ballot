@@ -42,6 +42,8 @@ import com.emotionalleaves.ballot.ui.components.Small
 import com.emotionalleaves.ballot.ui.components.Title
 import com.emotionalleaves.ballot.ui.theme.LocalBallotColors
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.JsonObject
 
 private fun roleLabel(r: String) = when (r) {
     "" -> "None"; ContactRole.MANAGER -> "Campaign manager"; else -> r.lowercase().replaceFirstChar { it }
@@ -90,7 +92,13 @@ fun PeopleScreen(nav: NavHostController) {
                         Kicker(roleLabel(role), color = if (who.isEmpty()) com.emotionalleaves.ballot.ui.theme.Ink else c.muted)
                         Text(if (who.isEmpty()) "Empty seat" else who.joinToString { it.name }, style = MaterialTheme.typography.titleLarge,
                             color = if (who.isEmpty()) com.emotionalleaves.ballot.ui.theme.Ink else c.fg)
-                        if (who.isEmpty()) LinkButton("Help me find one", color = com.emotionalleaves.ballot.ui.theme.Ink, onClick = {
+                        // People you already know well are the likeliest fits, so list them first, in plain code.
+                        if (who.isEmpty()) {
+                            val fits = contacts.filter { it.role.isBlank() && it.closeness >= 3 }.sortedByDescending { it.closeness }.take(3)
+                            if (fits.isNotEmpty()) Text("People you know well: " + fits.joinToString { it.name }, style = MaterialTheme.typography.bodyMedium,
+                                color = com.emotionalleaves.ballot.ui.theme.Ink)
+                        }
+                        if (who.isEmpty()) LinkButton("Talk it through with the Chief", color = com.emotionalleaves.ballot.ui.theme.Ink, onClick = {
                             askChief(g, "Help me find a ${roleLabel(role).lowercase()} for my kitchen cabinet. Who in my contacts could fit, who could introduce me, and how do I ask? Draft the ask as a follow-up.", "finding a ${roleLabel(role).lowercase()}")
                             nav.navigate(Routes.CHIEF)
                         })
@@ -225,17 +233,28 @@ fun ContactScreen(nav: NavHostController, id: Long) {
                 })
             }
         }
+        // Messages start from a short plain template and wait in Approvals for you to edit and send. The Chief's version is optional.
         item {
+            val first = p.name.trim().substringBefore(' ')
+            val last = interactions.firstOrNull()?.notes?.trim()?.take(80)
+            fun queue(text: String) = scope.launch {
+                g.chief.tools.execute("queue_follow_up", JsonObject(mapOf("contact" to JsonPrimitive(p.name), "message" to JsonPrimitive(text))),
+                    com.emotionalleaves.ballot.agent.ToolCtx(g.case, g.settings.get()))
+                nav.navigate(Routes.APPROVALS)
+            }
             Row {
-                LinkButton("Draft follow-up", onClick = {
-                    askChief(g, "Draft a short, warm follow-up to ${p.name} in my voice based on our last conversation (${interactions.firstOrNull()?.notes?.take(200) ?: "none logged"}). Use queue_follow_up.", "drafting follow-up")
-                    nav.navigate(Routes.CHIEF)
+                LinkButton("Write a follow-up", onClick = {
+                    queue("Hi $first, thanks again" + (last?.let { " for the chat ($it)" } ?: "") + ". [One line on what you'll do next or when you'll see them.]")
                 })
                 LinkButton("Ask for intros", onClick = {
-                    askChief(g, "Draft a short ask to ${p.name} for two introductions to people I should meet, given what they care about (${p.interests}). Use queue_follow_up.", "drafting intro ask")
-                    nav.navigate(Routes.CHIEF)
+                    queue("Hi $first, I'm trying to meet more people who care about " + (p.interests.ifBlank { "[your issue]" }) +
+                        ". Is there anyone you'd be happy to introduce me to? Two names would be wonderful. Thank you!")
                 })
             }
+            LinkButton("Or have the Chief write it", color = c.muted, onClick = {
+                askChief(g, "Draft a short, warm follow-up to ${p.name} in my voice based on our last conversation (${interactions.firstOrNull()?.notes?.take(200) ?: "none logged"}). Use queue_follow_up.", "drafting follow-up")
+                nav.navigate(Routes.CHIEF)
+            })
         }
         item { Title("History (${interactions.size})") }
         items(interactions.size) { i ->
