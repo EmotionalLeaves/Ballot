@@ -175,3 +175,4 @@ One line per loop iteration, newest last.
 - c1 p5 t1 i4 `combine_screens`: Offices and races and the town quiz are one page, 'Your town', with two tabs
 - c1 p5 t1 i5 `combine_screens`: Your plan and the weekly review share one page with two tabs, so the review is one tap from the plan
 - c1 p5 t1 i6 `combine_screens`: From stage 5 the run-or-wait check is a third tab on Your plan, next to the plan and the weekly review
+- c1 p5 t1 i7 `combine_screens`: no change: Waiting for your OK stays its own page; it's reached from Today, People and the Chief, and merging it would hide approvals
