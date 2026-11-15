@@ -84,7 +84,7 @@ fun PathScreen(nav: NavHostController) {
     val p = profile ?: return
     val current = Stage.of(p.stage)
     val c = LocalBallotColors.current
-    Screen("Your plan", kicker = "Eight stages. Each opens when the one before is done.", tabs = planTabs(nav), selectedTab = 0, walkthrough = listOf(
+    Screen("Your plan", kicker = "Eight stages. Each opens when the one before is done.", tabs = planTabs(nav, profile?.stage ?: 1), selectedTab = 0, walkthrough = listOf(
         "This is the whole road from zero to office. You are on the highlighted stage.",
         "A stage unlocks only when the one before it passes its exit test. Stages 3 to 5 cannot be skipped: they are how people come to know and trust you.",
         "Timings are defaults. The Chief adjusts them to your life.",
@@ -320,7 +320,8 @@ fun GoNoGoScreen(nav: NavHostController) {
     var target by remember { mutableStateOf("") }
     var saved by remember { mutableStateOf(false) }
     val c = LocalBallotColors.current
-    Screen("Go or no-go", kicker = "Before stage 7 unlocks", onBack = { nav.popBackStack() }, walkthrough = listOf(
+    val gp by g.db.profile().observe().collectAsStateWithLifecycle(initialValue = null)
+    Screen("Your plan", kicker = "Run or wait · seven points before stage 7 unlocks", onBack = { nav.popBackStack() }, tabs = planTabs(nav, maxOf(gp?.stage ?: 5, 5)), selectedTab = 2, walkthrough = listOf(
         "Seven honest answers. 'Not yet' is fine.", "Any 'no' becomes the next task, not a reason to quit.",
         "When all seven are yes and you agree with the memo, the Run stage unlocks.")) {
         item { Field(target, { target = it }, "The office you are deciding on") }
@@ -381,7 +382,7 @@ fun WeeklyReviewScreen(nav: NavHostController) {
         }
     }
     val score = WeeklyScore.score(counts)
-    Screen("Your plan", kicker = "Weekly review · score, stop, start, keep, three priorities", onBack = { nav.popBackStack() }, tabs = planTabs(nav), selectedTab = 1, walkthrough = listOf(
+    Screen("Your plan", kicker = "Weekly review · score, stop, start, keep, three priorities", onBack = { nav.popBackStack() }, tabs = planTabs(nav, profile?.stage ?: 1), selectedTab = 1, walkthrough = listOf(
         "The score counts only real things: conversations, meetings, comments, contacts, follow-ups, reps.", "Time in the app never counts.",
         "Pick one thing to stop, one to start, one to keep.", "Pick next week's three priorities. The plan changes accordingly.")) {
         item {

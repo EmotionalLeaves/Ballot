@@ -107,7 +107,12 @@ fun ReplyPanel(onOpenChief: () -> Unit) {
 fun voiceTabs(nav: androidx.navigation.NavHostController) = listOf("Who you are" to { nav.switchTab(Routes.COMPASS) }, "Drafts" to { nav.switchTab(Routes.STUDIO) })
 fun recordTabs(nav: androidx.navigation.NavHostController) = listOf("Vault" to { nav.switchTab(Routes.VAULT) }, "Case file" to { nav.switchTab(Routes.CASEFILE) })
 fun townTabs(nav: androidx.navigation.NavHostController) = listOf("Offices and races" to { nav.switchTab(Routes.GROUND) }, "Town quiz" to { nav.switchTab(Routes.QUIZ) })
-fun planTabs(nav: androidx.navigation.NavHostController) = listOf("Plan" to { nav.switchTab(Routes.PATH) }, "Weekly review" to { nav.switchTab(Routes.REVIEW) })
+/** The run-or-wait check joins the plan's tabs once you reach stage 5, when it starts to matter. */
+fun planTabs(nav: androidx.navigation.NavHostController, stage: Int = 1) = listOfNotNull(
+    "Plan" to { nav.switchTab(Routes.PATH) },
+    "Weekly review" to { nav.switchTab(Routes.REVIEW) },
+    if (stage >= 5) "Run or wait" to { nav.switchTab(Routes.GONOGO) } else null,
+)
 
 /** "1 request", "3 requests". */
 fun count(n: Int, one: String, many: String = one + "s"): String = "$n ${if (n == 1) one else many}"

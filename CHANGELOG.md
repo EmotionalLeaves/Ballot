@@ -174,3 +174,4 @@ One line per loop iteration, newest last.
 - c1 p5 t1 i3 `combine_screens`: The Vault and the case file are one page, 'Records', with two tabs and one entry in More
 - c1 p5 t1 i4 `combine_screens`: Offices and races and the town quiz are one page, 'Your town', with two tabs
 - c1 p5 t1 i5 `combine_screens`: Your plan and the weekly review share one page with two tabs, so the review is one tap from the plan
+- c1 p5 t1 i6 `combine_screens`: From stage 5 the run-or-wait check is a third tab on Your plan, next to the plan and the weekly review
