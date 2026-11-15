@@ -166,8 +166,8 @@ fun MessageView(m: ChatMessage, sources: Map<Long, SourceRecord>, onCard: (Card)
         Text(m.text, style = MaterialTheme.typography.bodyLarge, color = c.fg)
         cards.forEach { card ->
             Panel(onClick = { onCard(card) }, padding = 12.dp) {
-                Kicker(card.type)
-                Text(card.title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black), color = c.fg)
+                if (card.type != "INFO") Kicker(pretty(card.type), color = c.muted)
+                Text(card.title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = c.fg)
                 if (card.body.isNotBlank()) Small(card.body)
             }
         }

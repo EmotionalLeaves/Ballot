@@ -106,3 +106,4 @@ One line per loop iteration, newest last.
 - c1 p3 t2 i8 `apply_professional_formatting`: Plan: decision and lesson labels read 'Go no go' and 'Event' instead of GO_NO_GO and EVENT, and the memo hint names the Plan tab
 - c1 p3 t2 i9 `apply_professional_formatting`: Approvals: post, filing, signing and spending items get plain labels ('Filing to submit yourself') instead of a lowercase code
 - c1 p3 t2 i10 `apply_professional_formatting`: Vault papers and Ground offices show their kind and level in sentence case ('Local · elected', 'Receipt') instead of codes
+- c1 p3 t2 i11 `apply_professional_formatting`: Chief cards: a quiet 'Task' or 'Contact' label instead of TASK/INFO in caps, and semibold titles instead of black-weight
