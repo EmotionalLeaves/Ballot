@@ -359,7 +359,7 @@ fun WeeklyReviewScreen(nav: NavHostController) {
             }
         }
         item {
-            PosterButton(if (saved > 0) "Saved" else "Save review", onClick = {
+            PosterButton(if (saved > 0) "Saved" else "Save review", enabled = saved == 0, onClick = {
                 scope.launch {
                     g.db.lessons().upsert(Lesson(kind = "WEEK", what = "Week score $score. Stop: $stop. Keep: $keep.", change = "Start: $start"))
                     val today = LocalDate.now().toEpochDay()

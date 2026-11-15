@@ -29,3 +29,4 @@ One line per loop iteration, newest last.
 - c1 p1 t1 i11 `system_check_and_update`: Approved items now report their result in the Chief's thread, so research or tracking you approve later is not lost to the conversation
 - c1 p1 t1 i12 `system_check_and_update`: Two-way contact count on People refreshes after every logged conversation, not only when someone is added
 - c1 p1 t1 i13 `system_check_and_update`: Rewriting the go or no-go memo no longer piles up duplicate get-to-yes tasks
+- c1 p1 t1 i14 `system_check_and_update`: Weekly review saves once, so a double tap no longer writes duplicate lessons
