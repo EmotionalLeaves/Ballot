@@ -90,6 +90,8 @@ Runs on a loop with no end condition and no questions asked. One cycle is 312 it
 - `CHANGELOG.md` gets one line per iteration. `DECISIONS.md` holds the design log. `FEATURES.md` holds the inventory.
 - A new session reads `LOOP_STATE.json` and continues from the exact iteration.
 - A file named `STOP` in the repo root stops the loop. Nothing else does.
+- `loop/README.md` has the step-by-step for a session; `loop/iter.sh` records an iteration, `loop/ci.sh` waits for CI.
+- Releases are signed with the fixed key in `signing/`. Never change it (see `signing/README.md`).
 
 ## Local checks without Android tooling
 
