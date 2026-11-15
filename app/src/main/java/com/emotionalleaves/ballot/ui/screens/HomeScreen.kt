@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -158,7 +159,9 @@ fun HomeScreen(nav: NavHostController) {
                     if (brief.isNotEmpty()) "${brief.size} new in your briefing" else null,
                     advanced?.let { "you reached stage ${it.number}" },
                 )
-                Small(bits.joinToString(" · "), Modifier.padding(horizontal = 4.dp))
+                // Tapping the line opens the briefing when there's something new in it.
+                Small(bits.joinToString(" · "), Modifier.padding(horizontal = 4.dp)
+                    .then(if (brief.isNotEmpty()) Modifier.clickable(onClickLabel = "Open briefing") { nav.navigate(Routes.BRIEFING) } else Modifier))
             }
             if (insideWork) item { Small("You're at work now. Everything keeps until after.", Modifier.padding(horizontal = 4.dp)) }
             item {
@@ -170,7 +173,6 @@ fun HomeScreen(nav: NavHostController) {
                             refresh++
                         }
                     })
-                    if (brief.isNotEmpty()) LinkButton("Briefing", color = c.muted, onClick = { nav.navigate(Routes.BRIEFING) })
                 }
             }
         }
