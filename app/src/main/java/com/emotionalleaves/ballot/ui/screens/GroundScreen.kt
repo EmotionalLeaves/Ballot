@@ -295,7 +295,7 @@ private fun RaceCardByHand(o: Office, rc: RaceCard?) {
         Field(sigs, { sigs = digits(it) }, "Signatures", Modifier.weight(1f), singleLine = true, number = true)
         Field(fee, { fee = digits(it) }, "Filing fee $", Modifier.weight(1f), singleLine = true, number = true)
     }
-    Field(deadline, { deadline = it.trim() }, "Filing deadline (YYYY-MM-DD)", singleLine = true)
+    Field(deadline, { deadline = it.trim() }, "Filing deadline, e.g. 3/1/2027", singleLine = true)
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Field(seats, { seats = digits(it) }, "Seats", Modifier.weight(1f), singleLine = true, number = true)
         Field(turnout, { turnout = digits(it) }, "Votes cast last time", Modifier.weight(1f), singleLine = true, number = true)

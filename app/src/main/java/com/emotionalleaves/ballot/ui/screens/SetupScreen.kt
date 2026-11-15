@@ -179,8 +179,8 @@ private fun LifeStep(p: Profile, onNext: (Profile) -> Unit) {
         }
     }
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        Field(start, { start = it }, "Work starts (HH:MM)", Modifier.weight(1f), singleLine = true)
-        Field(end, { end = it }, "Work ends (HH:MM)", Modifier.weight(1f), singleLine = true)
+        Field(start, { start = it }, "Work starts, e.g. 7:00am", Modifier.weight(1f), singleLine = true)
+        Field(end, { end = it }, "Work ends, e.g. 3:30pm", Modifier.weight(1f), singleLine = true)
     }
     Field(evenings, { evenings = it }, "Free evenings and weekend times", placeholder = "e.g. Tue and Thu evenings, Saturday mornings")
     Field(hours, { hours = it.filter { c -> c.isDigit() }.take(2) }, "Hours a week you can truly give", singleLine = true, number = true)
@@ -279,7 +279,7 @@ private fun FirstWeekStep(p: Profile, onFinish: () -> Unit) {
             Small(t.why)
         }
     }
-    Field(briefTime, { briefTime = it }, "Daily brief after work at (HH:MM)", singleLine = true)
+    Field(briefTime, { briefTime = it }, "Daily brief after work at, e.g. 4:15pm", singleLine = true)
     Small("Reminders are few, specific and tied to real deadlines. Quiet hours cover work and sleep.")
     Gap()
     PosterButton("Start", modifier = Modifier.fillMaxWidth(), onClick = {

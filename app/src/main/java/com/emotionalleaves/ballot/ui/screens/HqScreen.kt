@@ -104,7 +104,7 @@ fun HqScreen(nav: NavHostController) {
             Panel(accent = true) {
                 BigNumber(if (days >= 0) "$days" else "—", "Days to election day", color = com.emotionalleaves.ballot.ui.theme.Ink, size = 72)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Field(date, { date = it }, "Election day (YYYY-MM-DD, from the official calendar)", Modifier.weight(1f), singleLine = true)
+                    Field(date, { date = it }, "Election day (e.g. 11/3/2026, from the official calendar)", Modifier.weight(1f), singleLine = true)
                     LinkButton("Set", color = com.emotionalleaves.ballot.ui.theme.Ink, onClick = { parseDay(date)?.let { d -> scope.launch { g.case.updateProfile { it.copy(electionDateEpochDay = d) } } } })
                 }
             }

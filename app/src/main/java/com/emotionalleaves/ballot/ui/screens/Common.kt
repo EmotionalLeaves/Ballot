@@ -132,11 +132,8 @@ fun dollars(cents: Long): String = "$" + "%,d".format(cents / 100) + if (cents %
 
 fun hm(min: Int): String = "%02d:%02d".format(min / 60, min % 60)
 
-fun parseHm(s: String): Int? = s.trim().split(":").takeIf { it.size == 2 }?.let { (h, m) ->
-    val hh = h.toIntOrNull() ?: return null
-    val mm = m.toIntOrNull() ?: return null
-    if (hh in 0..23 && mm in 0..59) hh * 60 + mm else null
-}
+/** Accepts 18:30, 6:30pm, 6:30 PM (core DateText). Minutes after midnight. */
+fun parseHm(s: String): Int? = com.emotionalleaves.ballot.core.DateText.time(s)?.let { it.hour * 60 + it.minute }
 
 /** Accepts 2026-11-20, 11/20/2026, Nov 20 2026 and the like (core DateText). */
 fun parseDay(s: String): Long? = com.emotionalleaves.ballot.core.DateText.day(s)?.toEpochDay()

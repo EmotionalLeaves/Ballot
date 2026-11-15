@@ -223,3 +223,4 @@ One line per loop iteration, newest last.
 - c1 p6 t1 i20 `overhaul_system_architecture`: Duplicate contacts can be merged: a contact page lists likely duplicates (same name, first name, phone or email) and one tap moves every conversation, gift and introduction over in a single transaction
 - c1 p6 t1 i21 `overhaul_system_architecture`: Restoring a snapshot is undoable and crash-safe: the current case file is kept as an undo copy first, and the restore swaps the file in one step
 - c1 p6 t1 i22 `overhaul_system_architecture`: One tested date reader (core DateText) for every typed or AI-given date and time: 11/20/2026, Nov 20 2026, '2026-11-20 6:30pm' all work in deadlines, events and race cards
+- c1 p6 t1 i23 `overhaul_system_architecture`: Times use the same reader: 6:30pm, 6:30 PM or 18:30 work in events, work hours, brief time and settings by asking, and every date or time box shows a familiar example instead of YYYY-MM-DD

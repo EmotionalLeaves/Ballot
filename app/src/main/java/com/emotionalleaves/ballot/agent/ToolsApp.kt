@@ -84,7 +84,7 @@ internal fun ToolRegistry.registerAppTools() {
             "why" to S.s("Why they want this"), "issues" to S.s("Their issues"), "first_target" to S.s("First target"),
             "serve_done" to S.b("They now hold a role (board, commission, appointment) or finished a project they can point to"),
         )), RoutineKind.TRACKER) { a, c ->
-        fun hm(s: String?): Int? = s?.split(":")?.takeIf { it.size == 2 }?.let { (h, m) -> (h.toIntOrNull() ?: return@let null) * 60 + (m.toIntOrNull() ?: 0) }
+        fun hm(s: String?): Int? = s?.let { com.emotionalleaves.ballot.core.DateText.time(it) }?.let { it.hour * 60 + it.minute }
         c.case.updateProfile { p ->
             p.copy(name = a.str("name") ?: p.name, zip = a.str("zip") ?: p.zip, workDays = a.str("work_days") ?: p.workDays,
                 workStartMin = hm(a.str("work_start")) ?: p.workStartMin, workEndMin = hm(a.str("work_end")) ?: p.workEndMin,
@@ -109,11 +109,7 @@ internal fun ToolRegistry.registerAppTools() {
         val store = c.store ?: return@ToolDef ToolOutcome("Settings can't be changed from here. Open Settings.", isError = true)
         val v = a.str("value")!!.trim().lowercase()
         fun flag(): Boolean? = when (v) { "true", "on", "yes" -> true; "false", "off", "no" -> false; else -> null }
-        fun hm(): Int? {
-            val parts = v.split(":"); if (parts.size != 2) return null
-            val hh = parts[0].toIntOrNull() ?: return null; val mm = parts[1].toIntOrNull() ?: return null
-            return if (hh in 0..23 && mm in 0..59) hh * 60 + mm else null
-        }
+        fun hm(): Int? = com.emotionalleaves.ballot.core.DateText.time(v)?.let { it.hour * 60 + it.minute }
         val bad = ToolOutcome("That value doesn't fit ${a.str("setting")}.", isError = true)
         when (a.str("setting")) {
             "free_only" -> { if (flag() != true) return@ToolDef ToolOutcome("Turning free-only off allows spending, so only you can do that in Settings.", isError = true); store.update { it.copy(freeOnly = true) } }

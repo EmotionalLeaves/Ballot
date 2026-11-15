@@ -171,15 +171,15 @@ fun FieldScreen(nav: NavHostController) {
                 }) { date = it.toString() }
                 ChipRow(listOf("09:00", "12:00", "16:30", "17:30", "18:00", "18:30", "19:00"), time, { it }) { time = it }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Field(date, { date = it }, "Date (YYYY-MM-DD)", Modifier.weight(1f), singleLine = true)
-                    Field(time, { time = it }, "Time (HH:MM)", Modifier.weight(1f), singleLine = true)
+                    Field(date, { date = it }, "Date, e.g. 11/20/2026", Modifier.weight(1f), singleLine = true)
+                    Field(time, { time = it }, "Time, e.g. 6:30pm", Modifier.weight(1f), singleLine = true)
                 }
                 Field(goal, { goal = it }, "One goal for the night", singleLine = true, placeholder = "e.g. introduce yourself to two people")
                 if (error.isNotBlank()) Small(error, color = c.signal)
                 PosterButton("Save", enabled = title.isNotBlank(), onClick = {
                     scope.launch {
                         val d = parseDay(date); val t = parseHm(time)
-                        if (d == null || t == null) { error = "Check the date and time format."; return@launch }
+                        if (d == null || t == null) { error = "Check the date and time, e.g. 11/20/2026 and 6:30pm."; return@launch }
                         val dt = LocalDate.ofEpochDay(d).atStartOfDay().plusMinutes(t.toLong())
                         if (Scheduling.insideWork(g.case.availability(), dt)) { error = "That is inside your work hours."; return@launch }
                         g.db.events().upsert(Event(type = type, title = title, place = place, startAt = dt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(), goal = goal))

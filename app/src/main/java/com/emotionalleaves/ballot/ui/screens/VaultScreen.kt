@@ -161,7 +161,7 @@ private fun DeadlinesTab() {
             Title("Add one you were given")
             Small("For a date from the clerk or the election office. It stays marked 'confirm' until it has an official page.")
             Field(title, { title = it }, "What is due", singleLine = true)
-            Field(date, { date = it }, "Date (YYYY-MM-DD)", singleLine = true)
+            Field(date, { date = it }, "Date, e.g. 11/20/2026", singleLine = true)
             Field(url, { url = it }, "Official link (optional)", singleLine = true)
             com.emotionalleaves.ballot.ui.components.SwitchRow("Legal deadline (filing, reports, petitions)", legal, { legal = it })
             PosterButton("Add", enabled = title.isNotBlank() && parseDay(date) != null, onClick = {
