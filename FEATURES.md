@@ -50,8 +50,9 @@ Checked each phase. Controls may move or merge; a function is only removed when 
 - [x] Hourly worker: snapshot, playbook seeding, stage advance, rescoring, deadline alerts (14/7/2), follow-up and promise reminders, mentor requirement
 - [x] Daily brief worker, rule re-check worker (flags changed pages), offline queue worker
 - [x] Notifications: separate channels for deadlines, brief and follow-ups; quiet hours for work and sleep
-- [x] Encrypted DB (SQLCipher), keys in Keystore-backed storage, app lock with PIN or biometric and auto-lock
+- [x] Encrypted DB (SQLCipher), keys in Keystore-backed storage, app lock with PIN or biometric and auto-lock; masked secret fields, blank recent-apps preview when locked, lock-screen notifications show headings only
 - [x] FLAG_SECURE on Vault and vault documents; panic wipe with double confirm
-- [x] Encrypted export/import; daily snapshots, seven kept, restore screen
+- [x] Encrypted export/import (also from setup's first screen); a snapshot before every import; daily snapshots, seven kept, restore screen
+- [x] Releases signed with one fixed key, checked by fingerprint, so updates install over the last APK
 - [x] Crash reports on device with copy; visible network log
 - [x] Calm theme (light default, dark for night), text scaling, 48dp tap targets, screen-reader labels, collapsible Settings sections, grouped More menu
