@@ -13,3 +13,4 @@ One line per loop iteration, newest last.
 - c1 p1 t1 i3 `system_check_and_update`: Add the missing proactive trigger: a weekly score that drops two weeks running creates a shrink-the-plan task and one notification
 - c1 p1 t1 i4 `system_check_and_update`: Fact check uses the freshness window from Settings instead of a fixed 30 days
 - c1 p1 t1 i5 `system_check_and_update`: Busy indicator counts requests in flight, so a second Chief request no longer clears it early
+- c1 p1 t1 i6 `system_check_and_update`: Screen readers now hear tappable panels as buttons and chips as selected or not; chips grow to 48dp tap targets

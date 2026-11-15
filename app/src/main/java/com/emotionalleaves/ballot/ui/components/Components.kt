@@ -57,8 +57,10 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -167,7 +169,7 @@ fun Panel(
             .fillMaxWidth()
             .background(bg)
             .border(BorderStroke(2.dp, if (accent) c.signal else c.rule.copy(alpha = 0.35f)))
-            .let { if (onClick != null) it.clickable(onClick = onClick) else it }
+            .let { if (onClick != null) it.clickable(role = Role.Button, onClick = onClick) else it }
             .padding(padding),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         content = content,
@@ -256,10 +258,11 @@ fun <T> ChipRow(options: List<T>, selected: T?, label: (T) -> String, onSelect: 
             val on = o == selected
             Box(
                 Modifier
-                    .heightIn(min = 44.dp)
+                    .heightIn(min = 48.dp)
                     .background(if (on) c.fg else Color.Transparent)
                     .border(2.dp, c.fg)
-                    .clickable { onSelect(o) }
+                    .semantics { selected = on }
+                    .clickable(role = Role.Tab) { onSelect(o) }
                     .padding(horizontal = 14.dp, vertical = 10.dp),
                 contentAlignment = Alignment.Center,
             ) {
