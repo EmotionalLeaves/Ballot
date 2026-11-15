@@ -44,14 +44,21 @@ abstract class BallotDatabase : RoomDatabase() {
     abstract fun usage(): UsageDao
 
     companion object {
-        const val VERSION = 1
+        const val VERSION = 2
         const val NAME = "ballot.db"
 
         /**
          * Every schema change adds a Migration here and a test in MigrationsTest.
          * A change that cannot migrate is dropped (see the loop rules).
          */
-        val MIGRATIONS: Array<Migration> = arrayOf()
+        val MIGRATIONS: Array<Migration> = arrayOf(
+            // 1 -> 2: events remember when their "starts soon" reminder went out.
+            object : Migration(1, 2) {
+                override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                    db.execSQL("ALTER TABLE `event` ADD COLUMN `remindedAt` INTEGER NOT NULL DEFAULT 0")
+                }
+            },
+        )
 
         fun open(context: Context, passphrase: ByteArray): BallotDatabase {
             System.loadLibrary("sqlcipher")

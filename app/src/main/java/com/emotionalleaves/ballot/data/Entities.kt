@@ -265,6 +265,8 @@ data class Event(
     val updatedAt: Long = now(),
     val source: String = "you",
     val confidence: String = Confidence.STATED,
+    /** When the "starts soon" reminder went out; 0 = not yet. Added in schema 2. */
+    @androidx.room.ColumnInfo(defaultValue = "0") val remindedAt: Long = 0,
 )
 
 @Serializable

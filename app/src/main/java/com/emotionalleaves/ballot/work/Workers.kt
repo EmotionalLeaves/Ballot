@@ -39,6 +39,7 @@ object Notifications {
     const val DEADLINES = "deadlines"
     const val BRIEF = "brief"
     const val FOLLOW_UPS = "followups"
+    const val EVENTS = "events"
 
     fun createChannels(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
@@ -46,6 +47,7 @@ object Notifications {
         nm.createNotificationChannel(NotificationChannel(DEADLINES, "Deadlines", NotificationManager.IMPORTANCE_HIGH).apply { description = "Legal and filing deadlines" })
         nm.createNotificationChannel(NotificationChannel(BRIEF, "Daily brief", NotificationManager.IMPORTANCE_DEFAULT).apply { description = "Your daily brief is ready" })
         nm.createNotificationChannel(NotificationChannel(FOLLOW_UPS, "Follow-ups", NotificationManager.IMPORTANCE_DEFAULT).apply { description = "Follow-ups and promises coming due" })
+        nm.createNotificationChannel(NotificationChannel(EVENTS, "Meetings starting soon", NotificationManager.IMPORTANCE_DEFAULT).apply { description = "A meeting or event on your calendar starts in a few hours" })
     }
 
     fun post(context: Context, channel: String, id: Int, title: String, text: String) {
@@ -119,6 +121,17 @@ class HourlyWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx
             runCatching { Snapshots.take(applicationContext, case.db) }
             runCatching { case.expireStaleApprovals() }
             g.settings.update { it.copy(lastSnapshotDay = today) }
+        }
+
+        // A meeting starting in the next few hours gets one reminder (outside quiet hours), pointing at its prep card.
+        if (!quiet) runCatching {
+            case.eventsToRemind().forEach { e ->
+                if (e.preCard.isBlank()) case.prepCard(e.id)
+                val time = java.time.Instant.ofEpochMilli(e.startAt).atZone(java.time.ZoneId.systemDefault()).toLocalTime()
+                    .format(java.time.format.DateTimeFormatter.ofPattern("h:mm a"))
+                Notifications.post(applicationContext, Notifications.EVENTS, 50_000 + (e.id % 10_000).toInt(), "${e.title} at $time",
+                    "Your prep card is ready in What's on locally." + if (e.place.isNotBlank()) " ${e.place}." else "")
+            }
         }
 
         case.seedPlaybook(Stage.of(p.stage))

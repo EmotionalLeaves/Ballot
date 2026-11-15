@@ -26,7 +26,7 @@ jobs:
       - name: Lint, unit tests, agent evals, migrations, compile
         run: ./gradlew --no-daemon --stacktrace lintDebug testDebugUnitTest assembleDebug 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
       - name: Print exported Room schemas (so they can be committed for migration tests)
-        if: success()
+        if: always()
         run: |
           if [ ! -d app/schemas ]; then ./gradlew --no-daemon -q :app:kspDebugKotlin --rerun || true; fi
           find . -path "*schemas*" -name "*.json" -not -path "./.git/*" | while read -r f; do echo "=== SCHEMA $f"; cat "$f"; echo "=== END SCHEMA"; done

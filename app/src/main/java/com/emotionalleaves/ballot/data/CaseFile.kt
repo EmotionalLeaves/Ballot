@@ -339,5 +339,12 @@ class CaseFile(val db: BallotDatabase, private val settings: SettingsStore) {
         }
         return stale.size
     }
+
+    /** Events starting within [hours] that haven't had their reminder; marks them reminded and returns them. */
+    suspend fun eventsToRemind(at: Long = now(), hours: Int = 3): List<Event> {
+        val soon = db.events().all().filter { it.remindedAt == 0L && it.startAt > at && it.startAt <= at + hours * 3_600_000L }
+        soon.forEach { db.events().upsert(it.copy(remindedAt = at)) }
+        return soon
+    }
 }
 

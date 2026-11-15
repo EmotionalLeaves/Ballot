@@ -341,5 +341,13 @@ class FlowTests {
         assertEquals("EXPIRED", db.pending().get(old)!!.status)
         assertEquals("WAITING", db.pending().get(fresh)!!.status)
     }
+
+    @Test fun aMeetingSoonIsRemindedOnce() = runTest {
+        val at = com.emotionalleaves.ballot.data.now()
+        db.events().upsert(com.emotionalleaves.ballot.data.Event(title = "Council", startAt = at + 2 * 3_600_000L))
+        db.events().upsert(com.emotionalleaves.ballot.data.Event(title = "Next week", startAt = at + 7 * 86_400_000L))
+        assertEquals(listOf("Council"), case.eventsToRemind(at).map { it.title })
+        assertTrue("only once", case.eventsToRemind(at).isEmpty())
+    }
 }
 
