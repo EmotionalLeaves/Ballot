@@ -73,6 +73,7 @@ object KeySetup {
                 model = if (main && (p.id == "anthropic" || p.id == "openai")) model else st.model,
             )
         }
+        g.chief.clearRest(p.id)
         g.case.audit("you", "Connected AI service", input = "${p.name} · $model")
         return Outcome(true, "Connected to ${p.name} using $model.", model)
     }

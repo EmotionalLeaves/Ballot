@@ -116,6 +116,9 @@ $brief
 
     private fun rest(id: String) = runtime.edit().putLong("rest_$id", LocalDate.now().toEpochDay()).apply()
 
+    /** A service that answers a test again is back in the normal order. */
+    fun clearRest(id: String) = runtime.edit().remove("rest_$id").apply()
+
     /** One service and model to try. */
     data class Route(val preset: ProviderPreset, val model: String)
 
