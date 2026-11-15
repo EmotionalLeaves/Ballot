@@ -183,6 +183,14 @@ class SchedulingTest {
         assertEquals(emptyList<Int>(), DeadlineLogic.alertsDue(100, 101, listOf(14, 7, 2), emptySet()))
     }
 
+    @Test fun aDeadlineFoundLateGetsOneAlertNotThree() {
+        // One day left and nothing sent yet: the 2-day alert fires and covers 7 and 14 too.
+        assertEquals(listOf(2), DeadlineLogic.alertsDue(100, 99, listOf(14, 7, 2), emptySet()))
+        val sent = DeadlineLogic.coveredBy(2, listOf(14, 7, 2))
+        assertEquals(setOf(2, 7, 14), sent)
+        assertEquals(emptyList<Int>(), DeadlineLogic.alertsDue(100, 99, listOf(14, 7, 2), sent))
+    }
+
     @Test fun preparedDraftNeededWithinSevenDays() {
         assertTrue(DeadlineLogic.needsPreparedDraft(107, 100, false))
         assertFalse(DeadlineLogic.needsPreparedDraft(108, 100, false))

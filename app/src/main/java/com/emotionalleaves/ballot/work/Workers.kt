@@ -128,13 +128,14 @@ class HourlyWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx
             // Deadlines: alerts at the lead times, 14, 7 and 2 days by default. Never repeated.
             for (d in case.db.deadlines().open()) {
                 val sent = d.alertsSent.split(',').mapNotNull { it.trim().toIntOrNull() }.toSet()
-                val due = DeadlineLogic.alertsDue(d.dueEpochDay, today, DeadlineLogic.parseLeads(d.leadAlerts), sent)
+                val leads = DeadlineLogic.parseLeads(d.leadAlerts)
+                val due = DeadlineLogic.alertsDue(d.dueEpochDay, today, leads, sent)
                 if (due.isNotEmpty()) {
                     val days = d.dueEpochDay - today
                     Notifications.post(applicationContext, Notifications.DEADLINES, (d.id % 100000).toInt() + 1000,
                         "${d.title}: " + when (days) { 0L -> "due today"; 1L -> "due tomorrow"; else -> "$days days left" },
                         "Due ${LocalDate.ofEpochDay(d.dueEpochDay).format(java.time.format.DateTimeFormatter.ofPattern("EEEE d MMMM"))}. ${if (d.preparedDraftId != 0L) "Draft ready in the Vault." else "Open Ballot to prepare it."}")
-                    case.db.deadlines().upsert(d.copy(alertsSent = (sent + due).joinToString(","), updatedAt = now()))
+                    case.db.deadlines().upsert(d.copy(alertsSent = (sent + due + due.flatMap { DeadlineLogic.coveredBy(it, leads) }).joinToString(","), updatedAt = now()))
                 }
             }
             // Follow-ups three days old, and promises coming due.

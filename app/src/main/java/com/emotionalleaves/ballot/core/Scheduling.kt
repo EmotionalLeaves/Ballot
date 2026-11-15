@@ -56,8 +56,12 @@ object DeadlineLogic {
     /** The lead alerts that are due today and have not been sent yet. */
     fun alertsDue(dueEpochDay: Long, todayEpochDay: Long, leads: List<Int>, alreadySent: Set<Int>): List<Int> {
         val daysLeft = dueEpochDay - todayEpochDay
-        return leads.filter { it !in alreadySent && daysLeft <= it && daysLeft >= 0 }.take(1)
+        // The tightest lead time that applies: a deadline found late gets one alert, not one per lead time.
+        return leads.filter { it !in alreadySent && daysLeft <= it && daysLeft >= 0 }.sorted().take(1)
     }
+
+    /** Lead times an alert at [lead] covers: it and every longer one, so they never fire afterwards. */
+    fun coveredBy(lead: Int, leads: List<Int>): Set<Int> = leads.filter { it >= lead }.toSet()
 
     fun needsPreparedDraft(dueEpochDay: Long, todayEpochDay: Long, hasDraft: Boolean): Boolean =
         !hasDraft && dueEpochDay - todayEpochDay in 0..7
