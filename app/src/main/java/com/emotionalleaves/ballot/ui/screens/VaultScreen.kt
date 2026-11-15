@@ -111,6 +111,8 @@ fun VaultScreen(nav: NavHostController) {
         "Self-vetting: the audit an opponent would run on you, done first.")) {
         item { ChipRow(listOf("Deadlines", "Rules", "Money", "Paper", "Disclaimers", "Self-vetting"), tab, { it }) { tab = it } }
         item { BusyBar() }
+        // The Chief's answer shows right here, so asking doesn't take you away from your records.
+        item { ReplyPanel { nav.navigate(Routes.CHIEF) } }
         when (tab) {
             "Deadlines" -> item { DeadlinesTab() }
             "Rules" -> item { RulesTab(nav) }
@@ -184,7 +186,6 @@ private fun RulesTab(nav: NavHostController) {
             askChief(g, "Load the official election and campaign finance rules that apply to me: filing requirements, petition rules, contribution limits, prohibited sources, " +
                 "reporting deadlines and disclaimer rules, from my state and county election authority pages only. Save each deadline with add_deadline (with rule_summary, " +
                 "jurisdiction, office_phone, and limit_kind/limit_dollars for money limits). Say plainly what needs an election lawyer or the clerk.", "loading rules")
-            nav.navigate(Routes.CHIEF)
         })
         if (rules.isEmpty()) EmptyNote("No rules yet. Add one from your election office's page or a call to the clerk, or have the Chief read them from your state and county election pages.")
         rules.forEach { r ->
@@ -325,7 +326,6 @@ private fun DisclaimerTab(nav: NavHostController) {
         PosterButton("Find my disclaimer rules", onClick = {
             askChief(g, "Find the official disclaimer rules for my jurisdiction: required 'paid for by' wording, where it must appear on print, signs, digital and mail, " +
                 "and any AI-generated content disclosure rules. Official sources only, cited. Save the rule with add_deadline if it has a date, otherwise save_to_vault.", "finding disclaimer rules")
-            nav.navigate(Routes.CHIEF)
         })
         Field(committee, { committee = it }, "Committee name, as registered", singleLine = true)
         if (committee.isNotBlank()) Panel {
