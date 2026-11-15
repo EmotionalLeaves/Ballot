@@ -178,13 +178,14 @@ private fun RulesTab(nav: NavHostController) {
     val c = LocalBallotColors.current
     androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Small("Rules differ by state, county and city. The Chief never states one from memory. Each is fetched from the official authority and re-checked before deadlines.")
-        PosterButton("Load the rules for my office", onClick = {
+        AddRuleByHand()
+        PosterButton("Load the rules with the Chief", primary = false, onClick = {
             askChief(g, "Load the official election and campaign finance rules that apply to me: filing requirements, petition rules, contribution limits, prohibited sources, " +
                 "reporting deadlines and disclaimer rules, from my state and county election authority pages only. Save each deadline with add_deadline (with rule_summary, " +
                 "jurisdiction, office_phone, and limit_kind/limit_dollars for money limits). Say plainly what needs an election lawyer or the clerk.", "loading rules")
             nav.navigate(Routes.CHIEF)
         })
-        if (rules.isEmpty()) EmptyNote("No rules yet. Tap Load the rules for my office and the Chief reads them from your state and county election pages.")
+        if (rules.isEmpty()) EmptyNote("No rules yet. Add one from your election office's page or a call to the clerk, or have the Chief read them from your state and county election pages.")
         rules.forEach { r ->
             Panel {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { Kicker(r.jurisdiction.ifBlank { "Rule" }); ConfidenceBadge(r.status) }
@@ -356,3 +357,37 @@ private fun VettingTab(nav: NavHostController) {
         }
     }
 }
+
+/** A rule written down from the election office's page or a phone call: no AI needed. */
+@Composable
+private fun AddRuleByHand() {
+    val g = LocalContext.current.graph
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    var open by remember { mutableStateOf(false) }
+    var place by remember { mutableStateOf("") }
+    var summary by remember { mutableStateOf("") }
+    var url by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
+    var limit by remember { mutableStateOf("") }
+    LinkButton(if (open) "Hide" else "Add a rule by hand", onClick = { open = !open })
+    if (!open) return
+    Panel {
+        Field(place, { place = it }, "Whose rule, e.g. Lancaster County Election Commission", singleLine = true)
+        Field(summary, { summary = it }, "What it says, in plain words", minLines = 2)
+        Field(limit, { limit = it.filter { ch -> ch.isDigit() || ch == '.' } }, "Contribution limit per donor in dollars (if this is one)", singleLine = true, number = true)
+        Field(url, { url = it.trim() }, "Official page", singleLine = true)
+        Field(phone, { phone = it.trim() }, "Office phone", singleLine = true)
+        PosterButton("Save rule", enabled = place.isNotBlank() && summary.isNotBlank(), onClick = {
+            scope.launch {
+                val cents = limit.toDoubleOrNull()?.let { Math.round(it * 100) } ?: 0L
+                g.db.rules().upsert(com.emotionalleaves.ballot.data.Rule(jurisdiction = place.trim(), summary = summary.trim(), officialUrl = url, officePhone = phone,
+                    limitKind = if (cents > 0) "PER_DONOR" else "", limitCents = cents, status = com.emotionalleaves.ballot.data.Confidence.STATED,
+                    source = "you", confidence = com.emotionalleaves.ballot.data.Confidence.STATED, lastChecked = com.emotionalleaves.ballot.data.now()))
+                g.case.audit("you", "Added a rule by hand", input = place.trim())
+                place = ""; summary = ""; url = ""; phone = ""; limit = ""; open = false
+            }
+        })
+        Small("Saved as 'you said'. With an official page it is re-checked for changes like any other rule.")
+    }
+}
+

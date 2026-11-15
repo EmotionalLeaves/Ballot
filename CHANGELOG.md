@@ -157,3 +157,4 @@ One line per loop iteration, newest last.
 - AI-reliance: a quiet week's review names likely blockers in plain code from your own numbers (WeeklyScore.blockers, tested); talking it through with the Chief is optional.
 - AI-reliance: the pre-event card is built in plain code from your goal, issues, stances and contacts (PrepCard, tested); web research with the Chief is optional.
 - AI-reliance: event debriefs save by hand (with a lesson) and the Chief's filing is optional; setup, Today and the Chief say plainly that Ballot works without AI and that AI only adds research and drafts.
+- AI-reliance: offices and rules can be added by hand (from a city page, a sample ballot or a call to the clerk), saved as 'you said'; the quiz, race scoring and limit warnings work from them with no AI. The Chief's research is the second button.

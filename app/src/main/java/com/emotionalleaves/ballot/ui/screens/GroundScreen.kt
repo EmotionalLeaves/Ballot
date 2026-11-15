@@ -93,13 +93,15 @@ fun GroundScreen(nav: NavHostController) {
         item { BusyBar() }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                PosterButton("Find my offices", onClick = {
+                PosterButton("Find my offices with the Chief", onClick = {
                     askChief(g, "Find every office that represents me (city, county, school district, state, federal) from official pages. Save them with find_offices, " +
                         "each with its official link and source. Local and part-time offices first. Define each body in one plain sentence.", "finding offices")
                 })
                 PosterButton("Score races", primary = false, enabled = offices.isNotEmpty(), onClick = { scoreRaces() })
             }
         }
+        // Adding an office by hand needs no AI: a city website, a ballot or a phone call to the clerk is enough.
+        item { AddOfficeByHand() }
         item { ReplyPanel { nav.navigate(Routes.CHIEF) } }
         rec?.let { r ->
             item {
@@ -223,3 +225,45 @@ fun WinNumberCalculator(card: RaceCard?) {
         }
     }
 }
+
+@Composable
+private fun AddOfficeByHand() {
+    val g = LocalContext.current.graph
+    val scope = rememberCoroutineScope()
+    val c = LocalBallotColors.current
+    var open by remember { mutableStateOf(false) }
+    var body by remember { mutableStateOf("") }
+    var district by remember { mutableStateOf("") }
+    var level by remember { mutableStateOf("LOCAL") }
+    var holder by remember { mutableStateOf("") }
+    var term by remember { mutableStateOf("") }
+    var next by remember { mutableStateOf("") }
+    var powers by remember { mutableStateOf("") }
+    var appointed by remember { mutableStateOf(false) }
+    var url by remember { mutableStateOf("") }
+    LinkButton(if (open) "Hide" else "Add an office by hand", onClick = { open = !open })
+    if (!open) return
+    Panel {
+        Small("From your city or county website, a sample ballot, or a call to the clerk. Leave out anything you're not sure of.")
+        Field(body, { body = it }, "Body, e.g. City Council", singleLine = true)
+        Field(district, { district = it }, "Ward or district (if any)", singleLine = true)
+        com.emotionalleaves.ballot.ui.components.ChipRow(listOf("LOCAL", "COUNTY", "SCHOOL", "STATE", "FEDERAL"), level, { pretty(it) }) { level = it }
+        Field(holder, { holder = it }, "Who holds it now", singleLine = true)
+        Field(term, { term = it }, "Term length, e.g. 4 years", singleLine = true)
+        Field(next, { next = it }, "Next on the ballot, e.g. November 2027", singleLine = true)
+        Field(powers, { powers = it }, "What it really controls", minLines = 2)
+        com.emotionalleaves.ballot.ui.components.SwitchRow("Filled by appointment, not election", appointed, { appointed = it })
+        Field(url, { url = it.trim() }, "Official page (optional)", singleLine = true)
+        PosterButton("Save office", enabled = body.isNotBlank(), onClick = {
+            scope.launch {
+                g.db.offices().upsert(com.emotionalleaves.ballot.data.Office(body = body.trim(), district = district.trim(), level = level, incumbent = holder.trim(),
+                    term = term.trim(), nextElection = next.trim(), powers = powers.trim(), appointed = appointed, officialUrl = url,
+                    source = "you", confidence = com.emotionalleaves.ballot.data.Confidence.STATED))
+                g.case.audit("you", "Added an office by hand", input = body.trim())
+                body = ""; district = ""; holder = ""; term = ""; next = ""; powers = ""; url = ""; appointed = false; open = false
+            }
+        })
+        Small("Saved as 'you said'. Add the official page later and it can be checked.", color = c.muted)
+    }
+}
+
