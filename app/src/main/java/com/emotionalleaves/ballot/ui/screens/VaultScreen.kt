@@ -306,7 +306,7 @@ private fun PaperTab(nav: NavHostController) {
                 if (d.filePath.isBlank()) nav.navigate(Routes.document(d.id))
                 else scope.launch { withContext(Dispatchers.IO) { runCatching { VaultFiles.prepare(ctx, d.filePath, d.title) }.getOrNull() }?.let { VaultFiles.view(ctx, it) } }
             }, padding = 12.dp) {
-                Kicker("${d.type} · ${shortDate(d.createdAt)}")
+                Kicker("${pretty(d.type)} · ${shortDate(d.createdAt)}")
                 Text(d.title, style = MaterialTheme.typography.titleMedium, color = c.fg)
             }
         }

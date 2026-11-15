@@ -142,7 +142,7 @@ private fun OfficePanel(o: Office, rc: RaceCard?, margin: Int, expanded: Boolean
                         onExplain: () -> Unit, onDelete: () -> Unit, onOpen: (String) -> Unit) {
     val c = LocalBallotColors.current
     Panel(onClick = onToggle) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { Kicker("${o.level} · ${if (o.appointed) "appointed" else "elected"}${if (o.partTime) " · part time" else ""}"); ConfidenceBadge(o.confidence) }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { Kicker("${pretty(o.level)} · ${if (o.appointed) "appointed" else "elected"}${if (o.partTime) " · part time" else ""}"); ConfidenceBadge(o.confidence) }
         Text("${o.body} ${o.district}".trim(), style = MaterialTheme.typography.titleLarge, color = c.fg)
         Small("Held by ${o.incumbent.ifBlank { "unknown" }} · next on the ballot ${o.nextElection.ifBlank { "unknown" }}", color = c.fg)
         if (rc != null && rc.score > 0) Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
