@@ -48,7 +48,7 @@ object PageFetcher {
                 val title = Regex("<title[^>]*>(.*?)</title>", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
                     .find(raw)?.groupValues?.get(1)?.let { decode(it).trim() } ?: ""
                 val text = if (type.contains("html") || raw.trimStart().startsWith("<")) htmlToText(raw) else raw
-                FetchedPage(finalUrl, r.code, title, text, sha(text))
+                FetchedPage(finalUrl, r.code, title, text, com.emotionalleaves.ballot.core.PageText.VERSION + sha(com.emotionalleaves.ballot.core.PageText.stable(text)))
             }
         } catch (e: IOException) {
             throw LlmException("Could not reach $https (${e.message ?: "network"})", retryable = true)

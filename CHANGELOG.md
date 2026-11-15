@@ -213,3 +213,4 @@ One line per loop iteration, newest last.
 - c1 p6 t1 i10 `overhaul_system_architecture`: Tasks added from briefings, HQ, donors and the run-or-wait memo go through one case-file path that never duplicates and puts them on Today at once
 - c1 p6 t1 i11 `overhaul_system_architecture`: Logging a conversation has one case-file path for the Chief and the People page (new contacts added, promises become tasks, stage exit checked); the People page now also refreshes Today
 - c1 p6 t1 i12 `overhaul_system_architecture`: Backups carry your everyday settings too (quiet hours, brief time, theme, text size, autonomy, safety numbers), but never keys, the PIN or the lock
+- c1 p6 t1 i13 `overhaul_system_architecture`: Rule-page change checks fingerprint the page's words, not its clock (dates, visitor counts, copyright years are ignored), so rules only flag when their wording moves; old fingerprints re-baseline quietly

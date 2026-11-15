@@ -349,3 +349,13 @@ class LedgerTest {
         assertEquals(null, com.emotionalleaves.ballot.core.Ledger.parseDirection("sideways"))
     }
 }
+
+class PageTextTest {
+    @Test fun theClockOnAPageIsNotAChange() {
+        val a = "Filing period: Jan 5 to Feb 15\nLast updated: March 3, 2026\nVisitors: 10,452\n© 2026 County Clerk"
+        val b = "Filing period: Jan 5 to Feb 15\nLast updated: April 9, 2026\nVisitors: 10,990\n© 2027 County Clerk"
+        assertEquals(com.emotionalleaves.ballot.core.PageText.stable(a), com.emotionalleaves.ballot.core.PageText.stable(b))
+        val c = "Filing period: Jan 5 to Feb 20\nLast updated: April 9, 2026"
+        assertFalse(com.emotionalleaves.ballot.core.PageText.stable(a) == com.emotionalleaves.ballot.core.PageText.stable(c))
+    }
+}
