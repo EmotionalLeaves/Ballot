@@ -28,3 +28,4 @@ One line per loop iteration, newest last.
 - Round 5: tests for key detection, model picking, search parsing, Retry-After and daily caps; README, feature list and decision log updated; version 0.2.0.
 - c1 p1 t1 i11 `system_check_and_update`: Approved items now report their result in the Chief's thread, so research or tracking you approve later is not lost to the conversation
 - c1 p1 t1 i12 `system_check_and_update`: Two-way contact count on People refreshes after every logged conversation, not only when someone is added
+- c1 p1 t1 i13 `system_check_and_update`: Rewriting the go or no-go memo no longer piles up duplicate get-to-yes tasks

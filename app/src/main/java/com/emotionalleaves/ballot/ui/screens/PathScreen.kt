@@ -284,9 +284,11 @@ fun GoNoGoScreen(nav: NavHostController) {
                     g.db.decisions().upsert(Decision(kind = "GO_NO_GO", question = "Run for $target?", options = "GO\nNOT YET\nNO",
                         choice = if (allYes) "GO" else "NOT YET", reasoning = memo, agreed = false))
                     goNoGoPoints.indices.filter { answers[it] != "YES" }.forEach { i ->
-                        g.db.tasks().upsert(Task(stage = g.case.profile().stage, title = "Get to yes: ${goNoGoPoints[i]}", why = "A go or no-go point is not met yet.",
+                        val key = "gonogo.$i"
+                        // One open "get to yes" task per point, however many times the memo is rewritten.
+                        if (g.db.tasks().open().none { it.templateKey == key }) g.db.tasks().upsert(Task(stage = g.case.profile().stage, title = "Get to yes: ${goNoGoPoints[i]}", why = "A go or no-go point is not met yet.",
                             doneLooksLike = "This point answered yes with evidence.", goodEnough = "Evidence, not certainty.", movesExit = true, module = "path",
-                            templateKey = "gonogo.$i.${LocalDate.now()}", sizeMinutes = 15))
+                            templateKey = key, sizeMinutes = 15))
                     }
                     g.case.audit("you", "Wrote go or no-go memo", input = target, outcome = if (allYes) "GO" else "NOT YET")
                     saved = true
