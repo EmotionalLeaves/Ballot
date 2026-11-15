@@ -170,3 +170,4 @@ One line per loop iteration, newest last.
 - c1 p4 t2 i20 `verify_goal_completion`: Stage 8 debrief is four plain questions saved as the debrief decision and a lesson, which meets the stage 8 exit with no AI
 - Phase 4 end (cycle 1): green, pushed. FEATURES.md checked: no function removed; several strengthened to work without AI.
 - c1 p5 t1 i1 `combine_screens`: Meetings and events and the local briefing are one page, 'What's on locally', with two tabs and one entry in More
+- c1 p5 t1 i2 `combine_screens`: Who you are and Drafts are one page, 'Your voice', with two tabs

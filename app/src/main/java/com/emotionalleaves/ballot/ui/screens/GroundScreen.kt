@@ -42,6 +42,7 @@ import com.emotionalleaves.ballot.ui.components.Screen
 import com.emotionalleaves.ballot.ui.components.Small
 import com.emotionalleaves.ballot.ui.components.Title
 import com.emotionalleaves.ballot.ui.theme.LocalBallotColors
+import com.emotionalleaves.ballot.ui.switchTab
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -84,7 +85,7 @@ fun GroundScreen(nav: NavHostController) {
         }
     }
 
-    Screen("Offices and races", kicker = "Your political map", onBack = { nav.popBackStack() }, walkthrough = listOf(
+    Screen("Your town", kicker = "Your political map", onBack = { nav.popBackStack() }, tabs = townTabs(nav), selectedTab = 0, walkthrough = listOf(
         "Every office that represents you, who holds it, and when it is next on the ballot.",
         "Each fact is linked to its official source with a label: Verified, Likely or Unverified.",
         "Race cards hold filing rules, signatures, past turnout and past spending, from official pages only.",

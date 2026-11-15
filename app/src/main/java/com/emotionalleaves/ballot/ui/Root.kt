@@ -103,7 +103,7 @@ private val tabs = listOf(
 fun parentTab(route: String?): String = when (route) {
     null, Routes.HOME -> Routes.HOME
     Routes.CHIEF -> Routes.CHIEF
-    Routes.PATH, Routes.QUIZ, Routes.GONOGO, Routes.REVIEW -> Routes.PATH
+    Routes.PATH, Routes.GONOGO, Routes.REVIEW -> Routes.PATH
     Routes.PEOPLE, Routes.CONTACT -> Routes.PEOPLE
     else -> Routes.MORE
 }

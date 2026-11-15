@@ -41,6 +41,7 @@ import com.emotionalleaves.ballot.ui.components.Title
 import com.emotionalleaves.ballot.ui.theme.Go
 import com.emotionalleaves.ballot.ui.theme.LocalBallotColors
 import kotlinx.coroutines.delay
+import com.emotionalleaves.ballot.ui.switchTab
 import kotlinx.coroutines.launch
 import kotlinx.serialization.builtins.ListSerializer
 
@@ -67,7 +68,7 @@ fun StudioScreen(nav: NavHostController) {
     var type by remember { mutableStateOf(docTypes.first()) }
     var topic by remember { mutableStateOf("") }
     val c = LocalBallotColors.current
-    Screen("Drafts", kicker = "Words, in your voice", onBack = { nav.popBackStack() }, walkthrough = listOf(
+    Screen("Your voice", kicker = "Drafts, in your words", onBack = { nav.popBackStack() }, tabs = voiceTabs(nav), selectedTab = 1, walkthrough = listOf(
         "Pick what you need and say what it is about. A template fills in your own words; the Chief can write a first draft if you prefer.",
         "Every factual claim is checked. Unverified claims are highlighted and block approval until sourced or cut.",
         "Your edit is always final. Approve only when it sounds like you.",

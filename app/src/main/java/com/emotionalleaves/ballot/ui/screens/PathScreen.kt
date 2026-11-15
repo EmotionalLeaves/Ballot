@@ -60,6 +60,7 @@ import com.emotionalleaves.ballot.ui.components.Screen
 import com.emotionalleaves.ballot.ui.components.Small
 import com.emotionalleaves.ballot.ui.components.Title
 import com.emotionalleaves.ballot.ui.theme.LocalBallotColors
+import com.emotionalleaves.ballot.ui.switchTab
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
@@ -83,7 +84,7 @@ fun PathScreen(nav: NavHostController) {
     val p = profile ?: return
     val current = Stage.of(p.stage)
     val c = LocalBallotColors.current
-    Screen("Your plan", kicker = "Eight stages. Each opens when the one before is done.", walkthrough = listOf(
+    Screen("Your plan", kicker = "Eight stages. Each opens when the one before is done.", tabs = planTabs(nav), selectedTab = 0, walkthrough = listOf(
         "This is the whole road from zero to office. You are on the highlighted stage.",
         "A stage unlocks only when the one before it passes its exit test. Stages 3 to 5 cannot be skipped: they are how people come to know and trust you.",
         "Timings are defaults. The Chief adjusts them to your life.",
@@ -250,7 +251,7 @@ fun QuizScreen(nav: NavHostController) {
         }
     }
 
-    Screen("Quiz: your town", kicker = "Stage 2 exit test · pass is ${StageRules.QUIZ_PASS} of 10", onBack = { nav.popBackStack() },
+    Screen("Your town", kicker = "Town quiz · stage 2 exit test · pass is ${StageRules.QUIZ_PASS} of 10", onBack = { nav.popBackStack() }, tabs = townTabs(nav), selectedTab = 1,
         walkthrough = listOf("Ten questions built in the app from your own offices and rules. No AI involved.", "Pick an answer for each, then check.", "Retake as often as you like. Your best score counts.")) {
         if (questions.isEmpty()) item {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -380,7 +381,7 @@ fun WeeklyReviewScreen(nav: NavHostController) {
         }
     }
     val score = WeeklyScore.score(counts)
-    Screen("Weekly review", kicker = "Score · stop · start · keep · three priorities", onBack = { nav.popBackStack() }, walkthrough = listOf(
+    Screen("Your plan", kicker = "Weekly review · score, stop, start, keep, three priorities", onBack = { nav.popBackStack() }, tabs = planTabs(nav), selectedTab = 1, walkthrough = listOf(
         "The score counts only real things: conversations, meetings, comments, contacts, follow-ups, reps.", "Time in the app never counts.",
         "Pick one thing to stop, one to start, one to keep.", "Pick next week's three priorities. The plan changes accordingly.")) {
         item {

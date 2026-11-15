@@ -29,6 +29,7 @@ import com.emotionalleaves.ballot.ui.components.PosterButton
 import com.emotionalleaves.ballot.ui.components.Screen
 import com.emotionalleaves.ballot.ui.components.Small
 import com.emotionalleaves.ballot.ui.theme.LocalBallotColors
+import com.emotionalleaves.ballot.ui.switchTab
 import kotlinx.coroutines.launch
 
 private data class Entry(val kicker: String, val title: String, val body: String, val confidence: String, val onDelete: (() -> Unit)?, val onOpen: (() -> Unit)?)
@@ -78,7 +79,7 @@ fun CaseFileScreen(nav: NavHostController) {
             listOf(a.input.take(200), a.outcome.take(200), a.sources).filter { it.isNotBlank() }.joinToString("\n"), "STATED", null, null) }
     }
 
-    Screen("Case file", kicker = "Everything the Chief relies on", onBack = { nav.popBackStack() }, walkthrough = listOf(
+    Screen("Records", kicker = "Everything the app knows about your campaign, to check or delete", onBack = { nav.popBackStack() }, tabs = recordTabs(nav), selectedTab = 1, walkthrough = listOf(
         "Identity, ground, sources, your public record, the plan and lessons. Each entry has a date, a source and a confidence label.",
         "Delete anything you don't want kept. Tap an entry to open where it lives.",
         "The audit log records every agent action, tool call and approval. It cannot be edited.")) {

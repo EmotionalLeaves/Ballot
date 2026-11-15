@@ -53,6 +53,7 @@ import com.emotionalleaves.ballot.ui.components.Small
 import com.emotionalleaves.ballot.ui.components.Title
 import com.emotionalleaves.ballot.ui.theme.LocalBallotColors
 import kotlinx.coroutines.Dispatchers
+import com.emotionalleaves.ballot.ui.switchTab
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -102,7 +103,7 @@ fun VaultScreen(nav: NavHostController) {
     val ctx = LocalContext.current
     val g = ctx.graph
     var tab by remember { mutableStateOf("Deadlines") }
-    Screen("Vault", kicker = "Rules, money and paper · screenshots blocked", onBack = { nav.popBackStack() }, walkthrough = listOf(
+    Screen("Records", kicker = "Rules, money and paper · screenshots blocked", onBack = { nav.popBackStack() }, tabs = recordTabs(nav), selectedTab = 0, walkthrough = listOf(
         "Deadlines: every filing date and report window, each tied to its official page.",
         "Rules: what the Chief has fetched, when it last checked, and the office to call.",
         "Money: every dollar in and out from the first one, including your own, shaped for reports.",

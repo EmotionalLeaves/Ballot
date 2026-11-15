@@ -53,19 +53,15 @@ private data class Module(val route: String, val title: String, val line: String
 
 private val groups: List<Pair<String, List<Module>>> = listOf(
     "Your campaign" to listOf(
-        Module(Routes.COMPASS, "Who you are", "Your reason, issues, story and positions", androidx.compose.material.icons.Icons.Filled.Explore),
-        Module(Routes.GROUND, "Offices and races", "Who represents you, race cards, the win number", androidx.compose.material.icons.Icons.Filled.AccountBalance),
+        Module(Routes.COMPASS, "Your voice", "Your reason, issues, story, positions and drafts", androidx.compose.material.icons.Icons.Filled.Explore),
+        Module(Routes.GROUND, "Your town", "Offices, race cards, the win number and the town quiz", androidx.compose.material.icons.Icons.Filled.AccountBalance),
         Module(Routes.FIELD, "What's on locally", "Meetings, events and the local briefing", androidx.compose.material.icons.Icons.Filled.Event),
+        Module(Routes.GYM, "Practice", "Speaking reps, mock rooms and flashcards", androidx.compose.material.icons.Icons.Filled.RecordVoiceOver),
         Module(Routes.HQ, "Campaign HQ", "Launch, field, money and election day", androidx.compose.material.icons.Icons.Filled.Flag),
-    ),
-    "Skills and words" to listOf(
-        Module(Routes.GYM, "Practice", "Speaking reps and mock interviews", androidx.compose.material.icons.Icons.Filled.RecordVoiceOver),
-        Module(Routes.STUDIO, "Drafts", "Speeches, comments and letters in your voice", androidx.compose.material.icons.Icons.Filled.EditNote),
     ),
     "Records" to listOf(
         Module(Routes.APPROVALS, "Waiting for your OK", "Anything that would go out in your name", androidx.compose.material.icons.Icons.Filled.TaskAlt),
-        Module(Routes.VAULT, "Vault", "Deadlines, rules, money and papers", androidx.compose.material.icons.Icons.Filled.Lock),
-        Module(Routes.CASEFILE, "Case file", "Everything the Chief knows, to check or delete", androidx.compose.material.icons.Icons.Filled.FolderOpen),
+        Module(Routes.VAULT, "Records", "Deadlines, rules, money, papers and the case file", androidx.compose.material.icons.Icons.Filled.Lock),
     ),
     "App" to listOf(
         Module(Routes.SETTINGS, "Settings", "AI services, spending, reminders, lock, backup", androidx.compose.material.icons.Icons.Filled.Settings),

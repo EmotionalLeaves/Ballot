@@ -34,6 +34,7 @@ import com.emotionalleaves.ballot.ui.components.Screen
 import com.emotionalleaves.ballot.ui.components.Small
 import com.emotionalleaves.ballot.ui.components.Title
 import com.emotionalleaves.ballot.ui.theme.LocalBallotColors
+import com.emotionalleaves.ballot.ui.switchTab
 import kotlinx.coroutines.launch
 
 @Composable
@@ -53,7 +54,7 @@ fun CompassScreen(nav: NavHostController) {
     var editing by remember { mutableStateOf<Position?>(null) }
     var confirmUnlock by remember { mutableStateOf(false) }
     val c = LocalBallotColors.current
-    Screen("Who you are", kicker = "Who you are and what you stand for", onBack = { nav.popBackStack() }, walkthrough = listOf(
+    Screen("Your voice", kicker = "Who you are and what you stand for", onBack = { nav.popBackStack() }, tabs = voiceTabs(nav), selectedTab = 0, walkthrough = listOf(
         "Your reason, your issues, your positions, your story. In your words, never the Chief's.",
         "The 60-second story has a hard cap of three drafts, then it locks. That stops endless rewriting.",
         "Each position holds your stance, the strongest counter-argument and the facts with sources.",

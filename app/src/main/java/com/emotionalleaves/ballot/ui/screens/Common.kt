@@ -1,5 +1,7 @@
 package com.emotionalleaves.ballot.ui.screens
 
+import com.emotionalleaves.ballot.ui.switchTab
+
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -99,6 +101,12 @@ fun ReplyPanel(onOpenChief: () -> Unit) {
         Text(chiefText(r.text.take(600)), style = MaterialTheme.typography.bodyMedium, color = LocalBallotColors.current.fg, maxLines = 8, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
     }
 }
+
+// Pages that share one job are combined: one entry in More, tabs at the top.
+fun voiceTabs(nav: androidx.navigation.NavHostController) = listOf("Who you are" to { nav.switchTab(Routes.COMPASS) }, "Drafts" to { nav.switchTab(Routes.STUDIO) })
+fun recordTabs(nav: androidx.navigation.NavHostController) = listOf("Vault" to { nav.switchTab(Routes.VAULT) }, "Case file" to { nav.switchTab(Routes.CASEFILE) })
+fun townTabs(nav: androidx.navigation.NavHostController) = listOf("Offices and races" to { nav.switchTab(Routes.GROUND) }, "Town quiz" to { nav.switchTab(Routes.QUIZ) })
+fun planTabs(nav: androidx.navigation.NavHostController) = listOf("Plan" to { nav.switchTab(Routes.PATH) }, "Weekly review" to { nav.switchTab(Routes.REVIEW) })
 
 /** "1 request", "3 requests". */
 fun count(n: Int, one: String, many: String = one + "s"): String = "$n ${if (n == 1) one else many}"
