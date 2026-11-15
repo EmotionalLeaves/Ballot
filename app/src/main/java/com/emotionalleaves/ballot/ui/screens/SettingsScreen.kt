@@ -174,7 +174,7 @@ fun SettingsScreen(nav: NavHostController) {
                 Kicker("Daily snapshots (${snapshots.size} of ${Snapshots.KEEP})")
                 snapshots.forEach { f ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Body(f.name.removePrefix("ballot-").removeSuffix(".db"), Modifier.weight(1f))
+                        Body(snapshotLabel(f.name), Modifier.weight(1f))
                         LinkButton("Restore", onClick = { restoreFile = f })
                     }
                 }
@@ -289,7 +289,7 @@ fun SettingsScreen(nav: NavHostController) {
         }
     }
     restoreFile?.let { f ->
-        ConfirmDialog("Restore ${f.name}?", "The app will restart with the case file as it was on that day. Anything since then is replaced.", "Restore",
+        ConfirmDialog("Restore ${snapshotLabel(f.name)}?", "The app will restart with the case file as it was then. What's here now is kept as an undo copy, so you can switch back.", "Restore",
             onConfirm = { g.restoreAndRestart(f) }, onDismiss = { restoreFile = null })
     }
     if (confirmWipe == 1) ConfirmDialog("Wipe everything?", "Everything Ballot holds on this phone will be deleted.", "Continue",
@@ -301,3 +301,11 @@ fun SettingsScreen(nav: NavHostController) {
 private fun copy(ctx: Context, text: String) {
     (ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("Ballot crash", text))
 }
+
+/** "ballot-2026-11-15.db" reads "2026-11-15"; an undo copy reads "Before your last restore". */
+fun snapshotLabel(name: String): String = when {
+    name.startsWith("undo-") -> "Before a restore (" + (name.removePrefix("undo-").removeSuffix(".db").toLongOrNull()?.let {
+        java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.systemDefault()).toLocalDate().toString() } ?: "earlier") + ")"
+    else -> name.removePrefix("ballot-").removeSuffix(".db")
+}
+

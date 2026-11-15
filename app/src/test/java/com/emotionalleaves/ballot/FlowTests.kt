@@ -377,5 +377,15 @@ class FlowTests {
         assertEquals(1, db.contacts().all().size)
         assertEquals(2, db.interactions().all().count { it.contactId == a.id })
     }
+
+    @Test fun restoringASnapshotKeepsAnUndoCopy() = runTest {
+        val live = ctx.getDatabasePath(BallotDatabase.NAME).apply { parentFile?.mkdirs(); writeText("current case file") }
+        val snap = java.io.File(com.emotionalleaves.ballot.data.Snapshots.dir(ctx), "ballot-2026-01-01.db").apply { writeText("older case file") }
+        com.emotionalleaves.ballot.data.Snapshots.restore(ctx, snap)
+        assertEquals("older case file", live.readText())
+        val undo = com.emotionalleaves.ballot.data.Snapshots.list(ctx).first { it.name.startsWith("undo-") }
+        assertEquals("current case file", undo.readText())
+        live.delete(); snap.delete(); undo.delete()
+    }
 }
 

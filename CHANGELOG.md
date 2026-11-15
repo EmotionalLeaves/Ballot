@@ -221,3 +221,4 @@ One line per loop iteration, newest last.
 - c1 p6 t1 i18 `overhaul_system_architecture`: The money ledger exports as a spreadsheet (CSV, tested quoting and totals) for a report or a treasurer, shared straight from Records
 - c1 p6 t1 i19 `overhaul_system_architecture`: Backup reminders: the app records when you last exported a backup, and after 30 days without one (or never, once there's something to lose) Today gets one small 'save a backup' task
 - c1 p6 t1 i20 `overhaul_system_architecture`: Duplicate contacts can be merged: a contact page lists likely duplicates (same name, first name, phone or email) and one tap moves every conversation, gift and introduction over in a single transaction
+- c1 p6 t1 i21 `overhaul_system_architecture`: Restoring a snapshot is undoable and crash-safe: the current case file is kept as an undo copy first, and the restore swaps the file in one step

@@ -165,7 +165,10 @@ object Snapshots {
 
     fun dir(context: Context): File = File(context.filesDir, "snapshots").apply { mkdirs() }
 
-    fun list(context: Context): List<File> = dir(context).listFiles { f -> f.name.endsWith(".db") }?.sortedByDescending { it.name } ?: emptyList()
+    /** Daily snapshots and "undo" copies made before a restore, newest first. */
+    fun list(context: Context): List<File> = dir(context).listFiles { f -> f.name.endsWith(".db") }?.sortedByDescending { it.lastModified() } ?: emptyList()
+
+    private fun daily(context: Context) = dir(context).listFiles { f -> f.name.startsWith("ballot-") && f.name.endsWith(".db") }?.sortedByDescending { it.name } ?: emptyList()
 
     /**
      * Copies the database file. With [db] given, the copy is made inside a write transaction, so no other
@@ -180,15 +183,23 @@ object Snapshots {
         if (db != null && db.isOpen) db.runInTransaction { src.copyTo(tmp, overwrite = true) } else src.copyTo(tmp, overwrite = true)
         if (tmp.length() != src.length()) { tmp.delete(); return null }
         if (!tmp.renameTo(out)) { tmp.copyTo(out, overwrite = true); tmp.delete() }
-        list(context).drop(KEEP).forEach { it.delete() }
+        daily(context).drop(KEEP).forEach { it.delete() }
         return out
     }
 
     /** Copies a snapshot over the live database. The caller must close the database first and restart. */
     fun restore(context: Context, snapshot: File) {
         val dst = context.getDatabasePath(BallotDatabase.NAME)
+        // Restoring is undoable: what's here now is kept as an "undo" copy first (the last two are kept).
+        if (dst.exists() && dst.length() > 0) {
+            dst.copyTo(File(dir(context), "undo-${System.currentTimeMillis()}.db"), overwrite = true)
+            dir(context).listFiles { f -> f.name.startsWith("undo-") }?.sortedByDescending { it.name }?.drop(2)?.forEach { it.delete() }
+        }
+        // Copy beside the database, then swap in one step, so a crash mid-copy can't leave a broken file.
+        val tmp = File(dst.path + ".restoring")
+        snapshot.copyTo(tmp, overwrite = true)
         listOf("-journal", "-wal", "-shm").forEach { File(dst.path + it).delete() }
-        snapshot.copyTo(dst, overwrite = true)
+        if (!tmp.renameTo(dst)) { tmp.copyTo(dst, overwrite = true); tmp.delete() }
     }
 }
 
