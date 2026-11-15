@@ -44,7 +44,29 @@ data class BackupBundle(
     val brief: List<BriefItem> = emptyList(),
     val queue: List<QueuedRequest> = emptyList(),
     val usage: List<UsageRecord> = emptyList(),
+    /** Your everyday settings. Absent in older backups. Keys, the PIN and the app lock are never included. */
+    val prefs: BackupPrefs? = null,
 )
+
+@Serializable
+data class BackupPrefs(
+    val sleepStartMin: Int, val sleepEndMin: Int, val briefMinuteOfDay: Int, val darkTheme: Boolean, val textScale: Float,
+    val autoLockMinutes: Int, val coolingMinutes: Int, val freshnessDaysRules: Int, val freshnessDaysGeneral: Int,
+    val safetyMarginPct: Int, val supportRatePct: Int, val contactsPerHour: Int, val volunteerHoursPerWeek: Int,
+    val askFirst: Set<String>, val officialDomains: Set<String>, val freeOnly: Boolean, val useBackups: Boolean, val monthlyCapCents: Int,
+) {
+    fun applyTo(s: AppSettings) = s.copy(sleepStartMin = sleepStartMin, sleepEndMin = sleepEndMin, briefMinuteOfDay = briefMinuteOfDay,
+        darkTheme = darkTheme, textScale = textScale, autoLockMinutes = autoLockMinutes, coolingMinutes = coolingMinutes,
+        freshnessDaysRules = freshnessDaysRules, freshnessDaysGeneral = freshnessDaysGeneral, safetyMarginPct = safetyMarginPct,
+        supportRatePct = supportRatePct, contactsPerHour = contactsPerHour, volunteerHoursPerWeek = volunteerHoursPerWeek,
+        askFirst = askFirst, officialDomains = officialDomains, freeOnly = freeOnly, useBackups = useBackups, monthlyCapCents = monthlyCapCents)
+
+    companion object {
+        fun of(s: AppSettings) = BackupPrefs(s.sleepStartMin, s.sleepEndMin, s.briefMinuteOfDay, s.darkTheme, s.textScale, s.autoLockMinutes,
+            s.coolingMinutes, s.freshnessDaysRules, s.freshnessDaysGeneral, s.safetyMarginPct, s.supportRatePct, s.contactsPerHour,
+            s.volunteerHoursPerWeek, s.askFirst, s.officialDomains, s.freeOnly, s.useBackups, s.monthlyCapCents)
+    }
+}
 
 /** Encrypted export and import, started by you. AES-256-GCM with a key derived from your passphrase. */
 object Backup {
@@ -91,12 +113,12 @@ object Backup {
     fun encode(b: BackupBundle): ByteArray = BallotJson.encodeToString(b).toByteArray()
     fun decode(bytes: ByteArray): BackupBundle = BallotJson.decodeFromString(BackupBundle.serializer(), String(bytes))
 
-    suspend fun export(db: BallotDatabase, passphrase: CharArray): ByteArray = withContext(Dispatchers.IO) {
-        encrypt(encode(bundle(db)), passphrase)
+    suspend fun export(db: BallotDatabase, passphrase: CharArray, store: SettingsStore? = null): ByteArray = withContext(Dispatchers.IO) {
+        encrypt(encode(bundle(db).copy(prefs = store?.get()?.let { BackupPrefs.of(it) })), passphrase)
     }
 
     /** Replaces everything with the backup, in one transaction after a clear. */
-    suspend fun import(db: BallotDatabase, data: ByteArray, passphrase: CharArray) = withContext(Dispatchers.IO) {
+    suspend fun import(db: BallotDatabase, data: ByteArray, passphrase: CharArray, store: SettingsStore? = null) = withContext(Dispatchers.IO) {
         val b = decode(decrypt(data, passphrase))
         require(b.schemaVersion <= BallotDatabase.VERSION) { "This backup comes from a newer version of Ballot. Update the app first." }
         // Clear and refill in one transaction: if anything fails part-way, the case file is left exactly as it was.
@@ -131,6 +153,8 @@ object Backup {
             b.queue.forEach { db.queue().upsert(it) }
             b.usage.forEach { db.usage().insert(it) }
         }
+        // Settings come back after the case file is safely in; your current lock and keys are left as they are.
+        b.prefs?.let { pr -> store?.update { pr.applyTo(it) } }
         db.audit().insert(AuditEntry(actor = "you", action = "Imported a backup", outcome = "exported ${b.exportedAt}"))
     }
 }

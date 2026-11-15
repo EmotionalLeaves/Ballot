@@ -92,7 +92,7 @@ fun SettingsScreen(nav: NavHostController) {
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
         if (uri != null) scope.launch {
             backupStatus = runCatching {
-                val bytes = Backup.export(g.db, passphrase.toCharArray())
+                val bytes = Backup.export(g.db, passphrase.toCharArray(), g.settings)
                 withContext(Dispatchers.IO) { ctx.contentResolver.openOutputStream(uri)?.use { it.write(bytes) } }
                 g.case.audit("you", "Exported a backup")
                 "Backup saved. Keep the passphrase safe: without it the file cannot be opened."
@@ -105,7 +105,7 @@ fun SettingsScreen(nav: NavHostController) {
                 val bytes = withContext(Dispatchers.IO) { ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() } } ?: error("Could not read the file.")
                 // Keep what was here first: an import replaces everything, so a snapshot makes it undoable.
                 withContext(Dispatchers.IO) { Snapshots.take(ctx, g.db) }
-                Backup.import(g.db, bytes, passphrase.toCharArray())
+                Backup.import(g.db, bytes, passphrase.toCharArray(), g.settings)
                 refresh++
                 "Backup restored. What was here before is kept in today's snapshot below."
             }.getOrElse { it.message ?: "Import failed." }

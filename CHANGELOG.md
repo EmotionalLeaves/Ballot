@@ -212,3 +212,4 @@ One line per loop iteration, newest last.
 - c1 p6 t1 i9 `overhaul_system_architecture`: Deadlines typed by hand go through one case-file path (no duplicates, legal ones get their draft and task at once, audited); the Vault form gains a 'legal deadline' switch, on by default
 - c1 p6 t1 i10 `overhaul_system_architecture`: Tasks added from briefings, HQ, donors and the run-or-wait memo go through one case-file path that never duplicates and puts them on Today at once
 - c1 p6 t1 i11 `overhaul_system_architecture`: Logging a conversation has one case-file path for the Chief and the People page (new contacts added, promises become tasks, stage exit checked); the People page now also refreshes Today
+- c1 p6 t1 i12 `overhaul_system_architecture`: Backups carry your everyday settings too (quiet hours, brief time, theme, text size, autonomy, safety numbers), but never keys, the PIN or the lock

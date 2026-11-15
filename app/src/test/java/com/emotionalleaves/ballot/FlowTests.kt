@@ -320,5 +320,18 @@ class FlowTests {
         case.completeTask(db.tasks().get(id)!!)
         assertNotNull("a check can come back once the old one is done", case.addTaskOnce(again, againOnceDone = true))
     }
+
+    @Test fun aBackupBringsBackYourSettingsButNeverTheLock() = runTest {
+        val store = SettingsStore(ctx)
+        store.update { it.copy(sleepStartMin = 23 * 60, darkTheme = true, appLock = false) }
+        val file = com.emotionalleaves.ballot.data.Backup.export(db, "passphrase1".toCharArray(), store)
+        store.update { it.copy(sleepStartMin = 20 * 60, darkTheme = false, appLock = true) }
+        com.emotionalleaves.ballot.data.Backup.import(db, file, "passphrase1".toCharArray(), store)
+        val s = store.get()
+        assertEquals(23 * 60, s.sleepStartMin)
+        assertTrue(s.darkTheme)
+        assertTrue("the lock you have now stays", s.appLock)
+        store.update { AppSettings() }
+    }
 }
 

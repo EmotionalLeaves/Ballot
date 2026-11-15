@@ -118,7 +118,7 @@ private fun RestoreFromBackup() {
         if (uri != null) scope.launch {
             status = runCatching {
                 val bytes = withContext(Dispatchers.IO) { ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() } } ?: error("Could not read the file.")
-                com.emotionalleaves.ballot.data.Backup.import(g.db, bytes, passphrase.toCharArray())
+                com.emotionalleaves.ballot.data.Backup.import(g.db, bytes, passphrase.toCharArray(), g.settings)
                 "Backup restored."
             }.getOrElse { it.message ?: "Import failed." }
         }
