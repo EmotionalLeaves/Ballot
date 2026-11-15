@@ -396,6 +396,9 @@ interface BriefDao {
     @Query("SELECT COUNT(*) FROM brief_item WHERE dayEpoch = :day AND kind = :kind")
     suspend fun countFor(day: Long, kind: String): Int
 
+    @Query("SELECT COUNT(*) FROM brief_item WHERE dayEpoch = :day AND kind != 'LONG_READ'")
+    suspend fun countDay(day: Long): Int
+
     @Upsert
     suspend fun upsert(b: BriefItem): Long
 }

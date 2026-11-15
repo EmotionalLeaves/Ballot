@@ -179,7 +179,7 @@ class BriefWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx,
         val minute = nowT.hour * 60 + nowT.minute
         val today = case.today()
         // Build once a day, after the chosen brief time, never during work or sleep.
-        val alreadyBuilt = case.db.brief().countFor(today, "NEWS") + case.db.brief().countFor(today, "AGENDA") > 0
+        val alreadyBuilt = case.db.brief().countDay(today) > 0
         if (!force && (minute < s.briefMinuteOfDay || alreadyBuilt || Scheduling.quiet(case.availability(), nowT))) return Result.success()
         val issues = p.issues.ifBlank { "local government" }
         val r = runCatching {
@@ -193,8 +193,7 @@ class BriefWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx,
         if (r.queued) return Result.retry()
         // An error reply (no key, spend cap, refused) is not a brief: never announce it as one.
         if (r.error) return if (force) Result.failure() else Result.success()
-        val built = case.db.brief().countFor(today, "NEWS") + case.db.brief().countFor(today, "AGENDA") + case.db.brief().countFor(today, "SEAT") +
-            case.db.brief().countFor(today, "DECISION")
+        val built = case.db.brief().countDay(today)
         if (built > 0) Notifications.post(applicationContext, Notifications.BRIEF, 3001, "Your brief is ready", r.text.take(160))
         return Result.success()
     }
