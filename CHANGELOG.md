@@ -59,3 +59,4 @@ One line per loop iteration, newest last.
 - c1 p1 t1 i38 `system_check_and_update`: Free reasoning models (gpt-oss on Groq and Cerebras, OpenRouter free) get room to think and answer; an empty cut-off reply moves to the next service
 - c1 p1 t1 i39 `system_check_and_update`: The Chief knows what is still waiting for your approval, so it never tells you something was sent or filed when it wasn't
 - c1 p1 t1 i40 `system_check_and_update`: A service added in Settings appears in the connected list straight away instead of after leaving the screen
+- Fix (owner report): Connect stuck on "Connecting…"; cancellable requests, 25 s per try, 90 s cap, progress and Cancel. Release 0.3.1.
