@@ -130,7 +130,11 @@ fun ApprovalsScreen(nav: NavHostController) {
                     PendingKind.SEND -> "Message to send yourself"
                     PendingKind.CONFIRM_VOICE -> "Confirm what you said"
                     PendingKind.ROUTINE -> "Routine item you asked to approve"
-                    else -> p.kind.lowercase()
+                    "POST" -> "Post to publish yourself"
+                    "FILE" -> "Filing to submit yourself"
+                    "SIGN" -> "Something to sign yourself"
+                    "SPEND" -> "Spending to make yourself"
+                    else -> pretty(p.kind)
                 } + " · ${shortDate(p.createdAt)}", color = c.signal)
                 Text(p.summary, style = MaterialTheme.typography.titleMedium, color = c.fg)
                 if (p.kind == PendingKind.SEND) Field(draft, { draft = it }, "Message", minLines = 3)
