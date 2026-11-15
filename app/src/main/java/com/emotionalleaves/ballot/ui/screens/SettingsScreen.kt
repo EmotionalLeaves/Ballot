@@ -208,8 +208,11 @@ fun SettingsScreen(nav: NavHostController) {
                     Text("Dark theme (light is better outdoors)", style = MaterialTheme.typography.bodyLarge, color = c.fg, modifier = Modifier.weight(1f))
                     Switch(checked = s.darkTheme, onCheckedChange = { v -> upd { it.copy(darkTheme = v) } })
                 }
-                Small("Text size ${"%.0f".format(s.textScale * 100)}%")
-                Slider(value = s.textScale, onValueChange = { v -> upd { it.copy(textScale = (v * 20).toInt() / 20f) } }, valueRange = 0.85f..1.5f)
+                var scale by remember(s.textScale) { mutableStateOf(s.textScale) }
+                Small("Text size ${"%.0f".format(scale * 100)}%")
+                // Saved when you let go, so dragging doesn't rewrite settings dozens of times.
+                Slider(value = scale, onValueChange = { scale = (it * 20).toInt() / 20f }, valueRange = 0.85f..1.5f,
+                    onValueChangeFinished = { val v = scale; upd { it.copy(textScale = v) } })
             }
         }
         item {

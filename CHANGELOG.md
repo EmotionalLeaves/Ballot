@@ -49,3 +49,4 @@ One line per loop iteration, newest last.
 - c1 p1 t1 i30 `system_check_and_update`: A day's brief made only of seat or decision items no longer gets rebuilt every six hours
 - c1 p1 t1 i31 `system_check_and_update`: Re-test on a connected AI service now shows whether it worked and, if not, why
 - c1 p1 t1 i32 `system_check_and_update`: A service that passes a re-test is taken off today's resting list straight away
+- c1 p1 t1 i33 `system_check_and_update`: Text size slider saves once when you let go instead of on every pixel of the drag
