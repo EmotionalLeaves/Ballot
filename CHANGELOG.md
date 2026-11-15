@@ -130,3 +130,4 @@ One line per loop iteration, newest last.
 - c1 p4 t1 i11 `test_core_functionality`: Flow test: panic wipe leaves no contacts, tasks or audit entries behind
 - c1 p4 t1 i12 `test_core_functionality`: Flow test: lessons and brief items the Chief saves land where Plan and Briefing show them
 - c1 p4 t1 i13 `test_core_functionality`: Flow test: 'take a snapshot' by asking answers plainly whether or not there's anything to save yet
+- c1 p4 t1 i14 `test_core_functionality`: Flow test: changing your work hours by asking moves what counts as work time for new events
