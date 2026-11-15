@@ -378,7 +378,12 @@ $brief
         if (!online() || !hasKey()) return 0
         var done = 0
         for (q in case.db.queue().all()) {
-            if (q.attempts >= 3) { case.db.queue().delete(q); continue }
+            if (q.attempts >= 3) {
+                // Never drop your request silently: say it was given up on, so you can ask again.
+                if (q.thread != "background") case.db.chat().insert(ChatMessage(thread = q.thread, role = "assistant",
+                    text = "I couldn't run this after three tries, so I've stopped retrying: \"${q.prompt.take(120)}\". Ask again when you're ready.", mode = Mode.CLERK.label))
+                case.db.queue().delete(q); continue
+            }
             case.db.queue().upsert(q.copy(attempts = q.attempts + 1))
             val r = ask(q.prompt, q.thread, persist = false, queue = false)
             if (!r.queued) {
