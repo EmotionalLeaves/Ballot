@@ -45,7 +45,8 @@ object Providers {
         keyUrl = "https://aistudio.google.com/apikey", keyPrefixes = listOf("AIza", "AQ."), free = true, needsCard = false, webSearch = false,
         defaultModel = "gemini-flash-latest", fallbackModel = "gemini-flash-lite-latest",
         prefer = listOf(Regex("^gemini-[0-9.]+-flash$"), Regex("^gemini-flash-latest$"), Regex("^gemini-[0-9.]+-flash-lite$"), Regex("^gemini-flash-lite-latest$"), Regex("flash")),
-        exclude = nonChat + Regex("pro", RegexOption.IGNORE_CASE) + Regex("preview-tts|live|thinking-exp|aqa|learnlm", RegexOption.IGNORE_CASE),
+        exclude = nonChat + Regex("pro", RegexOption.IGNORE_CASE) +
+            Regex("preview-tts|live|thinking-exp|aqa|learnlm|robotics|omni|transcribe|computer-use|nano|banana|deep-research|antigravity|lyria", RegexOption.IGNORE_CASE),
         steps = listOf(
             "Tap Open the key page. Sign in with any Google account.",
             "Tap Create API key. If it asks for a project, let it make one.",
