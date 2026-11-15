@@ -333,5 +333,13 @@ class FlowTests {
         assertTrue("the lock you have now stays", s.appLock)
         store.update { AppSettings() }
     }
+
+    @Test fun approvalsLeftForAMonthCloseWithoutSending() = runTest {
+        val old = db.pending().upsert(com.emotionalleaves.ballot.data.PendingAction(kind = "SEND", summary = "Thank Ana", createdAt = com.emotionalleaves.ballot.data.now() - 31L * 86_400_000L))
+        val fresh = db.pending().upsert(com.emotionalleaves.ballot.data.PendingAction(kind = "SEND", summary = "Thank Ben"))
+        assertEquals(1, case.expireStaleApprovals())
+        assertEquals("EXPIRED", db.pending().get(old)!!.status)
+        assertEquals("WAITING", db.pending().get(fresh)!!.status)
+    }
 }
 

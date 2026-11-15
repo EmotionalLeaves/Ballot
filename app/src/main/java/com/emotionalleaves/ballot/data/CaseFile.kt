@@ -325,5 +325,19 @@ class CaseFile(val db: BallotDatabase, private val settings: SettingsStore) {
         rescore()
         return contact
     }
+
+    /**
+     * Approvals left waiting for a month are closed as EXPIRED (kept, audited, never sent): a thank-you or a
+     * filing drafted weeks ago is likely out of date, and a long queue hides what matters now.
+     */
+    suspend fun expireStaleApprovals(days: Int = 30, at: Long = now()): Int {
+        val cutoff = at - days * 86_400_000L
+        val stale = db.pending().all().filter { it.status == "WAITING" && it.createdAt < cutoff }
+        stale.forEach { p ->
+            db.pending().upsert(p.copy(status = "EXPIRED", decidedAt = at))
+            audit("app", "Closed an approval left waiting $days days", input = p.summary.take(120), outcome = "expired, not sent")
+        }
+        return stale.size
+    }
 }
 
