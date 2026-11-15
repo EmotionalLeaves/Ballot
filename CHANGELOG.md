@@ -194,3 +194,4 @@ One line per loop iteration, newest last.
 - c1 p5 t3 i3 `apply_intuitive_layout`: Your town: 'Add an office by hand' comes first, then the Chief's search; Score races is the main button once offices exist
 - c1 p5 t3 i4 `apply_intuitive_layout`: Settings opens on everyday things (quiet hours and look, lock, backup); AI services move below as an optional section
 - c1 p5 t3 i5 `apply_intuitive_layout`: Setup's first screen leads with 'Continue without AI'; the AI setup opens only if you ask for it
+- c1 p5 t3 i6 `apply_intuitive_layout`: Briefing without AI says plainly that it's the one page that needs AI and where agendas you find yourself go, instead of showing buttons that do nothing

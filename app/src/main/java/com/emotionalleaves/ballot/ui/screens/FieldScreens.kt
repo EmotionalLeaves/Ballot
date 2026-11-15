@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,6 +53,8 @@ fun BriefingScreen(nav: NavHostController) {
     val ctx = LocalContext.current
     val g = ctx.graph
     val briefItems by g.db.brief().observeRecent().collectAsStateWithLifecycle(initialValue = emptyList())
+    var hasAi by remember { androidx.compose.runtime.mutableStateOf(true) }
+    LaunchedEffect(Unit) { hasAi = g.chief.hasKey() }
     val work by androidx.work.WorkManager.getInstance(ctx).getWorkInfosForUniqueWorkFlow("brief_now").collectAsStateWithLifecycle(initialValue = emptyList())
     val c = LocalBallotColors.current
     Screen("What's on locally", kicker = "What is happening near you", onBack = { nav.popBackStack() },
@@ -60,7 +63,12 @@ fun BriefingScreen(nav: NavHostController) {
         "It is built in the background after work, so it is waiting when you open the app.",
         "Each item ends with one optional action.")) {
         item { ReplyPanel { nav.navigate(Routes.CHIEF) } }
-        item {
+        // The briefing is read from the web, so it's the one page that needs AI. Without it, say so plainly instead of offering buttons that do nothing.
+        if (!hasAi) item {
+            Small("The briefing is gathered from local news and agendas on the web, so it needs an AI service (optional, free in Settings, AI services). " +
+                "Everything else in Ballot works without one. Agendas you find yourself can go on the Meetings and events tab.")
+        }
+        if (hasAi) item {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 PosterButton("Build today's brief", onClick = { Workers.briefNow(ctx) })
                 PosterButton("Weekly long read", primary = false, onClick = {
@@ -77,7 +85,7 @@ fun BriefingScreen(nav: NavHostController) {
                 else -> "Building runs in the background, so you can leave this screen."
             }, color = if (state == androidx.work.WorkInfo.State.RUNNING) c.signal else c.muted)
         }
-        if (briefItems.isEmpty()) item { EmptyNote("Nothing yet. The first brief arrives after your chosen time, or tap Build today's brief.") }
+        if (briefItems.isEmpty() && hasAi) item { EmptyNote("Nothing yet. The first brief arrives after your chosen time, or tap Build today's brief.") }
         val grouped = briefItems.groupBy { it.dayEpoch }
         grouped.forEach { (d, list) ->
             item { Title(day(d)) }
