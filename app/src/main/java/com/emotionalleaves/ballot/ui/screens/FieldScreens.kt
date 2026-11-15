@@ -82,10 +82,26 @@ fun BriefingScreen(nav: NavHostController) {
             items(list.size) { i ->
                 val b = list[i]
                 Panel(onClick = if (b.url.isNotBlank()) ({ openUrl(ctx, b.url) }) else null) {
-                    Kicker(b.kind)
+                    Kicker(pretty(b.kind))
                     Text(b.title, style = MaterialTheme.typography.titleMedium, color = c.fg)
                     if (b.body.isNotBlank()) Body(b.body)
-                    if (b.action.isNotBlank()) Small("Action: ${b.action}", color = c.signal)
+                    if (b.action.isNotBlank()) {
+                        Small("Action: ${b.action}", color = c.signal)
+                        // News only moves you forward when it becomes something you do.
+                        val key = "brief.${b.id}"
+                        val scope = androidx.compose.runtime.rememberCoroutineScope()
+                        var added by androidx.compose.runtime.remember(b.id) { androidx.compose.runtime.mutableStateOf(false) }
+                        androidx.compose.runtime.LaunchedEffect(b.id) { added = g.db.tasks().countTemplate(key) > 0 }
+                        if (added) Small("On your plan.")
+                        else com.emotionalleaves.ballot.ui.components.LinkButton("Add to my plan", onClick = {
+                            scope.launch {
+                                if (g.db.tasks().countTemplate(key) == 0) g.db.tasks().upsert(com.emotionalleaves.ballot.data.Task(stage = g.case.profile().stage,
+                                    title = b.action.take(120), why = "From your briefing: ${b.title.take(100)}", doneLooksLike = "Done, or decided not to.",
+                                    goodEnough = "Showing up counts.", humanContact = true, module = "briefing", templateKey = key, sizeMinutes = 15))
+                                g.case.rescore(); added = true
+                            }
+                        })
+                    }
                     if (b.url.isNotBlank()) Small(com.emotionalleaves.ballot.core.Verification.host(b.url))
                 }
             }
