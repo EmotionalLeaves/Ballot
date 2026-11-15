@@ -87,3 +87,4 @@ One line per loop iteration, newest last.
 - c1 p2 t1 i1 `reduce_menus_and_buttons`: More hides Campaign HQ until you reach the run stage, instead of showing a locked door for months; the Chief can still open it
 - c1 p2 t1 i2 `reduce_menus_and_buttons`: Auto-lock minutes save as you type; its separate Save button is gone
 - c1 p2 t1 i3 `reduce_menus_and_buttons`: Cooling minutes, win margin and rule-check days save as you type; their Save button is gone
+- c1 p2 t1 i4 `reduce_menus_and_buttons`: Today's task card merges 'How to do it' and 'Why this?' into one 'How and why' dialog (steps, what done looks like, then the score)

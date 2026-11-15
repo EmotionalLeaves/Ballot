@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -43,7 +45,6 @@ import com.emotionalleaves.ballot.ui.components.Progress
 import com.emotionalleaves.ballot.ui.components.Screen
 import com.emotionalleaves.ballot.ui.components.Small
 import com.emotionalleaves.ballot.ui.components.Stamp
-import com.emotionalleaves.ballot.ui.components.WalkthroughDialog
 import com.emotionalleaves.ballot.ui.openModule
 import com.emotionalleaves.ballot.ui.theme.Ink
 import com.emotionalleaves.ballot.ui.theme.LocalBallotColors
@@ -70,8 +71,7 @@ fun HomeScreen(nav: NavHostController) {
     var insideWork by remember { mutableStateOf(false) }
     var hasBrain by remember { mutableStateOf(true) }
     var stamp by remember { mutableStateOf(false) }
-    var showWhy by remember { mutableStateOf<Scored?>(null) }
-    var showSteps by remember { mutableStateOf<Task?>(null) }
+    var showDetail by remember { mutableStateOf<Pair<Task, Scored>?>(null) }
     var refresh by remember { mutableIntStateOf(0) }
     var advanced by remember { mutableStateOf<Stage?>(null) }
 
@@ -135,8 +135,7 @@ fun HomeScreen(nav: NavHostController) {
                             PosterButton("Not today", primary = false, onClick = { scope.launch { g.case.skipTask(t); refresh++ } })
                         }
                         Row {
-                            LinkButton("How to do it", onClick = { showSteps = t }, color = Ink)
-                            LinkButton("Why this?", onClick = { showWhy = s }, color = Ink)
+                            LinkButton("How and why", onClick = { showDetail = t to s }, color = Ink)
                             if (t.module.isNotBlank()) LinkButton("Open", onClick = { nav.openModule(t.module) }, color = Ink)
                         }
                     }
@@ -178,21 +177,23 @@ fun HomeScreen(nav: NavHostController) {
         if (stamp) Stamp("Done") { stamp = false }
     }
 
-    showWhy?.let { s ->
-        AlertDialog(onDismissRequest = { showWhy = null }, confirmButton = { TextButton(onClick = { showWhy = null }) { Text("OK") } },
-            title = { Text("Why this is first", style = MaterialTheme.typography.titleLarge) },
+    // One dialog for the next task: the steps first, then why it outranks everything else.
+    showDetail?.let { (t, s) ->
+        val steps = t.steps.split("\n").filter { it.isNotBlank() }.ifEmpty {
+            listOf("Open the Chief.", "Say: walk me through \"${t.title}\".", "Do the first step only.")
+        }
+        AlertDialog(onDismissRequest = { showDetail = null }, confirmButton = { TextButton(onClick = { showDetail = null }) { Text("Got it") } },
+            title = { Text(t.title, style = MaterialTheme.typography.titleLarge) },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("How to do it", style = MaterialTheme.typography.titleSmall)
+                    steps.forEachIndexed { i, step -> Text("${i + 1}. $step", style = MaterialTheme.typography.bodyMedium) }
+                    if (t.doneLooksLike.isNotBlank()) Text("Done looks like: ${t.doneLooksLike}", style = MaterialTheme.typography.bodySmall)
+                    Text("Why it's first", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 8.dp))
                     s.lines.forEach { l -> Text("${if (l.points >= 0) "+" else ""}${l.points}  ${l.factor}: ${l.note}", style = MaterialTheme.typography.bodyMedium) }
                     Text("Total ${s.total}. Legal deadlines always outrank everything; nothing is placed inside work hours; one high-effort task a day.",
                         style = MaterialTheme.typography.bodySmall)
                 }
             })
-    }
-    showSteps?.let { t ->
-        val steps = t.steps.split("\n").filter { it.isNotBlank() }.ifEmpty {
-            listOf("Open the Chief.", "Say: walk me through \"${t.title}\".", "Do the first step only.")
-        }
-        WalkthroughDialog(t.title, steps) { showSteps = null }
     }
 }
