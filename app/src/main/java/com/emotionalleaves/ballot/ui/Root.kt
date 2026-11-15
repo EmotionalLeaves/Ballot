@@ -113,6 +113,7 @@ fun NavHostController.openCard(card: Card) {
         "studio" -> Routes.STUDIO
         "briefing" -> Routes.BRIEFING
         "home" -> Routes.HOME
+        "settings" -> Routes.SETTINGS
         else -> null
     } ?: return
     navigate(route) { launchSingleTop = true }
