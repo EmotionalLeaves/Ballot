@@ -42,37 +42,25 @@ jobs:
           distribution: temurin
           java-version: "17"
       - uses: gradle/actions/setup-gradle@v4
-      # Fallback signing key: until the four BALLOT_* secrets exist, the runner's debug key is
-      # kept in the Actions cache so successive releases still install over each other.
-      - name: Restore fallback signing key
-        uses: actions/cache@v4
-        with:
-          path: ~/.android/debug.keystore
-          key: ballot-fallback-keystore-v1
-      - name: Decode signing keystore
-        env:
-          KEYSTORE_B64: ${{ secrets.BALLOT_KEYSTORE_B64 }}
-        run: |
-          if [ -z "$KEYSTORE_B64" ]; then
-            echo "::warning::BALLOT_KEYSTORE_B64 secret not set; signing with the cached fallback key"
-            exit 0
-          fi
-          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/ballot.jks"
-          echo "BALLOT_KEYSTORE_PATH=$RUNNER_TEMP/ballot.jks" >> "$GITHUB_ENV"
       - name: Version
         run: |
           NAME="$(tr -d '[:space:]' < VERSION)"
           if [ "$GITHUB_REF_TYPE" = "tag" ]; then NAME="${GITHUB_REF_NAME#v}"; fi
           echo "BALLOT_VERSION_NAME=$NAME" >> "$GITHUB_ENV"
           echo "BALLOT_VERSION_CODE=$((1000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
+      # Signed with the fixed key in signing/ so each release installs over the last and keeps data.
+      # The fingerprint check stops a release that would not install over the previous one.
       - name: Build signed release APK
-        env:
-          BALLOT_KEYSTORE_PASSWORD: ${{ secrets.BALLOT_KEYSTORE_PASSWORD }}
-          BALLOT_KEY_ALIAS: ${{ secrets.BALLOT_KEY_ALIAS }}
-          BALLOT_KEY_PASSWORD: ${{ secrets.BALLOT_KEY_PASSWORD }}
         run: |
           ./gradlew --no-daemon --stacktrace assembleRelease
           cp app/build/outputs/apk/release/app-release.apk "Ballot-${BALLOT_VERSION_NAME}.apk"
+      - name: Check signing key is the pinned one
+        run: |
+          SIGNER="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)/apksigner"
+          GOT="$("$SIGNER" verify --print-certs "Ballot-${BALLOT_VERSION_NAME}.apk" | grep -m1 'SHA-256 digest' | awk '{print $NF}')"
+          WANT="$(tr -d '[:space:]' < signing/FINGERPRINT)"
+          echo "signer: $GOT"
+          if [ "$GOT" != "$WANT" ]; then echo "::error::Release is signed with a different key ($GOT); it would not install over the last APK"; exit 1; fi
       - uses: actions/upload-artifact@v4
         with:
           name: apk

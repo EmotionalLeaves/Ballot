@@ -6,7 +6,10 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-val releaseKeystore: String? = System.getenv("BALLOT_KEYSTORE_PATH")
+// Release signing key. The repo's own key lives in signing/ (see DECISIONS.md, 2026-11-15): one fixed key, so
+// every release installs over the last and keeps the user's data. Never change it: a new key means the next
+// APK cannot install over the old one. release.yml checks the fingerprint before publishing.
+val releaseKeystore = rootProject.file("signing/ballot-release.jks")
 val appVersionName: String = System.getenv("BALLOT_VERSION_NAME") ?: "0.1.0-dev"
 val appVersionCode: Int = System.getenv("BALLOT_VERSION_CODE")?.toIntOrNull() ?: 1
 
@@ -25,13 +28,11 @@ android {
     }
 
     signingConfigs {
-        if (releaseKeystore != null) {
-            create("release") {
-                storeFile = file(releaseKeystore)
-                storePassword = System.getenv("BALLOT_KEYSTORE_PASSWORD")
-                keyAlias = System.getenv("BALLOT_KEY_ALIAS")
-                keyPassword = System.getenv("BALLOT_KEY_PASSWORD")
-            }
+        create("release") {
+            storeFile = releaseKeystore
+            storePassword = "ballot-public"
+            keyAlias = "ballot"
+            keyPassword = "ballot-public"
         }
     }
 
@@ -39,7 +40,7 @@ android {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = if (releaseKeystore != null) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 

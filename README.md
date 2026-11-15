@@ -45,7 +45,7 @@ Everything stays on the phone in an encrypted database (SQLCipher, key in the An
 
 ### Signing
 
-Releases are signed with the key in these repository secrets, when present: `BALLOT_KEYSTORE_B64`, `BALLOT_KEYSTORE_PASSWORD`, `BALLOT_KEY_ALIAS`, `BALLOT_KEY_PASSWORD`. Until they are set, releases are signed with a fallback key kept in the Actions cache so updates still install in place (the cache is dropped after 7 days without a release). Switching keys later means uninstalling once, so export a backup first.
+Every release is signed with the fixed key in `signing/` (see `signing/README.md`), so each one installs over the last and keeps your data. The release fails if the APK's signer doesn't match `signing/FINGERPRINT`. The repo is public, so only install Ballot from this repo's Releases page.
 
 ## The improvement loop
 

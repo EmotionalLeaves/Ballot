@@ -64,3 +64,4 @@ One line per loop iteration, newest last.
 - c1 p1 t1 i42 `system_check_and_update`: A Chief request gives each AI service 75 seconds before moving to the next, so one slow free tier can't stall a reply for minutes
 - c1 p1 t1 i43 `system_check_and_update`: Gemini Connect skips robotics, video, transcription and agent models that can't chat, so it reaches a working model sooner
 - Fix (owner report): Gemini 400 on tool declarations; fields named "type" were converted as type names. Release 0.3.3.
+- Fix (owner report): releases were signed with a different key each time, so updates could not install over the last APK. Fixed signing key in signing/, fingerprint gate in release.yml. One-time backup move from 0.3.2.
