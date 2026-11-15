@@ -98,7 +98,7 @@ fun ChiefScreen(nav: NavHostController, thread: String = "main") {
             }
             Column(Modifier.weight(1f).padding(start = 12.dp)) {
                 Text("The Chief", style = MaterialTheme.typography.headlineMedium, color = c.fg)
-                Small(if (queued > 0) "$queued request(s) queued until you're online" else "Your chief of staff. Asks before anything goes out in your name.")
+                Small(if (queued > 0) "${count(queued, "request")} queued until you're online" else "Your chief of staff. Asks before anything goes out in your name.")
             }
             if (messages.isNotEmpty()) LinkButton("Clear", onClick = { confirmClear = true }, color = c.muted)
         }

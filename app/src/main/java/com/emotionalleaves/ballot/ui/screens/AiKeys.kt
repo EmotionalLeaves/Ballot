@@ -260,7 +260,7 @@ fun ConnectedServices(outsideChange: Int = 0, onChanged: () -> Unit = {}) {
                     Badge(if (p.free) "Free" else "Paid", if (p.free) Go else c.muted)
                 }
                 Small("Model ${models[p.id] ?: p.defaultModel} · key ••••${g.secrets.keyFor(p.id).takeLast(4)}", color = c.fg)
-                Small("Today: $used request(s)" + if (p.dailyHint > 0) " of roughly ${p.dailyHint} free" else "")
+                Small("Today: ${count(used, "request")}" + if (p.dailyHint > 0) " of roughly ${p.dailyHint} free" else "")
                 results[p.id]?.let { Small(it, color = if (it.startsWith("Connected")) Go else if (testing == p.id) c.muted else c.warn) }
                 if (p.id in resting) Small("Used up its free allowance today. Ballot is using your other services until tomorrow.", color = c.signal)
                 Row {

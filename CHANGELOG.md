@@ -113,3 +113,4 @@ One line per loop iteration, newest last.
 - c1 p3 t2 i15 `apply_professional_formatting`: Shared drafts and approved messages go out as clean text, without markdown asterisks or hashes
 - c1 p3 t2 i16 `apply_professional_formatting`: Today's heading shows the date; the stage number moves onto the stage card so it isn't said twice
 - c1 p3 t2 i17 `apply_professional_formatting`: People: the 'of 200 for stage 5' note lines up with the big number instead of being pushed over with spaces, and follow-ups count in proper plural
+- c1 p3 t2 i18 `apply_professional_formatting`: Counts read naturally everywhere ('1 request', '3 unverified claims') instead of 'request(s)'

@@ -100,6 +100,9 @@ fun ReplyPanel(onOpenChief: () -> Unit) {
     }
 }
 
+/** "1 request", "3 requests". */
+fun count(n: Int, one: String, many: String = one + "s"): String = "$n ${if (n == 1) one else many}"
+
 /** A stored code like GO_NO_GO shown as "Go no go". */
 fun pretty(code: String): String = code.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() }
 

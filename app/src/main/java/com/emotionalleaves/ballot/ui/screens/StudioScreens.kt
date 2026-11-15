@@ -178,7 +178,7 @@ fun DocumentScreen(nav: NavHostController, id: Long) {
             }
             if (!canApprove && !d.approved) Small(when {
                 holding -> "Waiting for the cooling period."
-                unverified.isNotEmpty() -> "${unverified.size} unverified claim(s): source them or cut them."
+                unverified.isNotEmpty() -> "${count(unverified.size, "unverified claim")}: source or cut ${if (unverified.size == 1) "it" else "them"}."
                 changed -> "Save your edits first."
                 else -> ""
             }, color = c.signal)
