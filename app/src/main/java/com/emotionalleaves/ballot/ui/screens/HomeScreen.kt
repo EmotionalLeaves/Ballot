@@ -159,19 +159,13 @@ fun HomeScreen(nav: NavHostController) {
             item {
                 val bits = listOfNotNull(
                     "Week score $weekScore",
-                    nextDeadline?.let { d -> "next deadline in ${d.dueEpochDay - LocalDate.now().toEpochDay()} days" },
+                    nextDeadline?.let { d -> (d.dueEpochDay - LocalDate.now().toEpochDay()).let { n -> when { n <= 0 -> "a deadline today"; n == 1L -> "next deadline tomorrow"; else -> "next deadline in $n days" } } },
                     if (brief.isNotEmpty()) "${brief.size} new in your briefing" else null,
                     advanced?.let { "you reached stage ${it.number}" },
                 )
                 // Tapping the line opens the briefing when there's something new in it.
                 Small(bits.joinToString(" · "), Modifier.padding(horizontal = 4.dp)
                     .then(if (brief.isNotEmpty()) Modifier.clickable(onClickLabel = "Open briefing") { nav.navigate(Routes.BRIEFING) } else Modifier))
-            }
-            // AI is optional, so this is a quiet line at the bottom, not a banner above your task.
-            if (!hasBrain) item {
-                Panel(onClick = { nav.navigate(Routes.SETTINGS) }, padding = 14.dp) {
-                    Small("Optional: connect a free AI for web research and first drafts. Everything here works without it.")
-                }
             }
             if (insideWork) item { Small("You're at work now. Everything keeps until after.", Modifier.padding(horizontal = 4.dp)) }
             // After a crash, say so once: the report stays on the phone, in Settings, Diagnostics, to copy if you want.
@@ -204,6 +198,12 @@ fun HomeScreen(nav: NavHostController) {
                     })
                 }
             }
+            // AI is optional, so this is a quiet line at the bottom, not a banner above your task.
+            if (!hasBrain) item {
+                Panel(onClick = { nav.navigate(Routes.SETTINGS) }, padding = 14.dp) {
+                    Small("Optional: connect a free AI for web research and first drafts. Everything here works without it.")
+                }
+            }
         }
         if (stamp) Stamp("Done") { stamp = false }
     }
@@ -211,7 +211,7 @@ fun HomeScreen(nav: NavHostController) {
     // One dialog for the next task: the steps first, then why it outranks everything else.
     showDetail?.let { (t, s) ->
         val steps = t.steps.split("\n").filter { it.isNotBlank() }.ifEmpty {
-            listOf("Open the Chief.", "Say: walk me through \"${t.title}\".", "Do the first step only.")
+            listOf("Read what done looks like, below.", "Do the first small part only.", "Tap Done, or Not today if it's too big right now.")
         }
         AlertDialog(onDismissRequest = { showDetail = null }, confirmButton = { TextButton(onClick = { showDetail = null }) { Text("Got it") } },
             title = { Text(t.title, style = MaterialTheme.typography.titleLarge) },
