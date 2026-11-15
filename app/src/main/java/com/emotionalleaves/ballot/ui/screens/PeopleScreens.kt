@@ -16,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -68,14 +69,14 @@ fun PeopleScreen(nav: NavHostController) {
         "Follow-ups are drafted for you; you approve and send them yourself.",
         "The kitchen cabinet shows the empty seats you need to fill: mentor, treasurer, campaign manager, validators.")) {
         item {
-            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier) {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = androidx.compose.ui.Alignment.Bottom) {
                 BigNumber("$twoWay", "Two-way contacts", color = c.signal)
-                Small("   of 200 for stage 5")
+                Small("of 200 for stage 5", Modifier.padding(bottom = 6.dp))
             }
         }
         if (followUps.isNotEmpty()) item {
             Panel(accent = true, onClick = { nav.navigate(Routes.APPROVALS) }) {
-                Text("${followUps.size} follow-up(s) drafted", style = MaterialTheme.typography.titleMedium, color = com.emotionalleaves.ballot.ui.theme.Ink)
+                Text(if (followUps.size == 1) "1 follow-up drafted" else "${followUps.size} follow-ups drafted", style = MaterialTheme.typography.titleMedium, color = com.emotionalleaves.ballot.ui.theme.Ink)
                 Text("Approve and send them yourself.", style = MaterialTheme.typography.bodyMedium, color = com.emotionalleaves.ballot.ui.theme.Ink)
             }
         }
