@@ -70,3 +70,4 @@ One line per loop iteration, newest last.
 - c1 p1 t1 i46 `system_check_and_update`: Importing a backup snapshots the current case file first, so an import can be undone
 - c1 p1 t1 i47 `system_check_and_update`: Setup's first screen can restore a backup file, so a reinstall or new phone skips the eight setup steps
 - c1 p1 t1 i48 `system_check_and_update`: verify_claim checks for source_ids up front like its schema says, and a test keeps every tool's checks matched to its schema
+- c1 p1 t1 i49 `system_check_and_update`: Tool ids written as S12, [T4] or #7 are read correctly, and a null required field counts as missing instead of crashing the tool

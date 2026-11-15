@@ -87,7 +87,7 @@ class ToolRegistry {
     /** Validates required fields, applies the approval levels, then runs the handler. */
     suspend fun execute(name: String, input: JsonObject, ctx: ToolCtx): ToolOutcome {
         val d = defs[name] ?: return ToolOutcome("Unknown tool $name", isError = true)
-        val missing = d.required.filter { input[it] == null || input.str(it)?.isBlank() == true }
+        val missing = d.required.filter { val v = input[it]; v == null || v is kotlinx.serialization.json.JsonNull || input.str(it)?.isBlank() == true }
         if (missing.isNotEmpty()) return ToolOutcome("Invalid input: missing ${missing.joinToString()}. Call again with those fields.", isError = true)
         if (!ctx.approved) {
             val level = Approval.level(d.kind, ctx.settings.askFirst)

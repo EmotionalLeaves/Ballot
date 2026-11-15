@@ -114,12 +114,15 @@ object Http {
 // Small JSON helpers used across the agent.
 fun JsonObject.str(key: String): String? = (this[key] as? JsonPrimitive)?.takeIf { it.isString || it.content != "null" }?.content
 fun JsonObject.int(key: String): Int? = (this[key] as? JsonPrimitive)?.let { it.intOrNull ?: it.doubleOrNull?.toInt() ?: it.content.toIntOrNull() }
-fun JsonObject.long(key: String): Long? = (this[key] as? JsonPrimitive)?.let { it.longOrNull ?: it.doubleOrNull?.toLong() ?: it.content.toLongOrNull() }
+fun JsonObject.long(key: String): Long? = (this[key] as? JsonPrimitive)?.let { it.longOrNull ?: it.doubleOrNull?.toLong() ?: idText(it.content) }
+
+/** Models often echo an id the way Ballot shows it ("S12", "[T4]", "#7"), so read the number out of that. */
+fun idText(s: String): Long? = Regex("^\\[?\\s*[#A-Za-z]{0,2}\\s*(\\d+)\\s*]?$").find(s.trim())?.groupValues?.get(1)?.toLongOrNull()
 fun JsonObject.dbl(key: String): Double? = (this[key] as? JsonPrimitive)?.let { it.doubleOrNull ?: it.content.toDoubleOrNull() }
 fun JsonObject.bool(key: String): Boolean? = (this[key] as? JsonPrimitive)?.let { it.booleanOrNull ?: it.content.lowercase().let { c -> if (c == "true" || c == "yes") true else if (c == "false" || c == "no") false else null } }
 fun JsonObject.arr(key: String): JsonArray? = this[key] as? JsonArray
 fun JsonObject.obj(key: String): JsonObject? = this[key] as? JsonObject
 fun JsonElement.strOrNull(): String? = (this as? JsonPrimitive)?.content
 fun JsonArray.strings(): List<String> = mapNotNull { (it as? JsonPrimitive)?.content }
-fun JsonArray.longs(): List<Long> = mapNotNull { e -> (e as? JsonPrimitive)?.let { it.longOrNull ?: it.content.removePrefix("S").toLongOrNull() } }
+fun JsonArray.longs(): List<Long> = mapNotNull { e -> (e as? JsonPrimitive)?.let { it.longOrNull ?: idText(it.content) } }
 fun JsonPrimitive.asText(): String = jsonPrimitive.content

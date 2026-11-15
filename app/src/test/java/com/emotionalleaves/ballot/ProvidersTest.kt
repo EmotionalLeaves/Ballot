@@ -94,3 +94,10 @@ class ModelCandidatesTest {
         assertFalse(Providers.isModelProblem(429, "Rate limit reached, try again in 5 seconds"))
     }
 }
+
+class ToolIdParsingTest {
+    @org.junit.Test fun readsIdsTheWayModelsEchoThem() {
+        listOf("12", "S12", "[S12]", "T12", "#12", " s12 ").forEach { org.junit.Assert.assertEquals(it, 12L, com.emotionalleaves.ballot.agent.idText(it)) }
+        listOf("", "abc", "S12a", "12 and 13").forEach { org.junit.Assert.assertNull(it, com.emotionalleaves.ballot.agent.idText(it)) }
+    }
+}
