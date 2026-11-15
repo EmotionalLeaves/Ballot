@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +40,7 @@ import com.emotionalleaves.ballot.ui.Routes
 import com.emotionalleaves.ballot.ui.components.Body
 import com.emotionalleaves.ballot.ui.components.EmptyNote
 import com.emotionalleaves.ballot.ui.components.Field
+import com.emotionalleaves.ballot.ui.openCard
 import com.emotionalleaves.ballot.ui.components.Kicker
 import com.emotionalleaves.ballot.ui.components.Panel
 import com.emotionalleaves.ballot.ui.components.PosterButton
@@ -76,9 +78,26 @@ fun MoreScreen(nav: NavHostController) {
     // Campaign HQ only appears once you reach the run stage; before that it would be a locked door on the list.
     val hqOpen = (profile?.stage ?: 0) >= com.emotionalleaves.ballot.core.Stage.RUN.number
     val c = LocalBallotColors.current
+    var search by remember { mutableStateOf("") }
+    var hits by remember { mutableStateOf(emptyList<com.emotionalleaves.ballot.data.CaseFile.Hit>()) }
+    LaunchedEffect(search) { kotlinx.coroutines.delay(200); hits = g.case.search(search) }
     Screen("More", kicker = "Or just ask the Chief for any of these", walkthrough = listOf(
         "Every page here can also be reached by asking the Chief in plain words.",
         "Waiting for your OK holds anything that would go out in your name.")) {
+        // Find anything in your case file, in plain code (no AI): people, tasks, drafts, events, deadlines, offices, lessons.
+        item { Field(search, { search = it }, "Search your case file", singleLine = true) }
+        if (search.trim().length >= 2) {
+            if (hits.isEmpty()) item { Small("Nothing matches \"${search.trim()}\".") }
+            items(hits.size) { i ->
+                val h = hits[i]
+                Panel(onClick = { nav.openCard(com.emotionalleaves.ballot.agent.Card("INFO", h.title, target = h.target, refId = h.refId)) }, padding = 14.dp) {
+                    Kicker(h.kind)
+                    Text(h.title, style = MaterialTheme.typography.titleMedium, color = c.fg)
+                    if (h.line.isNotBlank()) Small(h.line.take(100))
+                }
+            }
+            return@Screen
+        }
         groups.map { (h, l) -> h to l.filter { it.route != Routes.HQ || hqOpen } }.forEach { (heading, list) ->
             item { Kicker(heading) }
             item {

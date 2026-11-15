@@ -431,5 +431,16 @@ class FlowTests {
         case.prune(at)
         assertEquals(listOf("new"), db.brief().all().map { it.title })
     }
+
+    @Test fun searchFindsAnythingByAllItsWords() = runTest {
+        finishSetup()
+        case.logInteraction("Priya Shah", "Met at the library board meeting")
+        db.documents().upsert(com.emotionalleaves.ballot.data.Document(type = "PUBLIC_COMMENT", title = "Library hours comment", body = "Keep the library open late"))
+        val hits = case.search("library")
+        assertTrue(hits.any { it.kind == "Person" && it.title == "Priya Shah" })
+        assertTrue(hits.any { it.kind == "Draft" })
+        assertEquals(listOf("Priya Shah"), case.search("board priya").map { it.title })
+        assertTrue(case.search("x").isEmpty())
+    }
 }
 

@@ -237,3 +237,4 @@ One line per loop iteration, newest last.
 - c1 p6 t1 i34 `overhaul_system_architecture`: Backup export asks for the passphrase twice and says to write it down, so a typo can't lock you out of your own backup
 - c1 p6 t1 i35 `overhaul_system_architecture`: Every exported backup is read back and opened with your passphrase before it says 'saved', and tells you what's inside (tasks, people, events, drafts)
 - c1 p6 t1 i36 `overhaul_system_architecture`: Briefing items older than 60 days are tidied away daily (actions you added are already on your plan), so the briefing stays current
+- c1 p6 t1 i37 `overhaul_system_architecture`: Search your case file from More, in plain code: people, tasks, drafts, events, deadlines, offices and lessons, matching every word you type, each one tap away

@@ -439,5 +439,28 @@ class CaseFile(val db: BallotDatabase, private val settings: SettingsStore) {
         }
         audit("you", "Deleted an office", input = o.body)
     }
+
+    /** One search hit: what it is, its title, a short line, and where tapping it goes (a card target and id). */
+    data class Hit(val kind: String, val title: String, val line: String, val target: String, val refId: Long = 0)
+
+    /**
+     * Searches the whole case file in plain code: people, tasks, drafts, events, deadlines, offices and lessons.
+     * Every word you type must appear (in any order, any case). Newest and best matches first, at most [max].
+     */
+    suspend fun search(query: String, max: Int = 30): List<Hit> {
+        val words = query.lowercase().split(Regex("\\s+")).filter { it.length >= 2 }
+        if (words.isEmpty()) return emptyList()
+        fun hit(vararg fields: String) = fields.joinToString(" ").lowercase().let { all -> words.all { it in all } }
+        val out = mutableListOf<Hit>()
+        db.contacts().all().filter { hit(it.name, it.howMet, it.interests, it.district, it.role, it.nextStep) }
+            .forEach { out += Hit("Person", it.name, it.howMet.ifBlank { it.interests }, "contact", it.id) }
+        db.tasks().all().filter { !it.done && hit(it.title, it.why) }.forEach { out += Hit("Task", it.title, it.why, "path") }
+        db.documents().all().filter { hit(it.title, it.body) }.forEach { out += Hit("Draft", it.title, it.body.take(80), "document", it.id) }
+        db.events().all().filter { hit(it.title, it.place, it.goal, it.debrief) }.forEach { out += Hit("Event", it.title, it.place, "field") }
+        db.deadlines().all().filter { !it.done && hit(it.title) }.forEach { out += Hit("Deadline", it.title, LocalDate.ofEpochDay(it.dueEpochDay).toString(), "vault") }
+        db.offices().all().filter { hit(it.body, it.title, it.district, it.incumbent, it.powers) }.forEach { out += Hit("Office", "${it.body} ${it.district}".trim(), it.incumbent, "ground") }
+        db.lessons().all().filter { hit(it.what, it.change) }.forEach { out += Hit("Lesson", it.what.take(80), it.change, "casefile") }
+        return out.take(max)
+    }
 }
 
