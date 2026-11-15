@@ -98,7 +98,8 @@ fun HomeScreen(nav: NavHostController) {
         val hour = LocalDateTime.now().hour
         val greet = when { hour < 12 -> "Good morning"; hour < 18 -> "Good afternoon"; else -> "Good evening" }
         Screen(title = greet + (p.name.takeIf { it.isNotBlank() }?.let { ", $it" } ?: ""),
-            kicker = "Stage ${stage.number} of 8 · ${stage.title}",
+            // The stage already has its own card below, so the heading carries today's date instead of repeating it.
+            kicker = LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("EEEE d MMMM")),
             walkthrough = listOf(
                 "The card is the one thing worth doing now. The Chief picked it from all your open tasks.",
                 "Tap Done when it's finished, or Not today to skip it. Skipping costs nothing.",
@@ -145,7 +146,7 @@ fun HomeScreen(nav: NavHostController) {
             item {
                 Panel(onClick = { nav.navigate(Routes.PATH) }, padding = 14.dp) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(stage.title, style = MaterialTheme.typography.titleMedium, color = c.fg)
+                        Text("Stage ${stage.number} of 8 · ${stage.title}", style = MaterialTheme.typography.titleMedium, color = c.fg)
                         Small("${(exitFraction * 100).toInt()}%")
                     }
                     Progress(exitFraction)
