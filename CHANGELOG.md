@@ -39,3 +39,4 @@ One line per loop iteration, newest last.
 - c1 p1 t1 i21 `system_check_and_update`: The Chief can read the whole plan and mark tasks done or events attended when you tell it, so saying 'I went to the meeting' updates the record and the exit test
 - c1 p1 t1 i22 `system_check_and_update`: Gemini tool calls keep working across steps: Ballot echoes back Gemini's thought signature and names tool results, which newer Gemini models require
 - c1 p1 t1 i23 `system_check_and_update`: Clearing the Chief conversation asks first and says that everything filed stays in the case file
+- Fix (owner report): new AQ. Gemini keys did not work; Gemini now uses its native API. Release 0.2.2.
