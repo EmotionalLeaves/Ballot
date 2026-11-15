@@ -188,9 +188,10 @@ $brief
                 resp.content.filterIsInstance<Block.Raw>().forEach { r -> if (r.json.str("type") == "server_tool_use") toolsUsed += "web_search" }
                 messages += LlmMessage("assistant", resp.content)
                 val text = annotated.filterIsInstance<Block.Text>().joinToString("") { it.text }
-                if (resp.stopReason == "pause_turn") { finalText.append(text); continue }
-                if (resp.toolUses.isEmpty()) { finalText.append(text); break }
-                finalText.append(text)
+                fun addText() { if (text.isNotBlank()) { if (finalText.isNotEmpty()) finalText.append("\n\n"); finalText.append(text.trim()) } }
+                if (resp.stopReason == "pause_turn") { addText(); continue }
+                if (resp.toolUses.isEmpty()) { addText(); break }
+                addText()
                 val results = resp.toolUses.map { use ->
                     toolsUsed += use.name
                     val out = tools.execute(use.name, use.input, ctx)
