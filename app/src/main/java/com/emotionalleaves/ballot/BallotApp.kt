@@ -73,6 +73,8 @@ class BallotApp : Application() {
         graph = AppGraph(this)
         Notifications.createChannels(this)
         Workers.schedule(this)
+        // Requests queued while offline in an earlier session run as soon as there is a connection.
+        Workers.drainQueueWhenOnline(this)
     }
 }
 
