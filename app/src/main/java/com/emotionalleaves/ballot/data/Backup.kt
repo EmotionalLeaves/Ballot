@@ -99,8 +99,14 @@ object Backup {
     suspend fun import(db: BallotDatabase, data: ByteArray, passphrase: CharArray) = withContext(Dispatchers.IO) {
         val b = decode(decrypt(data, passphrase))
         require(b.schemaVersion <= BallotDatabase.VERSION) { "This backup comes from a newer version of Ballot. Update the app first." }
-        db.clearAllTables()
+        // Clear and refill in one transaction: if anything fails part-way, the case file is left exactly as it was.
         db.withTransaction {
+            val sql = db.openHelper.writableDatabase
+            val tables = mutableListOf<String>()
+            sql.query("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT IN ('android_metadata', 'room_master_table', 'sqlite_sequence')").use { c ->
+                while (c.moveToNext()) tables += c.getString(0)
+            }
+            tables.forEach { sql.execSQL("DELETE FROM `$it`") }
             b.profile.forEach { db.profile().upsert(it) }
             b.positions.forEach { db.positions().upsert(it) }
             b.offices.forEach { db.offices().upsert(it) }

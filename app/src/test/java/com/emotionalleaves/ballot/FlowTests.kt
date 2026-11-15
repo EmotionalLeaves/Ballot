@@ -281,5 +281,16 @@ class FlowTests {
             try { assertEquals("Mia", copy.contacts().all().single().name) } finally { copy.close() }
         } finally { live.close(); ctx.deleteDatabase(BallotDatabase.NAME) }
     }
+
+    @Test fun importingReplacesWhatWasThereInOneGo() = runTest {
+        tools.execute("add_contact", obj("name" to "Old Friend"), ToolCtx(case, AppSettings()))
+        val other = Room.inMemoryDatabaseBuilder(ctx, BallotDatabase::class.java).allowMainThreadQueries().build()
+        try {
+            other.contacts().upsert(com.emotionalleaves.ballot.data.Contact(name = "From the backup"))
+            val file = com.emotionalleaves.ballot.data.Backup.export(other, "passphrase1".toCharArray())
+            com.emotionalleaves.ballot.data.Backup.import(db, file, "passphrase1".toCharArray())
+            assertEquals(listOf("From the backup"), db.contacts().all().map { it.name })
+        } finally { other.close() }
+    }
 }
 
