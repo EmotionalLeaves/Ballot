@@ -178,3 +178,4 @@ One line per loop iteration, newest last.
 - c1 p5 t1 i7 `combine_screens`: no change: Waiting for your OK stays its own page; it's reached from Today, People and the Chief, and merging it would hide approvals
 - c1 p5 t1 i8 `combine_screens`: no change: Practice and its mock rooms already share one page; a room is a full-screen scene by design
 - c1 p5 t1 i9 `combine_screens`: no change: People and a contact's page are list and detail, not two jobs
+- c1 p5 t1 i10 `combine_screens`: no change: Settings stays separate from Records; settings change the app, records are your campaign
