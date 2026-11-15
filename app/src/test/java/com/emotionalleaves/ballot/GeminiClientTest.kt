@@ -115,4 +115,15 @@ class GeminiSchemaTest {
             props?.forEach { (name, v) -> assertTrue("${t.name}.$name must be a schema object", v is kotlinx.serialization.json.JsonObject) }
         }
     }
+
+    /** Gemini and OpenAI both reject a tool whose "required" names a field it doesn't declare. */
+    @Test fun requiredFieldsAreDeclared() {
+        com.emotionalleaves.ballot.agent.ToolRegistry().specs().forEach { t ->
+            val o = t.inputSchema
+            val props = (o["properties"] as? kotlinx.serialization.json.JsonObject)?.keys ?: emptySet()
+            val req = (o["required"] as? kotlinx.serialization.json.JsonArray)?.map { (it as kotlinx.serialization.json.JsonPrimitive).content } ?: emptyList()
+            req.forEach { assertTrue("${t.name} requires undeclared field $it", it in props) }
+            assertTrue("${t.name} name must suit Gemini", Regex("^[a-zA-Z_][a-zA-Z0-9_]{0,63}$").matches(t.name))
+        }
+    }
 }
