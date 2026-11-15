@@ -145,7 +145,8 @@ class ToolRegistry {
             if (page.status !in 200..299) return@ToolDef ToolOutcome("The page returned status ${page.status}. Try another official page or tell the user whom to call.", isError = true)
             val official = Verification.isOfficial(page.url, c.settings.officialDomains)
             val previous = c.case.db.sources().latestFor(page.url)
-            val cross = previous != null && previous.contentHash.isNotEmpty() && previous.fetchedAt < now() - 60_000
+            // A second fetch only confirms the first when the page says the same thing both times.
+            val cross = previous != null && previous.contentHash.isNotEmpty() && previous.contentHash == page.hash && previous.fetchedAt < now() - 60_000
             val flags = InjectionDefense.flagged(page.text)
             val label = Verification.label(official, fresh = true, crossChecked = cross)
             val id = c.case.db.sources().insert(SourceRecord(url = page.url, title = page.title.take(200), excerpt = page.text.take(20_000),

@@ -34,3 +34,4 @@ One line per loop iteration, newest last.
 - c1 p1 t1 i16 `system_check_and_update`: Door math no longer double-counts the safety margin and uses your real weeks to election day and doors per hour
 - c1 p1 t1 i17 `system_check_and_update`: Call-time script fills in your own reason from your story and the suggested ask instead of placeholders
 - c1 p1 t1 i18 `system_check_and_update`: Spend panel says plainly that free services never count and when Free only guarantees nothing is spent
+- c1 p1 t1 i19 `system_check_and_update`: A re-fetched page only counts as cross-checked when its content matches the earlier fetch; a changed page no longer earns Verified
