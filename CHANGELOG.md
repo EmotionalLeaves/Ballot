@@ -243,3 +243,4 @@ One line per loop iteration, newest last.
 - c1 p6 t1 i40 `overhaul_system_architecture`: Briefing starts with 'Your week ahead', built in plain code from your own records (meetings, deadlines, promises due, changed rule pages), so it's useful with or without AI
 - c1 p6 t1 i41 `overhaul_system_architecture`: After a crash, Today says so once (nothing saved was lost) and points to the report in Diagnostics; it stays on the phone unless you choose to send it
 - c1 p6 t1 i42 `overhaul_system_architecture`: People shows who's worth a check-in, worked out from your own log: close contacts unheard from in 30 days and anyone with a next step and no contact for 14
+- c1 p6 t1 i43 `overhaul_system_architecture`: The weekly review now changes the plan: what you choose to start becomes a small task this week, and the review task itself is no longer offered as one of your three priorities

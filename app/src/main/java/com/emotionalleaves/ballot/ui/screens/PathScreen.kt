@@ -413,8 +413,9 @@ fun WeeklyReviewScreen(nav: NavHostController) {
         item { Field(start, { start = it }, "One thing to start") }
         item { Field(keep, { keep = it }, "One thing to keep") }
         item { Kicker("Next week's three priorities (${picked.size}/3)") }
-        items(open.take(15).size) { i ->
-            val t = open[i]
+        val choices = open.filter { !it.templateKey.startsWith("review.") }.take(15)
+        items(choices.size) { i ->
+            val t = choices[i]
             Panel(accent = t.id in picked, onClick = { if (t.id in picked) picked.remove(t.id) else if (picked.size < 3) picked.add(t.id) }, padding = 12.dp) {
                 Text(t.title, style = MaterialTheme.typography.bodyLarge, color = if (t.id in picked) com.emotionalleaves.ballot.ui.theme.Ink else c.fg)
             }
@@ -428,6 +429,10 @@ fun WeeklyReviewScreen(nav: NavHostController) {
                     g.db.tasks().open().filter { it.templateKey.startsWith("review.") }.forEach { g.case.completeTask(it) }
                     val today = LocalDate.now().toEpochDay()
                     picked.forEachIndexed { idx, id -> g.db.tasks().get(id)?.let { g.db.tasks().upsert(it.copy(dueEpochDay = today + 2 + idx * 2, updatedAt = now())) } }
+                    // What you decide to start becomes a small task this week, so the review changes the plan, not just the notes.
+                    if (start.isNotBlank()) g.case.addTaskOnce(com.emotionalleaves.ballot.data.Task(stage = g.case.profile().stage, title = "Start: ${start.trim().take(80)}",
+                        why = "You chose this in your weekly review.", doneLooksLike = "Done once this week.", goodEnough = "One small go at it counts.",
+                        dueEpochDay = today + 3, sizeMinutes = 15, templateKey = "review-start.${Scheduling.weekStart(LocalDate.now())}"))
                     g.case.rescore()
                     saved++
                 }
