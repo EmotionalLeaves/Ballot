@@ -103,8 +103,11 @@ fun SettingsScreen(nav: NavHostController) {
         if (uri != null) scope.launch {
             backupStatus = runCatching {
                 val bytes = withContext(Dispatchers.IO) { ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() } } ?: error("Could not read the file.")
+                // Keep what was here first: an import replaces everything, so a snapshot makes it undoable.
+                withContext(Dispatchers.IO) { Snapshots.take(ctx) }
                 Backup.import(g.db, bytes, passphrase.toCharArray())
-                "Backup restored."
+                refresh++
+                "Backup restored. What was here before is kept in today's snapshot below."
             }.getOrElse { it.message ?: "Import failed." }
         }
     }

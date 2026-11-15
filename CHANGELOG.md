@@ -67,3 +67,4 @@ One line per loop iteration, newest last.
 - Fix (owner report): releases were signed with a different key each time, so updates could not install over the last APK. Fixed signing key in signing/, fingerprint gate in release.yml. One-time backup move from 0.3.2.
 - c1 p1 t1 i44 `system_check_and_update`: Test that every tool's required fields are declared and its name suits Gemini, so no tool can trip a 400 again
 - c1 p1 t1 i45 `system_check_and_update`: PINs, the backup passphrase and typed AI keys are masked and kept out of the keyboard's learned words
+- c1 p1 t1 i46 `system_check_and_update`: Importing a backup snapshots the current case file first, so an import can be undone
