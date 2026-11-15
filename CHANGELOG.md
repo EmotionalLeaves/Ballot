@@ -100,3 +100,4 @@ One line per loop iteration, newest last.
 - c1 p3 t2 i2 `apply_professional_formatting`: Approvals help and the case file's source list use sentence case; a flagged source reads 'contains instructions (ignored)' so it says what happened
 - c1 p3 t2 i3 `apply_professional_formatting`: Settings switches: the whole row is the tap target (48dp tall, read as a switch by TalkBack), not just the small toggle
 - c1 p3 t2 i4 `apply_professional_formatting`: Drafts' empty state says how to make the first one and that drafts wait for your approval
+- c1 p3 t2 i5 `apply_professional_formatting`: Vault's rules and self-audit empty states say what the button does and where the information comes from

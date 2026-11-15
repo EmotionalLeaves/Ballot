@@ -184,7 +184,7 @@ private fun RulesTab(nav: NavHostController) {
                 "jurisdiction, office_phone, and limit_kind/limit_dollars for money limits). Say plainly what needs an election lawyer or the clerk.", "loading rules")
             nav.navigate(Routes.CHIEF)
         })
-        if (rules.isEmpty()) EmptyNote("No rules loaded yet.")
+        if (rules.isEmpty()) EmptyNote("No rules yet. Tap Load the rules for my office and the Chief reads them from your state and county election pages.")
         rules.forEach { r ->
             Panel {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { Kicker(r.jurisdiction.ifBlank { "Rule" }); ConfidenceBadge(r.status) }
@@ -350,7 +350,7 @@ private fun VettingTab(nav: NavHostController) {
             nav.navigate(Routes.CHIEF)
         })
         PosterButton("Practise the hard questions", primary = false, onClick = { nav.navigate(Routes.room("reporter")) })
-        if (vetting.isEmpty()) EmptyNote("No audit yet.")
+        if (vetting.isEmpty()) EmptyNote("Not run yet. It takes a few minutes and only uses what anyone could find about you online.")
         vetting.forEach { d ->
             Panel(onClick = { nav.navigate(Routes.document(d.id)) }) { Kicker("Audit · ${shortDate(d.createdAt)}"); Text(d.title, style = MaterialTheme.typography.titleMedium, color = c.fg) }
         }
