@@ -22,6 +22,17 @@ Checked each phase. Controls may move or merge; a function is only removed when 
 - [x] Monthly spend cap with meter, retry, fallback model, offline queue
 - [x] Audit log of every tool call and approval (insert-only)
 
+## Free AI
+- [x] Seven services: Gemini, Groq, OpenRouter free models, Cerebras, Mistral free (no card); Claude, OpenAI (paid)
+- [x] Guided key flow: pick, numbered steps, Open the key page, Paste key from clipboard, Connect (lists models, picks one, tests)
+- [x] Key detection from prefix and cleaning of pasted text; wrong-service paste switches selection
+- [x] One encrypted key per service; connected services list with today's use, Make main, Re-test, Remove
+- [x] Failover across services; short wait on free-tier "slow down"; daily-cap resting until tomorrow
+- [x] Free only mode; free calls never count against the spend cap
+- [x] Keyless search_web tool for services without built-in search
+- [x] Lighter requests for small-context free models
+- [x] Home prompt to connect a free AI when none is set
+
 ## Modules
 - [x] Compass: values interview, three issues, story bank (60s/3m/10m) with 3-draft cap and lock, voice samples, positions with counter-argument and sources, one-page platform, consistency check
 - [x] Ground: offices with sources and labels, body explainers, race cards, race scoring with working, target/stretch/fallback, win number calculator

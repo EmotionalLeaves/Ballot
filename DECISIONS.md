@@ -12,3 +12,8 @@ Each design choice and its reason. Reversing one needs a stronger, logged reason
 - **2026-11-14 · Official domains.** .gov, .mil and the locality form of .us count as official. City sites on other domains can be added in Settings.
 - **2026-11-14 · Signing fallback.** Creating repository secrets was not possible from the build session, so releases sign with a key kept in the Actions cache until the four `BALLOT_*` secrets are set.
 - **2026-11-14 · Stages 3 to 5 cannot be skipped.** The open-seat fast lane brings the race decision forward from stage 3 on, but never skips a stage's exit test.
+- **2026-11-14 · Free AI first.** The owner asked for free AI and easy keys. Free services are listed first and Google Gemini is recommended: it needs only a Google account and no card. Claude stays available for the strongest research.
+- **2026-11-14 · Models are discovered, not hard-coded.** Free catalogues change monthly, so Connect asks the service for its model list and picks by preference, falling back to a preset default.
+- **2026-11-14 · Everything but Claude uses the OpenAI chat format.** Gemini, Groq, OpenRouter, Cerebras and Mistral all offer OpenAI-compatible endpoints, so one client covers them.
+- **2026-11-14 · Keyless search via DuckDuckGo.** Free services have no built-in web search. Results are passed as untrusted leads and are not stored as sources, so the grounding gate still requires a fetched page.
+- **2026-11-14 · No schema change for per-service usage.** Usage records store "service:model" in the existing model column, so no migration was needed.
