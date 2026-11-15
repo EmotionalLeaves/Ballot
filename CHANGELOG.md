@@ -206,3 +206,4 @@ One line per loop iteration, newest last.
 - Session end: green work pushed to main at c1 p6 t1 i3; next session continues at overhaul_system_architecture iteration 4 of 50.
 - c1 p6 t1 i4 `overhaul_system_architecture`: Real migration safety net: every exported schema version is created, migrated to today's and validated against the entities, keeping its rows (Room MigrationTestHelper)
 - c1 p6 t1 i5 `overhaul_system_architecture`: One observable 'is AI connected' (Chief.aiConnected, ticking when a key changes) replaces three one-off checks, so Today, the Chief and Briefing update the moment you connect or remove a key
+- c1 p6 t1 i6 `overhaul_system_architecture`: The plain-code features (template facts, town quiz, prep card) live in the case file, not in screens, so screens and tools share one tested home

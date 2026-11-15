@@ -235,11 +235,7 @@ fun QuizScreen(nav: NavHostController) {
     fun generate() {
         loading = true; error = ""; submitted = false; answers.clear()
         scope.launch {
-            val offices = g.db.offices().all().map { o ->
-                com.emotionalleaves.ballot.core.QuizOffice(o.id, o.body, o.title, o.district, o.level, o.powers, o.term, o.nextElection, o.incumbent, o.partTime, o.appointed)
-            }
-            val rules = g.db.rules().all().map { com.emotionalleaves.ballot.core.QuizRule(it.id, it.jurisdiction, it.summary) }
-            val built = com.emotionalleaves.ballot.core.QuizBuilder.build(offices, rules, seed = System.currentTimeMillis())
+            val built = g.case.townQuiz(seed = System.currentTimeMillis())
             if (built.size < 8) {
                 error = "Your case file has enough for ${built.size} questions; the quiz needs 8. Add the offices that represent you (with who holds them, " +
                     "term length and what they control) in Offices and races, or load your election rules in the Vault."

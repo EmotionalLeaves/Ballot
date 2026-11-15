@@ -51,14 +51,6 @@ private val docTypes = listOf(
     "LETTER" to "Letter to the editor", "QUESTIONNAIRE" to "Questionnaire answers", "CRISIS_RESPONSE" to "Crisis response",
 )
 
-/** Your own words from the case file, for templates. */
-suspend fun templateFacts(g: com.emotionalleaves.ballot.AppGraph): com.emotionalleaves.ballot.core.TemplateFacts {
-    val p = g.case.profile()
-    return com.emotionalleaves.ballot.core.TemplateFacts(name = p.name, place = p.address.ifBlank { p.zip }, why = p.why, story60 = p.story60,
-        issues = p.issues.lines().map { it.trim() }.filter { it.isNotBlank() },
-        positions = g.db.positions().all().filter { it.stance.isNotBlank() }.map { it.issue to it.stance })
-}
-
 fun docLabel(type: String) = docTypes.firstOrNull { it.first == type }?.second ?: type.lowercase().replace('_', ' ')
 
 @Composable
@@ -83,7 +75,7 @@ fun StudioScreen(nav: NavHostController) {
                 val scope = androidx.compose.runtime.rememberCoroutineScope()
                 PosterButton("Start from a template", enabled = topic.isNotBlank(), onClick = {
                     scope.launch {
-                        val body = com.emotionalleaves.ballot.core.Templates.draft(type.first, topic, templateFacts(g))
+                        val body = com.emotionalleaves.ballot.core.Templates.draft(type.first, topic, g.case.templateFacts())
                         val crisis = type.first == "CRISIS_RESPONSE"
                         val s = g.settings.get()
                         val id = g.db.documents().upsert(com.emotionalleaves.ballot.data.Document(type = type.first, title = topic.trim().take(80), body = body,

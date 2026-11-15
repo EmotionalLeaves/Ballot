@@ -164,7 +164,7 @@ fun CompassScreen(nav: NavHostController) {
                 PosterButton("Build my platform", onClick = {
                     scope.launch {
                         val id = g.db.documents().upsert(com.emotionalleaves.ballot.data.Document(type = "PLATFORM", title = "One-page platform",
-                            body = com.emotionalleaves.ballot.core.Templates.platform(templateFacts(g))))
+                            body = com.emotionalleaves.ballot.core.Templates.platform(g.case.templateFacts())))
                         g.case.audit("you", "Built a one-page platform")
                         nav.navigate(Routes.document(id))
                     }

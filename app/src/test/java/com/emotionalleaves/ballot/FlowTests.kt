@@ -264,8 +264,7 @@ class FlowTests {
             com.emotionalleaves.ballot.data.Office(body = "School Board", level = "SCHOOL", incumbent = "Tom Hale", term = "4 years", nextElection = "May 2027", powers = "Schools"),
             com.emotionalleaves.ballot.data.Office(body = "County Board", level = "COUNTY", incumbent = "Ann Cho", term = "2 years", nextElection = "Nov 2026", powers = "Roads"),
         ).forEach { db.offices().upsert(it) }
-        val offices = db.offices().all().map { o -> com.emotionalleaves.ballot.core.QuizOffice(o.id, o.body, o.title, o.district, o.level, o.powers, o.term, o.nextElection, o.incumbent, o.partTime, o.appointed) }
-        val quiz = com.emotionalleaves.ballot.core.QuizBuilder.build(offices, emptyList(), seed = 3)
+        val quiz = case.townQuiz(seed = 3)
         assertTrue("got ${quiz.size}", quiz.size >= 8)
     }
 
@@ -291,6 +290,15 @@ class FlowTests {
             com.emotionalleaves.ballot.data.Backup.import(db, file, "passphrase1".toCharArray())
             assertEquals(listOf("From the backup"), db.contacts().all().map { it.name })
         } finally { other.close() }
+    }
+
+    @Test fun aPrepCardIsBuiltAndSavedOnTheEvent() = runTest {
+        case.updateProfile { it.copy(issues = "Transit\nHousing") }
+        tools.execute("add_event", obj("title" to "Transit board meeting", "start" to "2030-01-07T18:30"), ToolCtx(case, AppSettings()))
+        val e = db.events().all().single()
+        val card = case.prepCard(e.id)!!
+        assertTrue(card, card.contains("Transit"))
+        assertEquals(card, db.events().get(e.id)!!.preCard)
     }
 }
 

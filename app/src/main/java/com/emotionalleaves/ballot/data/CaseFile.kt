@@ -245,4 +245,35 @@ class CaseFile(val db: BallotDatabase, private val settings: SettingsStore) {
     suspend fun clearAll() {
         withContext(Dispatchers.IO) { db.clearAllTables() }
     }
+
+    // ---- Plain-code helpers: built from the case file, no AI. Screens and tools call these, so each has one home. ----
+
+    /** Your own words, for templates and the platform. */
+    suspend fun templateFacts(): com.emotionalleaves.ballot.core.TemplateFacts {
+        val p = profile()
+        return com.emotionalleaves.ballot.core.TemplateFacts(name = p.name, place = p.address.ifBlank { p.zip }, why = p.why, story60 = p.story60,
+            issues = p.issues.lines().map { it.trim() }.filter { it.isNotBlank() },
+            positions = db.positions().all().filter { it.stance.isNotBlank() }.map { it.issue to it.stance })
+    }
+
+    /** The stage 2 quiz from your stored offices and rules. */
+    suspend fun townQuiz(seed: Long): List<com.emotionalleaves.ballot.core.QuizQuestion> {
+        val offices = db.offices().all().map { o ->
+            com.emotionalleaves.ballot.core.QuizOffice(o.id, o.body, o.title, o.district, o.level, o.powers, o.term, o.nextElection, o.incumbent, o.partTime, o.appointed)
+        }
+        val rules = db.rules().all().map { com.emotionalleaves.ballot.core.QuizRule(it.id, it.jurisdiction, it.summary) }
+        return com.emotionalleaves.ballot.core.QuizBuilder.build(offices, rules, seed)
+    }
+
+    /** Builds and saves the prep card for one event. Returns it, or null if the event is gone. */
+    suspend fun prepCard(eventId: Long): String? {
+        val e = db.events().get(eventId) ?: return null
+        val f = templateFacts()
+        val card = com.emotionalleaves.ballot.core.PrepCard.build(e.title, e.goal, f.issues, f.positions,
+            db.contacts().all().map { it.name to it.howMet },
+            db.documents().all().any { it.approved && it.type == "PUBLIC_COMMENT" })
+        db.events().upsert(e.copy(preCard = card, updatedAt = now()))
+        return card
+    }
 }
+
