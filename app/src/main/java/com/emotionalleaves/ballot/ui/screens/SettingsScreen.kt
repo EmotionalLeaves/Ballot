@@ -205,7 +205,7 @@ fun SettingsScreen(nav: NavHostController) {
                     scope.launch { g.case.updateProfile { it.copy(weeklyReviewDay = d) } }
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Dark theme (light is better outdoors)", style = MaterialTheme.typography.bodyLarge, color = c.fg, modifier = Modifier.weight(1f))
+                    Text("Dark theme (for night use)", style = MaterialTheme.typography.bodyLarge, color = c.fg, modifier = Modifier.weight(1f))
                     Switch(checked = s.darkTheme, onCheckedChange = { v -> upd { it.copy(darkTheme = v) } })
                 }
                 var scale by remember(s.textScale) { mutableStateOf(s.textScale) }
@@ -300,7 +300,7 @@ fun SettingsScreen(nav: NavHostController) {
         }
         item {
             Panel(accent = true) {
-                Text("PANIC WIPE", style = MaterialTheme.typography.titleLarge, color = com.emotionalleaves.ballot.ui.theme.Ink)
+                Text("Panic wipe", style = MaterialTheme.typography.titleLarge, color = com.emotionalleaves.ballot.ui.theme.Ink)
                 Text("Deletes the case file, snapshots, recordings, vault files, settings and keys from this phone. Cannot be undone.",
                     style = MaterialTheme.typography.bodyMedium, color = com.emotionalleaves.ballot.ui.theme.Ink)
                 PosterButton("Wipe everything", primary = false, onClick = { confirmWipe = 1 })

@@ -1,6 +1,6 @@
 package com.emotionalleaves.ballot.ui.theme
 
-import android.graphics.Typeface
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
@@ -10,7 +10,6 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
@@ -20,75 +19,107 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// A campaign poster crossed with a briefing folder: heavy type, hard edges, one loud color.
-// No red-versus-blue coding anywhere. The signal color is the app's, not a party's.
-val Ink = Color(0xFF0B0D12)
-val Paper = Color(0xFFF6F4EF)
-val Signal = Color(0xFFFF3B1F)
-val Steel = Color(0xFF8A8F98)
-val SteelDark = Color(0xFF5A606B)
-val InkRaised = Color(0xFF161922)
-val PaperSunk = Color(0xFFE9E6DE)
-val Go = Color(0xFF2E9E6A)     // used only for "verified" and "done" markers, never for a party
-val Caution = Color(0xFFE0A100)
+/*
+ * Calm and clear: soft paper, ink text, one quiet accent, sentence case, rounded cards, plenty of
+ * room. Built for long use without fatigue. No red-versus-blue coding anywhere: the accent is a
+ * deep teal that belongs to no party.
+ */
 
-data class BallotColors(val fg: Color, val bg: Color, val signal: Color, val muted: Color, val raised: Color, val rule: Color, val dark: Boolean)
+private val PaperL = Color(0xFFF7F6F3)
+private val CardL = Color(0xFFFFFFFF)
+private val TextL = Color(0xFF1C1E21)
+private val MutedL = Color(0xFF62666D)
+private val LineL = Color(0xFFE3E1DC)
+private val AccentL = Color(0xFF0E7C6B)
+private val AccentSoftL = Color(0xFFDDF0EC)
+private val OnAccentSoftL = Color(0xFF0B3B33)
 
-val LocalBallotColors = staticCompositionLocalOf { BallotColors(Paper, Ink, Signal, Steel, InkRaised, Paper, true) }
+private val PaperD = Color(0xFF15171A)
+private val CardD = Color(0xFF1E2125)
+private val TextD = Color(0xFFECEDEE)
+private val MutedD = Color(0xFF9BA1A8)
+private val LineD = Color(0xFF2C3036)
+private val AccentD = Color(0xFF5CC8B4)
+private val AccentSoftD = Color(0xFF173A35)
+private val OnAccentSoftD = Color(0xFFD5F2EC)
 
-private val condensed = FontFamily(Typeface.create("sans-serif-condensed", Typeface.BOLD))
-private val body = FontFamily(Typeface.create("sans-serif", Typeface.NORMAL))
+/** Marks for done and verified, and for things that need attention. Never used for parties. */
+val Go = Color(0xFF2E8B57)
+val Caution = Color(0xFFB7791F)
 
-val Headline = TextStyle(fontFamily = condensed, fontWeight = FontWeight.Black, letterSpacing = (-0.5).sp)
-val Numbers = TextStyle(fontFamily = condensed, fontWeight = FontWeight.Black, fontFeatureSettings = "tnum")
+/**
+ * fg: text. bg: screen. signal: the accent. muted: secondary text. raised: cards. rule: hairlines.
+ * accentSoft/onAccent: highlighted cards and the text on them. warn: errors. onSignal: text on the accent.
+ */
+data class BallotColors(
+    val fg: Color, val bg: Color, val signal: Color, val muted: Color, val raised: Color, val rule: Color, val dark: Boolean,
+    val accentSoft: Color, val onAccent: Color, val warn: Color, val onSignal: Color,
+)
+
+private val lightColors = BallotColors(TextL, PaperL, AccentL, MutedL, CardL, LineL, false, AccentSoftL, OnAccentSoftL, Color(0xFFB3261E), Color.White)
+private val darkColors = BallotColors(TextD, PaperD, AccentD, MutedD, CardD, LineD, true, AccentSoftD, OnAccentSoftD, Color(0xFFF2B8B5), Color(0xFF0B1F1C))
+
+val LocalBallotColors = staticCompositionLocalOf { lightColors }
+
+/** Text color on a highlighted card, in either theme. */
+val Ink: Color @Composable get() = LocalBallotColors.current.onAccent
+
+/** The accent color, in either theme. */
+val Signal: Color @Composable get() = LocalBallotColors.current.signal
+
+private val sans = FontFamily.SansSerif
+
+val Headline = TextStyle(fontFamily = sans, fontWeight = FontWeight.SemiBold, letterSpacing = 0.sp)
+val Numbers = TextStyle(fontFamily = sans, fontWeight = FontWeight.SemiBold, fontFeatureSettings = "tnum")
 
 private val typography = Typography(
-    displayLarge = Headline.copy(fontSize = 64.sp, lineHeight = 60.sp),
-    displayMedium = Headline.copy(fontSize = 44.sp, lineHeight = 44.sp),
-    displaySmall = Headline.copy(fontSize = 34.sp, lineHeight = 36.sp),
-    headlineLarge = Headline.copy(fontSize = 30.sp, lineHeight = 32.sp),
-    headlineMedium = Headline.copy(fontSize = 26.sp, lineHeight = 28.sp),
-    headlineSmall = Headline.copy(fontSize = 22.sp, lineHeight = 24.sp),
-    titleLarge = Headline.copy(fontSize = 20.sp, lineHeight = 24.sp),
-    titleMedium = Headline.copy(fontSize = 17.sp, lineHeight = 21.sp, letterSpacing = 0.sp),
-    titleSmall = Headline.copy(fontSize = 14.sp, lineHeight = 18.sp, letterSpacing = 0.5.sp),
-    bodyLarge = TextStyle(fontFamily = body, fontSize = 17.sp, lineHeight = 25.sp),
-    bodyMedium = TextStyle(fontFamily = body, fontSize = 15.sp, lineHeight = 22.sp),
-    bodySmall = TextStyle(fontFamily = body, fontSize = 13.sp, lineHeight = 18.sp),
-    labelLarge = Headline.copy(fontSize = 15.sp, letterSpacing = 1.sp),
-    labelMedium = Headline.copy(fontSize = 13.sp, letterSpacing = 1.sp),
-    labelSmall = Headline.copy(fontSize = 11.sp, letterSpacing = 1.sp),
+    displayLarge = Headline.copy(fontSize = 40.sp, lineHeight = 46.sp),
+    displayMedium = Headline.copy(fontSize = 32.sp, lineHeight = 38.sp),
+    displaySmall = Headline.copy(fontSize = 26.sp, lineHeight = 32.sp),
+    headlineLarge = Headline.copy(fontSize = 24.sp, lineHeight = 30.sp),
+    headlineMedium = Headline.copy(fontSize = 22.sp, lineHeight = 28.sp),
+    headlineSmall = Headline.copy(fontSize = 20.sp, lineHeight = 26.sp),
+    titleLarge = Headline.copy(fontSize = 18.sp, lineHeight = 24.sp),
+    titleMedium = Headline.copy(fontSize = 16.sp, lineHeight = 22.sp),
+    titleSmall = Headline.copy(fontSize = 14.sp, lineHeight = 20.sp),
+    bodyLarge = TextStyle(fontFamily = sans, fontSize = 16.sp, lineHeight = 24.sp),
+    bodyMedium = TextStyle(fontFamily = sans, fontSize = 15.sp, lineHeight = 22.sp),
+    bodySmall = TextStyle(fontFamily = sans, fontSize = 13.sp, lineHeight = 19.sp),
+    labelLarge = TextStyle(fontFamily = sans, fontWeight = FontWeight.Medium, fontSize = 15.sp, lineHeight = 20.sp),
+    labelMedium = TextStyle(fontFamily = sans, fontWeight = FontWeight.Medium, fontSize = 13.sp, lineHeight = 18.sp),
+    labelSmall = TextStyle(fontFamily = sans, fontWeight = FontWeight.Medium, fontSize = 12.sp, lineHeight = 16.sp),
 )
 
-private val square = Shapes(
-    extraSmall = RoundedCornerShape(0.dp), small = RoundedCornerShape(0.dp), medium = RoundedCornerShape(0.dp),
-    large = RoundedCornerShape(0.dp), extraLarge = RoundedCornerShape(0.dp),
-)
-
-private fun darkScheme(): ColorScheme = darkColorScheme(
-    primary = Signal, onPrimary = Ink, secondary = Paper, onSecondary = Ink, tertiary = Steel,
-    background = Ink, onBackground = Paper, surface = Ink, onSurface = Paper, surfaceVariant = InkRaised, onSurfaceVariant = Steel,
-    outline = Paper, outlineVariant = SteelDark, error = Signal, onError = Ink, surfaceContainer = InkRaised,
-    surfaceContainerHigh = InkRaised, surfaceContainerHighest = InkRaised, surfaceContainerLow = Ink, surfaceContainerLowest = Ink,
+private val rounded = Shapes(
+    extraSmall = RoundedCornerShape(8.dp), small = RoundedCornerShape(12.dp), medium = RoundedCornerShape(16.dp),
+    large = RoundedCornerShape(20.dp), extraLarge = RoundedCornerShape(28.dp),
 )
 
 private fun lightScheme(): ColorScheme = lightColorScheme(
-    primary = Signal, onPrimary = Ink, secondary = Ink, onSecondary = Paper, tertiary = SteelDark,
-    background = Paper, onBackground = Ink, surface = Paper, onSurface = Ink, surfaceVariant = PaperSunk, onSurfaceVariant = SteelDark,
-    outline = Ink, outlineVariant = Steel, error = Signal, onError = Ink, surfaceContainer = PaperSunk,
-    surfaceContainerHigh = PaperSunk, surfaceContainerHighest = PaperSunk, surfaceContainerLow = Paper, surfaceContainerLowest = Paper,
+    primary = AccentL, onPrimary = Color.White, primaryContainer = AccentSoftL, onPrimaryContainer = OnAccentSoftL,
+    secondary = AccentL, onSecondary = Color.White, tertiary = MutedL,
+    background = PaperL, onBackground = TextL, surface = PaperL, onSurface = TextL, surfaceVariant = CardL, onSurfaceVariant = MutedL,
+    outline = LineL, outlineVariant = LineL, error = Color(0xFFB3261E), onError = Color.White,
+    surfaceContainer = CardL, surfaceContainerHigh = CardL, surfaceContainerHighest = CardL, surfaceContainerLow = PaperL, surfaceContainerLowest = PaperL,
 )
 
-/** Dark by default, light for outdoor use at doors and events. Text scales with the user's setting. */
+private fun darkScheme(): ColorScheme = darkColorScheme(
+    primary = AccentD, onPrimary = Color(0xFF0B1F1C), primaryContainer = AccentSoftD, onPrimaryContainer = OnAccentSoftD,
+    secondary = AccentD, onSecondary = Color(0xFF0B1F1C), tertiary = MutedD,
+    background = PaperD, onBackground = TextD, surface = PaperD, onSurface = TextD, surfaceVariant = CardD, onSurfaceVariant = MutedD,
+    outline = LineD, outlineVariant = LineD, error = Color(0xFFF2B8B5), onError = Color(0xFF601410),
+    surfaceContainer = CardD, surfaceContainerHigh = CardD, surfaceContainerHighest = CardD, surfaceContainerLow = PaperD, surfaceContainerLowest = PaperD,
+)
+
+/** Light by default; dark for night use. Text scales with the user's setting. */
 @Composable
-fun BallotTheme(dark: Boolean = true, textScale: Float = 1f, content: @Composable () -> Unit) {
-    val colors = if (dark) BallotColors(Paper, Ink, Signal, Steel, InkRaised, Paper, true)
-    else BallotColors(Ink, Paper, Signal, SteelDark, PaperSunk, Ink, false)
+fun BallotTheme(dark: Boolean = false, textScale: Float = 1f, content: @Composable () -> Unit) {
+    val colors = if (dark) darkColors else lightColors
     val density = LocalDensity.current
     CompositionLocalProvider(
         LocalBallotColors provides colors,
         LocalDensity provides Density(density.density, density.fontScale * textScale),
     ) {
-        MaterialTheme(colorScheme = if (dark) darkScheme() else lightScheme(), typography = typography, shapes = square, content = content)
+        MaterialTheme(colorScheme = if (dark) darkScheme() else lightScheme(), typography = typography, shapes = rounded, content = content)
     }
 }

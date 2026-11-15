@@ -104,7 +104,7 @@ fun GroundScreen(nav: NavHostController) {
         rec?.let { r ->
             item {
                 Panel(accent = true) {
-                    Text("RECOMMENDATION", style = MaterialTheme.typography.labelLarge, color = com.emotionalleaves.ballot.ui.theme.Ink)
+                    Text("Recommendation", style = MaterialTheme.typography.labelLarge, color = com.emotionalleaves.ballot.ui.theme.Ink)
                     listOf("Target" to r.target, "Stretch" to r.stretch, "Fallback" to r.fallback).forEach { (label, s) ->
                         if (s != null) Text("$label: ${s.name} · ${s.total}/100", style = MaterialTheme.typography.titleMedium, color = com.emotionalleaves.ballot.ui.theme.Ink)
                     }
@@ -143,7 +143,7 @@ private fun OfficePanel(o: Office, rc: RaceCard?, margin: Int, expanded: Boolean
     val c = LocalBallotColors.current
     Panel(onClick = onToggle) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { Kicker("${o.level} · ${if (o.appointed) "appointed" else "elected"}${if (o.partTime) " · part time" else ""}"); ConfidenceBadge(o.confidence) }
-        Text("${o.body} ${o.district}".trim().uppercase(), style = MaterialTheme.typography.titleLarge, color = c.fg)
+        Text("${o.body} ${o.district}".trim(), style = MaterialTheme.typography.titleLarge, color = c.fg)
         Small("Held by ${o.incumbent.ifBlank { "unknown" }} · next on the ballot ${o.nextElection.ifBlank { "unknown" }}", color = c.fg)
         if (rc != null && rc.score > 0) Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             BigNumber("${rc.score}", "Race score", size = 34, color = c.signal)
@@ -217,7 +217,7 @@ fun WinNumberCalculator(card: RaceCard?) {
             Small("Weekly: ${r.weeklyConversations} conversations, ${r.weeklyHours} hours.", color = c.fg)
             r.explanation.forEach { Small(it) }
             if (!r.closes) Panel(accent = true) {
-                Text("THE MATH DOES NOT CLOSE", style = MaterialTheme.typography.titleMedium, color = com.emotionalleaves.ballot.ui.theme.Ink)
+                Text("The math doesn't add up yet", style = MaterialTheme.typography.titleMedium, color = com.emotionalleaves.ballot.ui.theme.Ink)
                 r.shortLevers.forEach { Text(it, style = MaterialTheme.typography.bodyMedium, color = com.emotionalleaves.ballot.ui.theme.Ink) }
             }
         }

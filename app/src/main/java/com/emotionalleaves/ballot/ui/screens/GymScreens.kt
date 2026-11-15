@@ -158,7 +158,7 @@ fun GymScreen(nav: NavHostController) {
         items(MockRooms.rooms.size) { i ->
             val room = MockRooms.rooms[i]
             Panel(onClick = { nav.navigate(Routes.room(room.id)) }) {
-                Text(room.title.uppercase(), style = MaterialTheme.typography.titleMedium, color = c.fg)
+                Text(room.title, style = MaterialTheme.typography.titleMedium, color = c.fg)
                 Small(room.setup)
             }
         }
@@ -231,7 +231,7 @@ fun MockRoomScreen(nav: NavHostController, roomId: String) {
             val out = runCatching { g.chief.simple(system, listOf(LlmMessage("user", listOf(Block.Text(transcript)))), 500) }.getOrElse { error = it.message ?: ""; busy = false; return@launch }
             val n = Regex("SCORE:\\s*(\\d+)").find(out)?.groupValues?.get(1)?.toIntOrNull() ?: 0
             g.db.speech().upsert(SpeechRep(kind = "MOCK_${room.id}", prompt = room.title, transcript = transcript.take(8000), total = n.coerceIn(0, 100), feedback = out))
-            g.db.chat().insert(ChatMessage(thread = thread, role = "assistant", text = "COACH'S SCORE\n$out", mode = "Coach"))
+            g.db.chat().insert(ChatMessage(thread = thread, role = "assistant", text = "Coach's score\n$out", mode = "Coach"))
             busy = false
         }
     }
@@ -240,7 +240,7 @@ fun MockRoomScreen(nav: NavHostController, roomId: String) {
         Row(Modifier.fillMaxWidth().padding(horizontal = Gutter, vertical = 12.dp)) {
             Column(Modifier.weight(1f)) {
                 Kicker("Mock room", color = c.signal)
-                Text(room.title.uppercase(), style = MaterialTheme.typography.headlineMedium, color = c.fg)
+                Text(room.title, style = MaterialTheme.typography.headlineMedium, color = c.fg)
             }
             LinkButton("Done", onClick = { nav.popBackStack() })
         }

@@ -94,114 +94,93 @@ fun HomeScreen(nav: NavHostController) {
     val c = LocalBallotColors.current
 
     Box(Modifier.fillMaxSize()) {
-        Screen(title = "Today", kicker = "Ballot · ${p.name.ifBlank { "your campaign" }}",
+        val hour = LocalDateTime.now().hour
+        val greet = when { hour < 12 -> "Good morning"; hour < 18 -> "Good afternoon"; else -> "Good evening" }
+        Screen(title = greet + (p.name.takeIf { it.isNotBlank() }?.let { ", $it" } ?: ""),
+            kicker = "Stage ${stage.number} of 8 · ${stage.title}",
             walkthrough = listOf(
-                "The big card is the single most useful thing to do now. The Chief picked it from every open task.",
-                "Tap DONE when it's finished. Tap SKIP if not today: skipping costs nothing.",
-                "Tap WHY THIS to see exactly how it was ranked.",
-                "TOO MUCH shrinks the week to its single most important item.",
-                "Talk to the Chief any time from the CHIEF tab.",
+                "The card is the one thing worth doing now. The Chief picked it from all your open tasks.",
+                "Tap Done when it's finished, or Not today to skip it. Skipping costs nothing.",
+                "Why this? shows exactly how it was chosen.",
+                "Feeling overloaded? Tap Shrink this week and only the most important thing stays.",
             )) {
-            // The three-line brief: where you stand, what changed, what is next.
-            item {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Kicker("Brief")
-                    Body("Stand: stage ${stage.number}, ${stage.title.lowercase()}. $exitLabel.")
-                    Body("Changed: " + listOfNotNull(
-                        "${pending.size} waiting for your approval".takeIf { pending.isNotEmpty() },
-                        "${brief.size} new in the Briefing".takeIf { brief.isNotEmpty() },
-                        advanced?.let { "you reached stage ${it.number}" },
-                    ).joinToString(", ").ifBlank { "nothing new since last time" } + ".")
-                    Body("Next: " + (top?.first?.title ?: "talk to the Chief about your first step") + ".")
-                }
-            }
             if (!hasBrain) item {
                 Panel(accent = true, onClick = { nav.navigate(Routes.SETTINGS) }) {
-                    Text("CONNECT A FREE AI", style = MaterialTheme.typography.titleLarge, color = Ink)
-                    Text("The Chief needs one to research and draft. Google Gemini is free, needs no card, and takes about two minutes. Tap here.",
-                        style = MaterialTheme.typography.bodyMedium, color = Ink)
+                    Text("Connect a free AI", style = MaterialTheme.typography.titleMedium, color = Ink)
+                    Text("The Chief needs one to research and draft. Google Gemini is free and takes two minutes.", style = MaterialTheme.typography.bodyMedium, color = Ink)
                 }
             }
-            if (insideWork) item { Small("You're at work now. The Chief keeps everything for after.") }
             if (pending.isNotEmpty()) item {
-                Panel(accent = true, onClick = { nav.navigate(Routes.APPROVALS) }) {
-                    Text("${pending.size} WAITING FOR YOUR TAP", style = MaterialTheme.typography.titleLarge, color = Ink)
-                    Text("Anything sent, posted, filed, signed or spent waits for you.", style = MaterialTheme.typography.bodyMedium, color = Ink)
+                Panel(onClick = { nav.navigate(Routes.APPROVALS) }, padding = 14.dp) {
+                    Text("${pending.size} waiting for your OK", style = MaterialTheme.typography.titleMedium, color = c.fg)
+                    Small("Nothing goes out in your name until you say so.")
                 }
             }
             item {
                 if (top == null) {
-                    Panel {
-                        Kicker("Today's action")
-                        Text("NOTHING DUE. GOOD.", style = MaterialTheme.typography.headlineMedium, color = c.fg)
-                        Small("Ask the Chief what would move your stage forward, or take the night off.")
+                    Panel(padding = 20.dp) {
+                        Text("Nothing due right now", style = MaterialTheme.typography.headlineSmall, color = c.fg)
+                        Small("Ask the Chief what would help most, or take the evening off.")
                         PosterButton("Ask the Chief", onClick = { nav.navigate(Routes.CHIEF) })
                     }
                 } else {
                     val (t, s) = top
-                    Panel(padding = 20.dp) {
-                        Kicker("Today's action · ${t.sizeMinutes} min${if (t.highEffort) " · high effort" else ""}${if (t.legal) " · legal" else ""}", color = c.signal)
-                        Text(t.title.uppercase(), style = MaterialTheme.typography.displaySmall, color = c.fg)
-                        if (t.why.isNotBlank()) Body(t.why)
-                        if (t.doneLooksLike.isNotBlank()) Small("Done looks like: ${t.doneLooksLike}", color = c.fg)
-                        if (t.goodEnough.isNotBlank()) Small("Good enough: ${t.goodEnough}")
-                        if (t.dueEpochDay > 0) Small("Due ${day(t.dueEpochDay)}")
-                        if (s.needsReshape) Small("You've skipped this ${t.skippedCount} times, so it's been shrunk to a first step. If it's the wrong task, tell the Chief.", color = c.signal)
+                    Panel(accent = true, padding = 20.dp) {
+                        Kicker("Next · about ${t.sizeMinutes} min" + (if (t.dueEpochDay > 0) " · due ${day(t.dueEpochDay)}" else ""), color = Ink)
+                        Text(t.title, style = MaterialTheme.typography.headlineSmall, color = Ink)
+                        if (t.why.isNotBlank()) Text(t.why, style = MaterialTheme.typography.bodyMedium, color = Ink)
+                        if (s.needsReshape) Text("Shrunk to a first step after a few skips. Wrong task? Tell the Chief.", style = MaterialTheme.typography.bodySmall, color = Ink)
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            PosterButton("Done", onClick = {
-                                scope.launch { g.case.completeTask(t); stamp = true; refresh++ }
-                            })
-                            PosterButton("Skip", primary = false, onClick = { scope.launch { g.case.skipTask(t); refresh++ } })
+                            PosterButton("Done", onClick = { scope.launch { g.case.completeTask(t); stamp = true; refresh++ } })
+                            PosterButton("Not today", primary = false, onClick = { scope.launch { g.case.skipTask(t); refresh++ } })
                         }
                         Row {
-                            LinkButton("Walk me through it", onClick = { showSteps = t })
-                            LinkButton("Why this?", onClick = { showWhy = s })
+                            LinkButton("How to do it", onClick = { showSteps = t }, color = Ink)
+                            LinkButton("Why this?", onClick = { showWhy = s }, color = Ink)
+                            if (t.module.isNotBlank()) LinkButton("Open", onClick = { nav.openModule(t.module) }, color = Ink)
                         }
-                        if (t.module.isNotBlank()) LinkButton("Open ${t.module}", onClick = { nav.openModule(t.module) })
                     }
                 }
             }
             item {
-                Panel(onClick = { nav.navigate(Routes.PATH) }) {
-                    Kicker("Stage ${stage.number} of 8 · ${stage.window}")
-                    Text(stage.title.uppercase(), style = MaterialTheme.typography.titleLarge, color = c.fg)
+                Panel(onClick = { nav.navigate(Routes.PATH) }, padding = 14.dp) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(stage.title, style = MaterialTheme.typography.titleMedium, color = c.fg)
+                        Small("${(exitFraction * 100).toInt()}%")
+                    }
                     Progress(exitFraction)
-                    Small("Exit: ${stage.exitTest}")
+                    Small(exitLabel)
                 }
             }
             item {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    BigNumber(weekScore.toString(), "Week score", color = c.signal)
-                    BigNumber(nextDeadline?.let { (it.dueEpochDay - LocalDate.now().toEpochDay()).toString() } ?: "—", "Days to deadline")
-                    BigNumber(tasks.size.toString(), "Open tasks")
-                }
+                val bits = listOfNotNull(
+                    "Week score $weekScore",
+                    nextDeadline?.let { d -> "next deadline in ${d.dueEpochDay - LocalDate.now().toEpochDay()} days" },
+                    if (brief.isNotEmpty()) "${brief.size} new in your briefing" else null,
+                    advanced?.let { "you reached stage ${it.number}" },
+                )
+                Small(bits.joinToString(" · "), Modifier.padding(horizontal = 4.dp))
             }
-            if (brief.isNotEmpty()) item {
-                Panel(onClick = { nav.navigate(Routes.BRIEFING) }) {
-                    Kicker("Briefing · ${brief.size} item(s)")
-                    brief.take(2).forEach { Body("• ${it.title}") }
-                }
-            }
+            if (insideWork) item { Small("You're at work now. Everything keeps until after.", Modifier.padding(horizontal = 4.dp)) }
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    PosterButton("Too much", primary = false, onClick = {
+                Row {
+                    LinkButton("Shrink this week", color = c.muted, onClick = {
                         scope.launch {
                             g.chief.tools.execute("reschedule_plan", JsonObject(mapOf("shrink_week" to JsonPrimitive(true), "reason" to JsonPrimitive("Too much"))),
                                 ToolCtx(g.case, g.settings.get(), approved = true))
                             refresh++
                         }
                     })
-                    PosterButton("Weekly review", primary = false, onClick = { nav.navigate(Routes.REVIEW) })
+                    if (brief.isNotEmpty()) LinkButton("Briefing", color = c.muted, onClick = { nav.navigate(Routes.BRIEFING) })
                 }
             }
-            item { Small("Missed days cost nothing. The plan quietly re-flows.") }
         }
         if (stamp) Stamp("Done") { stamp = false }
     }
 
     showWhy?.let { s ->
         AlertDialog(onDismissRequest = { showWhy = null }, confirmButton = { TextButton(onClick = { showWhy = null }) { Text("OK") } },
-            title = { Text("WHY THIS RANKED FIRST", style = MaterialTheme.typography.titleLarge) },
+            title = { Text("Why this is first", style = MaterialTheme.typography.titleLarge) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     s.lines.forEach { l -> Text("${if (l.points >= 0) "+" else ""}${l.points}  ${l.factor}: ${l.note}", style = MaterialTheme.typography.bodyMedium) }

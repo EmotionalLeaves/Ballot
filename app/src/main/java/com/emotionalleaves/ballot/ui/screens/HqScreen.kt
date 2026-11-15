@@ -141,7 +141,7 @@ fun HqScreen(nav: NavHostController) {
                 items(vols.size) { i ->
                     val v = vols[i]
                     Panel(onClick = { nav.navigate(Routes.contact(v.id)) }, padding = 12.dp) {
-                        Text(v.name.uppercase(), style = MaterialTheme.typography.titleMedium, color = c.fg)
+                        Text(v.name, style = MaterialTheme.typography.titleMedium, color = c.fg)
                         Small(v.nextStep.ifBlank { "No shift booked" })
                     }
                 }
@@ -185,7 +185,7 @@ private fun CallTime(list: List<com.emotionalleaves.ballot.data.Contact>, reason
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Kicker("Call ${i % list.size + 1} of ${list.size}")
         Panel {
-            Text(p.name.uppercase(), style = MaterialTheme.typography.displaySmall, color = c.fg)
+            Text(p.name, style = MaterialTheme.typography.displaySmall, color = c.fg)
             Small("How you met: ${p.howMet.ifBlank { "—" }} · cares about: ${p.interests.ifBlank { "—" }} · last contact ${shortDate(p.lastContactAt)}", color = c.fg)
             if (p.suggestedAskCents > 0) Small("Suggested ask: ${dollars(p.suggestedAskCents)}", color = c.signal)
             if (p.callOutcome.isNotBlank()) Small("Last outcome: ${p.callOutcome}")

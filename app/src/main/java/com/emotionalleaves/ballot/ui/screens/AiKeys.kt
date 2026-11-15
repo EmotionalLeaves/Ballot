@@ -149,7 +149,7 @@ fun KeyConnector(makeMain: Boolean = true, onConnected: (String) -> Unit = {}) {
             Panel(accent = on, onClick = { selected = p; status = ""; ok = false; choosing = false }, padding = 12.dp) {
                 val ink = if (on) com.emotionalleaves.ballot.ui.theme.Ink else c.fg
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(p.name.uppercase(), style = MaterialTheme.typography.titleMedium, color = ink, modifier = Modifier.weight(1f))
+                    Text(p.name, style = MaterialTheme.typography.titleMedium, color = ink, modifier = Modifier.weight(1f))
                     if (connected) Badge("Connected", if (on) ink else Go)
                     Badge(if (p.free) "Free" else "Paid", if (on) ink else if (p.free) Go else c.muted)
                 }
@@ -219,7 +219,7 @@ fun ConnectedServices(onChanged: () -> Unit = {}) {
             val used = today[p.id] ?: 0
             Panel(padding = 12.dp) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(p.name.uppercase(), style = MaterialTheme.typography.titleMedium, color = c.fg, modifier = Modifier.weight(1f))
+                    Text(p.name, style = MaterialTheme.typography.titleMedium, color = c.fg, modifier = Modifier.weight(1f))
                     if (p.id == main) Badge("Main", c.signal)
                     Badge(if (p.free) "Free" else "Paid", if (p.free) Go else c.muted)
                 }

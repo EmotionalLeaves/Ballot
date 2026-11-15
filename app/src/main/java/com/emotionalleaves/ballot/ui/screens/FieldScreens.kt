@@ -190,7 +190,7 @@ private fun EventPanel(
     var typed by remember(e.id) { mutableStateOf("") }
     Panel {
         Kicker("${e.type.replace('_', ' ')} · ${dateTime(e.startAt)}")
-        Text(e.title.uppercase(), style = MaterialTheme.typography.titleLarge, color = c.fg)
+        Text(e.title, style = MaterialTheme.typography.titleLarge, color = c.fg)
         if (e.place.isNotBlank()) Small(e.place, color = c.fg)
         if (e.goal.isNotBlank()) Small("Goal: ${e.goal}", color = c.signal)
         if (e.preCard.isNotBlank()) Body(e.preCard)

@@ -67,10 +67,10 @@ fun SetupScreen() {
 
     val c = LocalBallotColors.current
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        Text("BALLOT", style = MaterialTheme.typography.displayMedium, color = c.signal)
+        Text("Ballot", style = MaterialTheme.typography.headlineLarge, color = c.signal)
         Kicker("Setup · step ${step + 1} of 8")
         Progress((step + 1) / 8f)
-        Text(stepTitles[step].uppercase(), style = MaterialTheme.typography.headlineLarge, color = c.fg)
+        Text(stepTitles[step], style = MaterialTheme.typography.headlineLarge, color = c.fg)
         ThickRule()
         when (step) {
             0 -> BrainStep(onNext = { save(profile, 1) })
@@ -220,7 +220,7 @@ private fun AmbitionStep(p: Profile, onNext: (Profile) -> Unit) {
     ChipRow(listOf("Local office", "County", "State", "Further", "Not sure"), how.ifBlank { null }, { it }) { how = it }
     ChipRow(listOf("Within a year", "1 to 2 years", "2 to 4 years", "No rush"), soon.ifBlank { null }, { it }) { soon = it }
     Panel(accent = true) {
-        Text("A REALISTIC FIRST TARGET", style = MaterialTheme.typography.labelLarge, color = com.emotionalleaves.ballot.ui.theme.Ink)
+        Text("A realistic first target", style = MaterialTheme.typography.labelLarge, color = com.emotionalleaves.ballot.ui.theme.Ink)
         Text("Most first offices are local and often part time: school board, city council, township or county seats. " +
             "Aim first for one you can win while keeping your job. The Chief will rank the real options near you once it knows the ground.",
             style = MaterialTheme.typography.bodyMedium, color = com.emotionalleaves.ballot.ui.theme.Ink)
@@ -238,7 +238,7 @@ private fun FirstWeekStep(p: Profile, onFinish: () -> Unit) {
     StageRules.playbook(Stage.REASON).take(3).forEachIndexed { i, t ->
         Panel {
             Kicker("Task ${i + 1} · ${t.sizeMinutes} min")
-            Text(t.title.uppercase(), style = MaterialTheme.typography.titleMedium, color = LocalBallotColors.current.fg)
+            Text(t.title, style = MaterialTheme.typography.titleMedium, color = LocalBallotColors.current.fg)
             Small(t.why)
         }
     }

@@ -15,6 +15,7 @@ import com.emotionalleaves.ballot.work.Workers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import java.io.File
 
 /** Manual dependency graph. One instance of everything, created lazily. */
@@ -75,6 +76,7 @@ class BallotApp : Application() {
         Workers.schedule(this)
         // Requests queued while offline in an earlier session run as soon as there is a connection.
         Workers.drainQueueWhenOnline(this)
+        graph.scope.launch { graph.settings.applyCalmThemeOnce() }
     }
 }
 

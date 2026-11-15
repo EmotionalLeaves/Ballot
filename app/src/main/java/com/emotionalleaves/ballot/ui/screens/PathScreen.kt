@@ -25,6 +25,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -71,12 +72,14 @@ fun PathScreen(nav: NavHostController) {
     val decisions by g.db.decisions().observe().collectAsStateWithLifecycle(initialValue = emptyList())
     val lessons by g.db.lessons().observe().collectAsStateWithLifecycle(initialValue = emptyList())
     var stats by remember { mutableStateOf(CaseStats()) }
+    var showRecord by remember { mutableStateOf(false) }
+    var showLanes by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     LaunchedEffect(profile) { stats = g.case.stats() }
     val p = profile ?: return
     val current = Stage.of(p.stage)
     val c = LocalBallotColors.current
-    Screen("The path", kicker = "Eight stages · each unlocks when its exit test is met", walkthrough = listOf(
+    Screen("Your plan", kicker = "Eight stages. Each opens when the one before is done.", walkthrough = listOf(
         "This is the whole road from zero to office. You are on the highlighted stage.",
         "A stage unlocks only when the one before it passes its exit test. Stages 3 to 5 cannot be skipped: they are how people come to know and trust you.",
         "Timings are defaults. The Chief adjusts them to your life.",
@@ -89,15 +92,16 @@ fun PathScreen(nav: NavHostController) {
             val done = s.number < current.number
             Row(Modifier.fillMaxWidth()) {
                 Column(Modifier.width(36.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Box(Modifier.size(30.dp).background(if (isCurrent) c.signal else if (done) c.fg else c.bg).border(3.dp, if (isCurrent) c.signal else c.fg),
+                    val shape = androidx.compose.foundation.shape.CircleShape
+                    Box(Modifier.size(28.dp).clip(shape).background(if (isCurrent || done) c.signal else c.raised).border(1.dp, if (isCurrent || done) c.signal else c.rule, shape),
                         contentAlignment = Alignment.Center) {
-                        Text("${s.number}", style = MaterialTheme.typography.titleMedium, color = if (isCurrent || done) c.bg else c.fg)
+                        Text(if (done) "✓" else "${s.number}", style = MaterialTheme.typography.labelLarge, color = if (isCurrent || done) c.onSignal else c.muted)
                     }
-                    if (i < Stage.entries.size - 1) Box(Modifier.width(3.dp).height(if (isCurrent) 150.dp else 54.dp).background(c.fg))
+                    if (i < Stage.entries.size - 1) Box(Modifier.width(2.dp).height(if (isCurrent) 150.dp else 36.dp).background(if (done) c.signal else c.rule))
                 }
                 Column(Modifier.padding(start = 12.dp).weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(s.title.uppercase(), style = MaterialTheme.typography.titleLarge, color = if (s.number > current.number) c.muted else c.fg)
-                    Small(s.window)
+                    Text(s.title, style = if (isCurrent) MaterialTheme.typography.titleLarge else MaterialTheme.typography.bodyLarge, color = if (s.number > current.number) c.muted else c.fg)
+                    if (isCurrent) Small(s.window)
                     if (isCurrent) {
                         Body("Exit: ${s.exitTest}")
                         Progress(ex.fraction)
@@ -123,11 +127,12 @@ fun PathScreen(nav: NavHostController) {
                             })
                             else -> {}
                         }
-                    } else if (done) Small("Passed")
+                    }
                 }
             }
         }
-        item {
+        item { LinkButton(if (showLanes) "Hide shortcuts" else "Shortcuts to the race decision", onClick = { showLanes = !showLanes }, color = c.muted) }
+        if (showLanes) item {
             Panel {
                 Kicker("Fast lanes")
                 Small("Open seat: an uncontested or vacant local seat lets you make the race decision early. Ask the Chief to check.", color = c.fg)
@@ -140,9 +145,9 @@ fun PathScreen(nav: NavHostController) {
                 })
             }
         }
-        item { Title("Decisions") }
-        if (decisions.isEmpty()) item { EmptyNote("Big decisions and their reasoning will be kept here.") }
-        items(decisions.size) { i ->
+        item { LinkButton(if (showRecord) "Hide decisions and lessons" else "Decisions (${decisions.size}) and lessons (${lessons.size})", onClick = { showRecord = !showRecord }, color = c.muted) }
+        if (showRecord && decisions.isEmpty()) item { EmptyNote("Big decisions and their reasoning will be kept here.") }
+        if (showRecord) items(decisions.size) { i ->
             val d = decisions[i]
             Panel {
                 Kicker("${d.kind.replace('_', ' ')} · ${shortDate(d.at)}")
@@ -155,9 +160,8 @@ fun PathScreen(nav: NavHostController) {
                 }
             }
         }
-        item { Title("Lessons") }
-        if (lessons.isEmpty()) item { EmptyNote("After every event and every week, one lesson goes here.") }
-        items(lessons.take(20).size) { i ->
+        if (showRecord && lessons.isEmpty()) item { EmptyNote("After every event and every week, one lesson goes here.") }
+        if (showRecord) items(lessons.take(20).size) { i ->
             val l = lessons[i]
             Panel { Kicker("${l.kind} · ${shortDate(l.at)}"); Body(l.what); if (l.change.isNotBlank()) Small("Change: ${l.change}") }
         }
@@ -271,7 +275,7 @@ fun GoNoGoScreen(nav: NavHostController) {
         item { Field(target, { target = it }, "The office you are deciding on") }
         items(goNoGoPoints.size) { i ->
             Panel {
-                Text(goNoGoPoints[i].uppercase(), style = MaterialTheme.typography.titleMedium, color = c.fg)
+                Text(goNoGoPoints[i], style = MaterialTheme.typography.titleMedium, color = c.fg)
                 ChipRow(listOf("YES", "NO", "UNSURE"), answers[i].ifBlank { null }, { it.lowercase() }) { answers[i] = it }
                 Field(notes[i], { notes[i] = it }, "Evidence or note")
             }
@@ -341,7 +345,7 @@ fun WeeklyReviewScreen(nav: NavHostController) {
         }
         if (WeeklyScore.flat(history)) item {
             Panel(accent = true) {
-                Text("FLAT WEEK. THAT'S INFORMATION, NOT FAILURE.", style = MaterialTheme.typography.titleMedium, color = com.emotionalleaves.ballot.ui.theme.Ink)
+                Text("A quiet week. That's information, not failure.", style = MaterialTheme.typography.titleMedium, color = com.emotionalleaves.ballot.ui.theme.Ink)
                 PosterButton("Name the blocker", primary = false, onClick = {
                     askChief(g, "My weekly score was flat (${history.joinToString()}). Name the most likely blocker from my case file and offer a smaller plan for next week.", "naming the blocker")
                     nav.navigate(Routes.CHIEF)

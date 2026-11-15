@@ -68,7 +68,7 @@ fun BusyBar() {
     Panel {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
             CircularProgressIndicator(Modifier.size(22.dp), color = LocalBallotColors.current.signal, strokeWidth = 3.dp)
-            Text("THE CHIEF: ${ChiefBusy.label.uppercase()}…", style = MaterialTheme.typography.labelLarge, color = LocalBallotColors.current.fg)
+            Text("The Chief · ${ChiefBusy.label.replaceFirstChar { it.uppercase() }}…", style = MaterialTheme.typography.labelLarge, color = LocalBallotColors.current.fg)
         }
     }
 }
@@ -78,7 +78,7 @@ fun BusyBar() {
 fun ReplyPanel(onOpenChief: () -> Unit) {
     val r = ChiefBusy.lastReply ?: return
     Panel(onClick = onOpenChief) {
-        Small("THE CHIEF · ${r.mode.label.uppercase()} · TAP FOR THE FULL THREAD")
+        Small("THE CHIEF · ${r.mode.label} · TAP FOR THE FULL THREAD")
         Text(r.text.take(600), style = MaterialTheme.typography.bodyMedium, color = LocalBallotColors.current.fg)
     }
 }

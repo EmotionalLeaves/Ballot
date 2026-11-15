@@ -19,6 +19,9 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -89,12 +92,21 @@ object Routes {
 private data class Tab(val route: String, val label: String, val icon: ImageVector)
 
 private val tabs = listOf(
-    Tab(Routes.HOME, "Home", Icons.Filled.Home),
+    Tab(Routes.HOME, "Today", Icons.Filled.Home),
     Tab(Routes.CHIEF, "Chief", Icons.Filled.Forum),
-    Tab(Routes.PATH, "Path", Icons.Filled.Timeline),
+    Tab(Routes.PATH, "Plan", Icons.Filled.Timeline),
     Tab(Routes.PEOPLE, "People", Icons.Filled.Groups),
     Tab(Routes.MORE, "More", Icons.Filled.Apps),
 )
+
+/** Which tab a screen belongs to, so the bar always shows where you are. */
+fun parentTab(route: String?): String = when (route) {
+    null, Routes.HOME -> Routes.HOME
+    Routes.CHIEF -> Routes.CHIEF
+    Routes.PATH, Routes.QUIZ, Routes.GONOGO, Routes.REVIEW -> Routes.PATH
+    Routes.PEOPLE, Routes.CONTACT -> Routes.PEOPLE
+    else -> Routes.MORE
+}
 
 /** Opens whatever a Chief card points at. */
 fun NavHostController.openCard(card: Card) {
@@ -179,29 +191,26 @@ fun BallotRoot() {
                 }
             }
         }
-        ThickRule(thickness = 2.dp)
-        Row(Modifier.fillMaxWidth().background(c.bg).height(64.dp)) {
+        // Five fixed destinations with a calm pill indicator. Everything else is one tap down in More.
+        NavigationBar(containerColor = c.raised, tonalElevation = 0.dp) {
             tabs.forEach { t ->
-                val on = current == t.route
-                Column(
-                    Modifier
-                        .weight(1f)
-                        .fillMaxSize()
-                        .background(if (on) c.signal else c.bg)
-                        .semantics { role = Role.Tab; selected = on; contentDescription = t.label }
-                        .clickable {
-                            nav.navigate(t.route) {
-                                popUpTo(Routes.HOME) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    Icon(t.icon, contentDescription = null, tint = if (on) c.bg else c.fg)
-                    Text(t.label.uppercase(), style = MaterialTheme.typography.labelSmall, color = if (on) c.bg else c.fg)
-                }
+                val on = parentTab(current) == t.route
+                NavigationBarItem(
+                    selected = on,
+                    onClick = {
+                        nav.navigate(t.route) {
+                            popUpTo(Routes.HOME) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    icon = { Icon(t.icon, contentDescription = null) },
+                    label = { Text(t.label, style = MaterialTheme.typography.labelMedium) },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = c.onAccent, selectedTextColor = c.fg, indicatorColor = c.accentSoft,
+                        unselectedIconColor = c.muted, unselectedTextColor = c.muted,
+                    ),
+                )
             }
         }
     }
@@ -232,7 +241,7 @@ fun LockScreen(onUnlocked: () -> Unit) {
     }
     LaunchedEffect(Unit) { bio() }
     Column(Modifier.fillMaxSize().padding(28.dp), verticalArrangement = Arrangement.Center) {
-        Text("BALLOT", style = MaterialTheme.typography.displayLarge, color = LocalBallotColors.current.signal)
+        Text("Ballot", style = MaterialTheme.typography.displayMedium, color = LocalBallotColors.current.signal)
         Small("Locked. Your case file is encrypted on this phone.")
         Gap(24.dp)
         Field(pin, { pin = it.filter { ch -> ch.isDigit() }.take(12); error = "" }, "PIN", singleLine = true, number = true)

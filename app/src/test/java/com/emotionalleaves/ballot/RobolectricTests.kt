@@ -184,13 +184,13 @@ class UiTest {
                 }
             }
         }
-        compose.onNodeWithText("APPROVE").performClick()
+        compose.onNodeWithText("Approve").performClick()
         compose.onNodeWithText("approved").assertIsDisplayed()
     }
 
     @Test fun unverifiedIsLabelledPlainly() {
         compose.setContent { BallotTheme { ConfidenceBadge("UNVERIFIED") } }
-        compose.onNodeWithText("UNVERIFIED").assertIsDisplayed()
+        compose.onNodeWithText("Unverified").assertIsDisplayed()
     }
 
     @Test fun walkMeThroughShowsEveryStep() {

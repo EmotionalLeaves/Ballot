@@ -52,7 +52,7 @@ data class AppSettings(
     val askFirst: Set<String> = emptySet(),
     val sleepStartMin: Int = 21 * 60 + 30,
     val sleepEndMin: Int = 6 * 60,
-    val darkTheme: Boolean = true,
+    val darkTheme: Boolean = false,
     val officialDomains: Set<String> = emptySet(),
     val appLock: Boolean = false,
     val autoLockMinutes: Int = 5,
@@ -155,6 +155,14 @@ class SettingsStore(private val context: Context) {
             p[K.volHours] = n.volunteerHoursPerWeek; p[K.briefMin] = n.briefMinuteOfDay; p[K.snapDay] = n.lastSnapshotDay
             p[K.textScale] = n.textScale
             p[K.providerModels] = n.providerModels; p[K.freeOnly] = n.freeOnly; p[K.useBackups] = n.useBackups
+        }
+    }
+
+    /** The calmer redesign starts in the light theme once; after that your choice stands. */
+    suspend fun applyCalmThemeOnce() {
+        val flag = booleanPreferencesKey("calm_theme_applied")
+        context.dataStore.edit { p ->
+            if (p[flag] != true) { p[flag] = true; p[K.dark] = false }
         }
     }
 

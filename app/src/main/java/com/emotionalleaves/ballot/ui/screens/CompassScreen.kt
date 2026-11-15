@@ -142,7 +142,7 @@ fun CompassScreen(nav: NavHostController) {
             val pos = positions[i]
             Panel(onClick = { editing = pos }) {
                 Kicker(if (pos.statedPubliclyAt > 0) "Stated publicly ${shortDate(pos.statedPubliclyAt)}" else "Private")
-                Text(pos.issue.uppercase(), style = MaterialTheme.typography.titleLarge, color = c.fg)
+                Text(pos.issue, style = MaterialTheme.typography.titleLarge, color = c.fg)
                 Body(pos.stance.ifBlank { "No stance written yet." })
                 if (pos.counterArgument.isNotBlank()) Small("Strongest counter: ${pos.counterArgument}")
                 if (pos.sourceIds.isNotBlank()) Small("Sources: ${pos.sourceIds}")

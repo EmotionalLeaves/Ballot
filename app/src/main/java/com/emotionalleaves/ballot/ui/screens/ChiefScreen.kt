@@ -33,6 +33,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -91,21 +92,21 @@ fun ChiefScreen(nav: NavHostController, thread: String = "main") {
 
     Column(Modifier.fillMaxSize().imePadding()) {
         Row(Modifier.fillMaxWidth().padding(start = Gutter, end = 8.dp, top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(40.dp).background(c.signal), contentAlignment = Alignment.Center) {
-                Text("C", style = MaterialTheme.typography.headlineMedium, color = c.bg)
+            Box(Modifier.size(40.dp).clip(androidx.compose.foundation.shape.CircleShape).background(c.accentSoft), contentAlignment = Alignment.Center) {
+                Text("C", style = MaterialTheme.typography.titleLarge, color = c.onAccent)
             }
             Column(Modifier.weight(1f).padding(start = 12.dp)) {
-                Text("THE CHIEF", style = MaterialTheme.typography.headlineMedium, color = c.fg)
+                Text("The Chief", style = MaterialTheme.typography.headlineMedium, color = c.fg)
                 Small(if (queued > 0) "$queued request(s) queued until you're online" else "Your chief of staff. Asks before anything goes out in your name.")
             }
             if (messages.isNotEmpty()) LinkButton("Clear", onClick = { confirmClear = true }, color = c.muted)
         }
-        ThickRule(Modifier.padding(horizontal = Gutter, vertical = 8.dp))
+        ThickRule(Modifier.padding(top = 8.dp))
         LazyColumn(Modifier.weight(1f).fillMaxWidth(), state = list, contentPadding = PaddingValues(horizontal = Gutter, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (messages.isEmpty()) item {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("WHAT DO YOU NEED?", style = MaterialTheme.typography.displaySmall, color = c.fg)
+                    Text("What do you need?", style = MaterialTheme.typography.displaySmall, color = c.fg)
                     Small("Ask in plain words. Tap a starter:")
                     starters.forEach { s -> Panel(onClick = { send(s) }) { Text(s, style = MaterialTheme.typography.bodyLarge, color = c.fg) } }
                 }
@@ -117,7 +118,7 @@ fun ChiefScreen(nav: NavHostController, thread: String = "main") {
             color = c.signal, modifier = Modifier.padding(horizontal = Gutter))
         if (speech.error.isNotEmpty()) Small(speech.error, Modifier.padding(horizontal = Gutter), color = Signal)
         Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            OutlinedTextField(value = input, onValueChange = { input = it }, modifier = Modifier.weight(1f), placeholder = { Text("Tell the Chief…") },
+            OutlinedTextField(value = input, onValueChange = { input = it }, modifier = Modifier.weight(1f), placeholder = { Text("Ask the Chief…") }, shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
                 maxLines = 5, textStyle = MaterialTheme.typography.bodyLarge)
             IconButton(onClick = {
                 if (speech.listening) speech.stop()
@@ -125,8 +126,9 @@ fun ChiefScreen(nav: NavHostController, thread: String = "main") {
             }, modifier = Modifier.size(52.dp)) {
                 Icon(if (speech.listening) Icons.Filled.Stop else Icons.Filled.Mic, contentDescription = if (speech.listening) "Stop voice input" else "Voice input", tint = c.fg)
             }
-            IconButton(onClick = { send(input) }, enabled = input.isNotBlank() && !ChiefBusy.busy, modifier = Modifier.size(52.dp).background(c.signal)) {
-                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send", tint = c.bg)
+            IconButton(onClick = { send(input) }, enabled = input.isNotBlank() && !ChiefBusy.busy,
+                modifier = Modifier.size(48.dp).clip(androidx.compose.foundation.shape.CircleShape).background(if (input.isNotBlank()) c.signal else c.rule)) {
+                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send", tint = c.onSignal)
             }
         }
     }
@@ -145,8 +147,8 @@ fun MessageView(m: ChatMessage, sources: Map<Long, SourceRecord>, onCard: (Card)
     val ctx = LocalContext.current
     if (m.role == "user") {
         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-            Text(m.text, style = MaterialTheme.typography.bodyLarge, color = c.bg,
-                modifier = Modifier.background(c.fg).padding(horizontal = 14.dp, vertical = 10.dp))
+            Text(m.text, style = MaterialTheme.typography.bodyLarge, color = c.onAccent,
+                modifier = Modifier.padding(start = 48.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(18.dp)).background(c.accentSoft).padding(horizontal = 14.dp, vertical = 10.dp))
         }
         return
     }
@@ -154,8 +156,9 @@ fun MessageView(m: ChatMessage, sources: Map<Long, SourceRecord>, onCard: (Card)
         runCatching { if (m.cards.isBlank()) emptyList() else BallotJson.decodeFromString(ListSerializer(Card.serializer()), m.cards) }.getOrDefault(emptyList())
     }
     val ids = remember(m.sourceIds) { m.sourceIds.split(',').mapNotNull { it.trim().toLongOrNull() } }
-    Column(Modifier.fillMaxWidth().border(2.dp, c.rule.copy(alpha = 0.25f)).padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Kicker("Chief${if (m.mode.isNotBlank()) " · ${m.mode}" else ""} · ${shortDate(m.at)}", color = c.signal)
+    Column(Modifier.fillMaxWidth().padding(end = 24.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(18.dp)).background(c.raised)
+        .border(1.dp, c.rule, androidx.compose.foundation.shape.RoundedCornerShape(18.dp)).padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Kicker("Chief${if (m.mode.isNotBlank()) " · ${m.mode}" else ""} · ${shortDate(m.at)}", color = c.muted)
         Text(m.text, style = MaterialTheme.typography.bodyLarge, color = c.fg)
         cards.forEach { card ->
             Panel(onClick = { onCard(card) }, padding = 12.dp) {

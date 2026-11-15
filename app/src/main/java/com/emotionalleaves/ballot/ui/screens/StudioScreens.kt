@@ -93,7 +93,7 @@ fun StudioScreen(nav: NavHostController) {
                         d.holdUntil > now() -> Badge("Cooling", c.signal)
                     }
                 }
-                Text(d.title.uppercase(), style = MaterialTheme.typography.titleMedium, color = c.fg)
+                Text(d.title, style = MaterialTheme.typography.titleMedium, color = c.fg)
             }
         }
     }
@@ -126,7 +126,7 @@ fun DocumentScreen(nav: NavHostController, id: Long) {
         item { BusyBar() }
         if (holding) item {
             Panel(accent = true) {
-                Text("COOLING PERIOD: ${((d.holdUntil - nowMs) / 60_000) + 1} MIN LEFT", style = MaterialTheme.typography.titleMedium, color = com.emotionalleaves.ballot.ui.theme.Ink)
+                Text("Cooling period: ${((d.holdUntil - nowMs) / 60_000) + 1} min left", style = MaterialTheme.typography.titleMedium, color = com.emotionalleaves.ballot.ui.theme.Ink)
                 Text("Never reply while angry. Read it again when the timer ends.", style = MaterialTheme.typography.bodyMedium, color = com.emotionalleaves.ballot.ui.theme.Ink)
             }
         }

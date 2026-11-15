@@ -43,7 +43,7 @@ import com.emotionalleaves.ballot.ui.theme.LocalBallotColors
 import kotlinx.coroutines.launch
 
 private fun roleLabel(r: String) = when (r) {
-    "" -> "None"; ContactRole.MANAGER -> "Campaign manager"; else -> r.lowercase().replaceFirstChar { it.uppercase() }
+    "" -> "None"; ContactRole.MANAGER -> "Campaign manager"; else -> r.lowercase().replaceFirstChar { it }
 }
 
 @Composable
@@ -75,7 +75,7 @@ fun PeopleScreen(nav: NavHostController) {
         }
         if (followUps.isNotEmpty()) item {
             Panel(accent = true, onClick = { nav.navigate(Routes.APPROVALS) }) {
-                Text("${followUps.size} FOLLOW-UP(S) DRAFTED", style = MaterialTheme.typography.titleMedium, color = com.emotionalleaves.ballot.ui.theme.Ink)
+                Text("${followUps.size} follow-up(s) drafted", style = MaterialTheme.typography.titleMedium, color = com.emotionalleaves.ballot.ui.theme.Ink)
                 Text("Approve and send them yourself.", style = MaterialTheme.typography.bodyMedium, color = com.emotionalleaves.ballot.ui.theme.Ink)
             }
         }
@@ -87,7 +87,7 @@ fun PeopleScreen(nav: NavHostController) {
                     val who = contacts.filter { it.role == role }
                     Panel(accent = who.isEmpty()) {
                         Kicker(roleLabel(role), color = if (who.isEmpty()) com.emotionalleaves.ballot.ui.theme.Ink else c.muted)
-                        Text(if (who.isEmpty()) "EMPTY SEAT" else who.joinToString { it.name }, style = MaterialTheme.typography.titleLarge,
+                        Text(if (who.isEmpty()) "Empty seat" else who.joinToString { it.name }, style = MaterialTheme.typography.titleLarge,
                             color = if (who.isEmpty()) com.emotionalleaves.ballot.ui.theme.Ink else c.fg)
                         if (who.isEmpty()) LinkButton("Help me find one", color = com.emotionalleaves.ballot.ui.theme.Ink, onClick = {
                             askChief(g, "Help me find a ${roleLabel(role).lowercase()} for my kitchen cabinet. Who in my contacts could fit, who could introduce me, and how do I ask? Draft the ask as a follow-up.", "finding a ${roleLabel(role).lowercase()}")
@@ -148,7 +148,7 @@ fun PeopleScreen(nav: NavHostController) {
                     val p = filtered[i]
                     Panel(onClick = { nav.navigate(Routes.contact(p.id)) }, padding = 12.dp) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text(p.name.uppercase(), style = MaterialTheme.typography.titleMedium, color = c.fg, modifier = Modifier.weight(1f))
+                            Text(p.name, style = MaterialTheme.typography.titleMedium, color = c.fg, modifier = Modifier.weight(1f))
                             if (p.role.isNotBlank()) Small(roleLabel(p.role))
                         }
                         Small(listOfNotNull(p.howMet.takeIf { it.isNotBlank() }, p.beat.takeIf { it.isNotBlank() }?.let { "beat: $it" },

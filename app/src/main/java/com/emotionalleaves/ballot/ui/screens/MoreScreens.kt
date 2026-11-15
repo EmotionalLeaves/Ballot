@@ -1,6 +1,20 @@
 package com.emotionalleaves.ballot.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.FolderOpen
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Newspaper
+import androidx.compose.material.icons.filled.RecordVoiceOver
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,20 +49,28 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 
-private data class Module(val route: String, val title: String, val line: String)
+private data class Module(val route: String, val title: String, val line: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
 
-private val modules = listOf(
-    Module(Routes.COMPASS, "Compass", "Who you are and what you stand for"),
-    Module(Routes.GROUND, "Ground", "Your offices, race cards and the win number"),
-    Module(Routes.BRIEFING, "Briefing", "What is happening near you"),
-    Module(Routes.FIELD, "Field", "Meetings, events, boards to apply for"),
-    Module(Routes.GYM, "Gym", "Speaking reps and mock rooms"),
-    Module(Routes.STUDIO, "Studio", "Drafts in your voice, fact-checked"),
-    Module(Routes.VAULT, "Vault", "Deadlines, rules, money and paper"),
-    Module(Routes.HQ, "Campaign HQ", "Unlocks at stage 7"),
-    Module(Routes.APPROVALS, "Approvals", "Everything waiting for your tap"),
-    Module(Routes.CASEFILE, "Case file", "Open, edit or delete anything the Chief knows"),
-    Module(Routes.SETTINGS, "Settings", "Key, spend cap, autonomy, backup, lock"),
+private val groups: List<Pair<String, List<Module>>> = listOf(
+    "Your campaign" to listOf(
+        Module(Routes.COMPASS, "Who you are", "Your reason, issues, story and positions", androidx.compose.material.icons.Icons.Filled.Explore),
+        Module(Routes.GROUND, "Offices and races", "Who represents you, race cards, the win number", androidx.compose.material.icons.Icons.Filled.AccountBalance),
+        Module(Routes.FIELD, "Meetings and events", "Your calendar, debriefs, boards to apply for", androidx.compose.material.icons.Icons.Filled.Event),
+        Module(Routes.BRIEFING, "Local briefing", "News and agendas that touch your issues", androidx.compose.material.icons.Icons.Filled.Newspaper),
+        Module(Routes.HQ, "Campaign HQ", "Opens when you decide to run", androidx.compose.material.icons.Icons.Filled.Flag),
+    ),
+    "Skills and words" to listOf(
+        Module(Routes.GYM, "Practice", "Speaking reps and mock interviews", androidx.compose.material.icons.Icons.Filled.RecordVoiceOver),
+        Module(Routes.STUDIO, "Drafts", "Speeches, comments and letters in your voice", androidx.compose.material.icons.Icons.Filled.EditNote),
+    ),
+    "Records" to listOf(
+        Module(Routes.APPROVALS, "Waiting for your OK", "Anything that would go out in your name", androidx.compose.material.icons.Icons.Filled.TaskAlt),
+        Module(Routes.VAULT, "Vault", "Deadlines, rules, money and papers", androidx.compose.material.icons.Icons.Filled.Lock),
+        Module(Routes.CASEFILE, "Case file", "Everything the Chief knows, to check or delete", androidx.compose.material.icons.Icons.Filled.FolderOpen),
+    ),
+    "App" to listOf(
+        Module(Routes.SETTINGS, "Settings", "AI services, spending, reminders, lock, backup", androidx.compose.material.icons.Icons.Filled.Settings),
+    ),
 )
 
 @Composable
@@ -56,15 +78,28 @@ fun MoreScreen(nav: NavHostController) {
     val g = LocalContext.current.graph
     val pending by g.db.pending().observeWaiting().collectAsStateWithLifecycle(initialValue = emptyList())
     val c = LocalBallotColors.current
-    Screen("Everything else", kicker = "Or just ask the Chief", walkthrough = listOf(
-        "Every module is also reachable by asking the Chief in plain words.", "Approvals holds anything that would go out in your name.")) {
-        items(modules.size) { i ->
-            val m = modules[i]
-            Panel(onClick = { nav.navigate(m.route) { launchSingleTop = true } }, accent = m.route == Routes.APPROVALS && pending.isNotEmpty()) {
-                val onAccent = m.route == Routes.APPROVALS && pending.isNotEmpty()
-                Text((m.title + if (m.route == Routes.APPROVALS && pending.isNotEmpty()) " · ${pending.size}" else "").uppercase(),
-                    style = MaterialTheme.typography.headlineSmall, color = if (onAccent) com.emotionalleaves.ballot.ui.theme.Ink else c.fg)
-                Text(m.line, style = MaterialTheme.typography.bodyMedium, color = if (onAccent) com.emotionalleaves.ballot.ui.theme.Ink else c.muted)
+    Screen("More", kicker = "Or just ask the Chief for any of these", walkthrough = listOf(
+        "Every page here can also be reached by asking the Chief in plain words.",
+        "Waiting for your OK holds anything that would go out in your name.")) {
+        groups.forEach { (heading, list) ->
+            item { Kicker(heading) }
+            item {
+                Panel(padding = 0.dp) {
+                    list.forEachIndexed { i, m ->
+                        val count = if (m.route == Routes.APPROVALS) pending.size else 0
+                        Row(Modifier.fillMaxWidth().clickable(role = androidx.compose.ui.semantics.Role.Button) { nav.navigate(m.route) { launchSingleTop = true } }
+                            .padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                            androidx.compose.material3.Icon(m.icon, contentDescription = null, tint = c.signal)
+                            Column(Modifier.weight(1f).padding(start = 14.dp)) {
+                                Text(m.title, style = MaterialTheme.typography.titleMedium, color = c.fg)
+                                Text(m.line, style = MaterialTheme.typography.bodySmall, color = c.muted)
+                            }
+                            if (count > 0) com.emotionalleaves.ballot.ui.components.Badge("$count", c.signal)
+                            androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = c.muted)
+                        }
+                        if (i < list.lastIndex) com.emotionalleaves.ballot.ui.components.ThickRule(Modifier.padding(start = 54.dp))
+                    }
+                }
             }
         }
     }

@@ -143,7 +143,7 @@ private fun DeadlinesTab() {
                     BigNumber(if (d.done) "✓" else "$left", if (d.done) "Done" else "Days left", color = ink, size = 44)
                     ConfidenceBadge(d.confidence)
                 }
-                Text(d.title.uppercase(), style = MaterialTheme.typography.titleMedium, color = ink)
+                Text(d.title, style = MaterialTheme.typography.titleMedium, color = ink)
                 Small("Due ${day(d.dueEpochDay)}${if (d.legal) " · legal" else ""}", color = ink)
                 if (d.confidence != Confidence.VERIFIED) Small("Confirm with the election office.", color = ink)
                 Row(verticalAlignment = Alignment.CenterVertically) {
