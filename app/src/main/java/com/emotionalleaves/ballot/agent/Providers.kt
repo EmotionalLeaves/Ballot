@@ -234,7 +234,7 @@ class OpenAiClient(private val baseUrl: String, private val echoSignatures: Bool
         val reasoning = Regex("gpt-oss|qwen|deepseek|reason|think|magistral|:free|openrouter/free", RegexOption.IGNORE_CASE).containsMatchIn(request.model)
         val body = buildJsonObject {
             put("model", request.model)
-            put("max_tokens", if (reasoning) maxOf(request.maxTokens * 3, 6000) else request.maxTokens)
+            put("max_tokens", if (!reasoning) request.maxTokens else if (request.maxTokens <= 1200) request.maxTokens * 3 else maxOf(request.maxTokens * 3, 6000))
             put("messages", msgs)
             if (request.tools.isNotEmpty()) putJsonArray("tools") {
                 request.tools.forEach { t ->
