@@ -211,6 +211,8 @@ class RuleRecheckWorker(ctx: Context, params: WorkerParameters) : CoroutineWorke
             val due = deadlines.filter { it.ruleId == rule.id }.minOfOrNull { it.dueEpochDay } ?: (today + 365)
             if (!DeadlineLogic.recheckDue(rule.lastChecked, now(), due, today, s.freshnessDaysRules)) continue
             val page = runCatching { PageFetcher.fetch(rule.officialUrl) }.getOrNull() ?: continue
+            // An error page (404, 500, a maintenance notice) is not a rule change: try again next time.
+            if (page.status !in 200..299 || page.text.isBlank()) continue
             val prev = case.db.sources().get(rule.sourceId)
             val changed = prev != null && prev.contentHash.isNotEmpty() && prev.contentHash != page.hash
             val official = com.emotionalleaves.ballot.core.Verification.isOfficial(page.url, s.officialDomains)
