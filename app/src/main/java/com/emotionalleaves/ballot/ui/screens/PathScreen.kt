@@ -235,15 +235,22 @@ fun QuizScreen(nav: NavHostController) {
         }
         if (questions.isNotEmpty()) item {
             val score = questions.indices.count { answers.getOrNull(it) == questions[it].answer }
+            // The exit test is out of 10. A short quiz (the AI sometimes writes fewer) can't count, or it could never be passed.
+            val counts = questions.size >= 8
+            val outOf10 = if (counts) Math.round(score * 10f / questions.size) else 0
             if (!submitted) PosterButton("Check answers", enabled = answers.none { it < 0 }, onClick = {
                 submitted = true
                 scope.launch {
-                    g.case.updateProfile { it.copy(quizBest = maxOf(it.quizBest, score)) }
-                    g.case.audit("you", "Took the town quiz", outcome = "$score/${questions.size}")
+                    if (counts) g.case.updateProfile { it.copy(quizBest = maxOf(it.quizBest, outOf10)) }
+                    g.case.audit("you", "Took the town quiz", outcome = "$score/${questions.size}" + if (counts) " ($outOf10 of 10)" else " (too short to count)")
                     g.case.advanceIfReady()
                 }
             }) else Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                BigNumber("$score/${questions.size}", if (score >= StageRules.QUIZ_PASS) "Passed" else "Not yet", color = c.signal)
+                BigNumber("$score/${questions.size}", when {
+                    !counts -> "Too few questions to count. Tap New quiz."
+                    outOf10 >= StageRules.QUIZ_PASS -> "Passed"
+                    else -> "Not yet. ${StageRules.QUIZ_PASS} of 10 passes."
+                }, color = c.signal)
                 PosterButton("New quiz", onClick = { generate() })
             }
         }
