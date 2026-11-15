@@ -26,3 +26,4 @@ One line per loop iteration, newest last.
 - Round 3: free web search for every service without a built-in one (all the free ones): a keyless search_web tool reads DuckDuckGo results as leads, and the Chief must fetch the official page before citing anything.
 - Round 4: free-tier resilience: a service that says "no more today" rests until tomorrow and requests go straight to your next service; Settings shows it. Small-context free models get a lighter request (core tools, shorter brief, clipped results).
 - Round 5: tests for key detection, model picking, search parsing, Retry-After and daily caps; README, feature list and decision log updated; version 0.2.0.
+- c1 p1 t1 i11 `system_check_and_update`: Approved items now report their result in the Chief's thread, so research or tracking you approve later is not lost to the conversation

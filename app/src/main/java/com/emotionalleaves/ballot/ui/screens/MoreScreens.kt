@@ -104,6 +104,9 @@ fun ApprovalsScreen(nav: NavHostController) {
                             val out = g.chief.tools.execute(p.tool, input, ToolCtx(g.case, g.settings.get(), approved = true))
                             g.db.pending().upsert(p.copy(status = if (out.isError) "FAILED" else "APPROVED", decidedAt = now(), draftText = draft))
                             g.case.audit("you", "Approved", tool = p.tool, input = p.summary, approvedBy = "you", outcome = out.text)
+                            // Put the result in the Chief's thread so the next request can build on it.
+                            g.db.chat().insert(com.emotionalleaves.ballot.data.ChatMessage(thread = "main", role = "assistant", mode = "Clerk",
+                                text = "You approved: ${p.summary}\n${out.text.take(1500)}"))
                             if (p.kind == PendingKind.SEND) shareText(ctx, draft, subject = "")
                         }
                     })
