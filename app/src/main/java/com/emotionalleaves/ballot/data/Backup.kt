@@ -226,4 +226,7 @@ object CrashReports {
     }
 
     fun list(context: Context): List<File> = dir(context).listFiles()?.sortedByDescending { it.name } ?: emptyList()
+
+    /** When the newest report was written (epoch ms), or 0 if there is none. */
+    fun latestAt(context: Context): Long = list(context).firstOrNull()?.name?.removePrefix("crash-")?.removeSuffix(".txt")?.toLongOrNull() ?: 0
 }

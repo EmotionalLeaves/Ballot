@@ -49,6 +49,7 @@ import com.emotionalleaves.ballot.ui.components.Stamp
 import com.emotionalleaves.ballot.ui.openModule
 import com.emotionalleaves.ballot.ui.theme.Ink
 import com.emotionalleaves.ballot.ui.theme.LocalBallotColors
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -61,6 +62,8 @@ fun HomeScreen(nav: NavHostController) {
     val ctx = LocalContext.current
     // Re-read whenever Today comes back into view, e.g. after visiting the system settings.
     var notificationsOn by remember { mutableStateOf(true) }
+    val crashAt = remember { com.emotionalleaves.ballot.data.CrashReports.latestAt(ctx) }
+    val crashSeen by remember { ctx.graph.settings.flow.map { it.crashSeenAt } }.collectAsStateWithLifecycle(initialValue = Long.MAX_VALUE)
     androidx.lifecycle.compose.LifecycleResumeEffect(Unit) {
         notificationsOn = androidx.core.app.NotificationManagerCompat.from(ctx).areNotificationsEnabled()
         onPauseOrDispose { }
@@ -171,6 +174,16 @@ fun HomeScreen(nav: NavHostController) {
                 }
             }
             if (insideWork) item { Small("You're at work now. Everything keeps until after.", Modifier.padding(horizontal = 4.dp)) }
+            // After a crash, say so once: the report stays on the phone, in Settings, Diagnostics, to copy if you want.
+            if (crashAt > crashSeen) item {
+                Panel(padding = 14.dp) {
+                    Small("Ballot closed unexpectedly last time. Nothing you saved was lost. A report is in Settings, Diagnostics, if you'd like to send it.")
+                    Row {
+                        LinkButton("Open Diagnostics", onClick = { scope.launch { g.settings.update { it.copy(crashSeenAt = crashAt) } }; nav.navigate(Routes.SETTINGS) })
+                        LinkButton("Dismiss", color = c.muted, onClick = { scope.launch { g.settings.update { it.copy(crashSeenAt = crashAt) } } })
+                    }
+                }
+            }
             // Deadline alerts and meeting reminders depend on notifications; if they're off, say so once, here.
             if (!notificationsOn) item {
                 Panel(onClick = {
