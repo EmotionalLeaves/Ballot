@@ -62,4 +62,35 @@ class FlowTests {
         assertNotNull(top)
         assertTrue(top!!.title.isNotBlank() && top.why.isNotBlank())
     }
+
+    @Test fun doneMovesTodayToTheNextTask() = runTest {
+        finishSetup()
+        val first = case.rescore().first { it.blocked == null }.id
+        case.completeTask(db.tasks().get(first)!!)
+        val after = case.rescore()
+        assertFalse("a finished task leaves Today", after.any { it.id == first })
+        assertTrue("another task takes its place", after.isNotEmpty())
+        assertTrue(db.audit().all().any { it.action == "Completed task" })
+    }
+
+    /** The move to a new phone or a reinstall: export here, import there, everything comes back. */
+    @Test fun exportThenImportOnAFreshInstallRestoresEverything() = runTest {
+        finishSetup()
+        tools.execute("add_contact", obj("name" to "Dana Ruiz"), ToolCtx(case, AppSettings()))
+        val file = com.emotionalleaves.ballot.data.Backup.export(db, "correct horse".toCharArray())
+
+        val fresh = Room.inMemoryDatabaseBuilder(ctx, BallotDatabase::class.java).allowMainThreadQueries().build()
+        try {
+            val wrong = runCatching { com.emotionalleaves.ballot.data.Backup.import(fresh, file, "wrong pass".toCharArray()) }
+            assertTrue(wrong.isFailure)
+            assertEquals("Wrong passphrase, or the file is damaged.", wrong.exceptionOrNull()?.message)
+            assertTrue("a failed import changes nothing", fresh.contacts().all().isEmpty())
+
+            com.emotionalleaves.ballot.data.Backup.import(fresh, file, "correct horse".toCharArray())
+            assertTrue("setup is done, so the app opens straight to Today", fresh.profile().get()!!.setupDone)
+            assertEquals("Dana Ruiz", fresh.contacts().all().single().name)
+            assertEquals(db.tasks().all().size, fresh.tasks().all().size)
+        } finally { fresh.close() }
+    }
 }
+

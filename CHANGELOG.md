@@ -118,3 +118,4 @@ One line per loop iteration, newest last.
 - c1 p3 t2 i20 `apply_professional_formatting`: Every page title matches its name in More (Who you are, Offices and races, Meetings and events, Drafts, Waiting for your OK, Local briefing), and task steps use those names
 - Phase 3 end (cycle 1): green, pushed. FEATURES.md checked: one control merged (mic and send), copy and layout only; no function removed.
 - c1 p4 t1 i1 `test_core_functionality`: Flow test: a new user who finishes setup gets a doable first task with a reason on Today
+- c1 p4 t1 i2 `test_core_functionality`: Flow test: tapping Done takes a task off Today, puts the next one up, and is audited
