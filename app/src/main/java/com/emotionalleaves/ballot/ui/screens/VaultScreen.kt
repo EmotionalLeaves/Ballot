@@ -155,7 +155,7 @@ private fun DeadlinesTab() {
         }
         Panel {
             Title("Add one you were given")
-            Small("For a date from the clerk or the election office. It stays marked 'confirm' until the Chief finds the official page.")
+            Small("For a date from the clerk or the election office. It stays marked 'confirm' until it has an official page.")
             Field(title, { title = it }, "What is due", singleLine = true)
             Field(date, { date = it }, "Date (YYYY-MM-DD)", singleLine = true)
             Field(url, { url = it }, "Official link (optional)", singleLine = true)
