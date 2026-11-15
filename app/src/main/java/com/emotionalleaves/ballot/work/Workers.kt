@@ -139,6 +139,16 @@ class HourlyWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx
                         "${promises.size} promise(s) due and ${staleFollowUps.size} follow-up(s) three days old.")
                 }
             }
+            // Proactive trigger: the weekly score dropped two weeks in a row.
+            val ws = Scheduling.weekStart(LocalDate.now()).atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+            val history = (3 downTo 1).map { w -> com.emotionalleaves.ballot.core.WeeklyScore.score(case.weekCounts(ws - w * 7 * 86_400_000L)) }
+            val dropKey = "scoredrop.${Scheduling.weekStart(LocalDate.now())}"
+            if (com.emotionalleaves.ballot.core.WeeklyScore.droppingTwice(history) && case.db.tasks().countTemplate(dropKey) == 0) {
+                case.db.tasks().upsert(Task(stage = p.stage, title = "Shrink the plan: your score dropped two weeks running",
+                    why = "A falling score means something is in the way. Naming it is the fix.", doneLooksLike = "A smaller plan for this week agreed with the Chief.",
+                    goodEnough = "One honest sentence about the blocker.", templateKey = dropKey, module = "path", sizeMinutes = 5))
+                Notifications.post(applicationContext, Notifications.BRIEF, 3002, "Two quieter weeks", "Tap to shrink this week's plan to what fits.")
+            }
             // Mentor requirement: by stage 4 there must be a mentor in the kitchen cabinet.
             if (p.stage >= 4 && case.db.contacts().all().none { it.role == ContactRole.MENTOR } && case.db.tasks().countTemplate("s4.mentor") == 0) {
                 case.seedPlaybook(Stage.SERVE)
