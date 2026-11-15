@@ -104,42 +104,12 @@ private fun NextRow(onNext: () -> Unit, label: String = "Next", onSkip: (() -> U
 
 @Composable
 private fun BrainStep(onNext: () -> Unit) {
-    val g = LocalContext.current.graph
-    val scope = rememberCoroutineScope()
-    var provider by remember { mutableStateOf("anthropic") }
-    var key by remember { mutableStateOf("") }
-    var status by remember { mutableStateOf("") }
-    var testing by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { provider = g.settings.get().provider; key = g.secrets.keyFor(provider) }
-    Body("The Chief thinks with an AI service you pay for directly. Paste a key from your provider. It is stored encrypted on this phone and never leaves it except to talk to that provider.")
-    ChipRow(listOf("anthropic", "openai"), provider, { if (it == "anthropic") "Claude (Anthropic)" else "OpenAI" }) { provider = it; key = g.secrets.keyFor(it) }
-    Field(key, { key = it; status = "" }, "API key", singleLine = true)
-    Panel {
-        Kicker("What it costs, plainly")
-        Small("You pay the provider per use. A normal day with the Chief is usually a few cents; heavy research days cost more. " +
-            "Ballot keeps a monthly spending cap (default \$15) and shows a meter in Settings. You can change both.")
-        if (provider == "openai") Small("Note: web search is built in with Claude. With OpenAI the Chief can still read official pages you or it link to, but cannot search the web.")
-    }
-    if (status.isNotEmpty()) Body(status, color = if (status.startsWith("Connected")) com.emotionalleaves.ballot.ui.theme.Go else LocalBallotColors.current.signal)
-    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        PosterButton(if (testing) "Testing…" else "Test and continue", enabled = key.isNotBlank() && !testing, onClick = {
-            testing = true
-            scope.launch {
-                if (provider == "openai") g.secrets.openAiKey = key else g.secrets.anthropicKey = key
-                g.settings.update { s -> s.copy(provider = provider, model = if (provider == "openai") "gpt-4o" else s.model.takeIf { it.startsWith("claude") } ?: "claude-sonnet-5-5",
-                    fallbackModel = if (provider == "openai") "gpt-4o-mini" else s.fallbackModel.takeIf { it.startsWith("claude") } ?: "claude-haiku-5-5") }
-                val s = g.settings.get()
-                status = runCatching {
-                    val client = if (provider == "openai") com.emotionalleaves.ballot.agent.OpenAiClient(s.openAiBaseUrl) else com.emotionalleaves.ballot.agent.AnthropicClient()
-                    client.test(key, s.model)
-                    "Connected. The Chief is ready."
-                }.getOrElse { it.message ?: "Could not connect." }
-                testing = false
-                if (status.startsWith("Connected")) onNext()
-            }
-        })
-        PosterButton("Skip for now", onClick = onNext, primary = false)
-    }
+    var connected by remember { mutableStateOf(false) }
+    Body("The Chief thinks with an AI service. Several are free and need no card: Google Gemini is the easiest, it only needs a Google account. It takes about two minutes.")
+    KeyConnector(makeMain = true, onConnected = { connected = true })
+    if (connected) PosterButton("Continue", modifier = Modifier.fillMaxWidth(), onClick = onNext)
+    else PosterButton("Skip for now", primary = false, onClick = onNext)
+    Small("You can add a second free service later in Settings. If one is busy, Ballot switches to the other on its own.")
 }
 
 @Composable

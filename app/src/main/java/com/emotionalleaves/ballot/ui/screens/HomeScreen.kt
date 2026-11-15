@@ -68,6 +68,7 @@ fun HomeScreen(nav: NavHostController) {
     var exitFraction by remember { mutableStateOf(0f) }
     var weekScore by remember { mutableIntStateOf(0) }
     var insideWork by remember { mutableStateOf(false) }
+    var hasBrain by remember { mutableStateOf(true) }
     var stamp by remember { mutableStateOf(false) }
     var showWhy by remember { mutableStateOf<Scored?>(null) }
     var showSteps by remember { mutableStateOf<Task?>(null) }
@@ -83,6 +84,7 @@ fun HomeScreen(nav: NavHostController) {
         val ws = Scheduling.weekStart(LocalDate.now()).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
         weekScore = WeeklyScore.score(g.case.weekCounts(ws))
         insideWork = Scheduling.insideWork(g.case.availability(), LocalDateTime.now())
+        hasBrain = g.chief.hasKey()
     }
 
     val p = profile ?: return
@@ -111,6 +113,13 @@ fun HomeScreen(nav: NavHostController) {
                         advanced?.let { "you reached stage ${it.number}" },
                     ).joinToString(", ").ifBlank { "nothing new since last time" } + ".")
                     Body("Next: " + (top?.first?.title ?: "talk to the Chief about your first step") + ".")
+                }
+            }
+            if (!hasBrain) item {
+                Panel(accent = true, onClick = { nav.navigate(Routes.SETTINGS) }) {
+                    Text("CONNECT A FREE AI", style = MaterialTheme.typography.titleLarge, color = Ink)
+                    Text("The Chief needs one to research and draft. Google Gemini is free, needs no card, and takes about two minutes. Tap here.",
+                        style = MaterialTheme.typography.bodyMedium, color = Ink)
                 }
             }
             if (insideWork) item { Small("You're at work now. The Chief keeps everything for after.") }

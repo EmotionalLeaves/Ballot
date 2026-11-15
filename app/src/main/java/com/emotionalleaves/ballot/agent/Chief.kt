@@ -205,7 +205,7 @@ $brief
             return finish(thread, reply, Mode.STRATEGIST, emptyList(), emptyList(), persist)
         }
         if (!hasKey()) {
-            return finish(thread, "I need an AI key before I can research or draft. Open Settings and paste your key. Everything you log by hand still works.", Mode.STRATEGIST, emptyList(), emptyList(), persist, error = true)
+            return finish(thread, "I need an AI service before I can research or draft. Open More, then Settings, then AI services: Google Gemini is free and takes about two minutes. Everything you log by hand still works.", Mode.STRATEGIST, emptyList(), emptyList(), persist, error = true)
         }
         if (!online()) {
             case.db.queue().insert(QueuedRequest(thread = thread, prompt = userText))

@@ -27,9 +27,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.emotionalleaves.ballot.BuildConfig
-import com.emotionalleaves.ballot.agent.AnthropicClient
+import com.emotionalleaves.ballot.agent.Providers
+import com.emotionalleaves.ballot.agent.clientFor
 import com.emotionalleaves.ballot.agent.NetLog
-import com.emotionalleaves.ballot.agent.OpenAiClient
 import com.emotionalleaves.ballot.data.AppSettings
 import com.emotionalleaves.ballot.data.Backup
 import com.emotionalleaves.ballot.data.CrashReports
@@ -64,9 +64,9 @@ fun SettingsScreen(nav: NavHostController) {
     val s by g.settings.flow.collectAsStateWithLifecycle(initialValue = AppSettings())
     val monthStart = remember { LocalDate.now().withDayOfMonth(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli() }
     val spend by g.db.usage().observeSpendSince(monthStart).collectAsStateWithLifecycle(initialValue = 0L)
-    var key by remember { mutableStateOf("") }
-    var model by remember(s.model) { mutableStateOf(s.model) }
-    var fallback by remember(s.fallbackModel) { mutableStateOf(s.fallbackModel) }
+    var model by remember(s.provider, s.providerModels) { mutableStateOf(Providers.parseModels(s.providerModels)[s.provider] ?: "") }
+    var showAdd by remember { mutableStateOf(false) }
+    var showAdvanced by remember { mutableStateOf(false) }
     var baseUrl by remember(s.openAiBaseUrl) { mutableStateOf(s.openAiBaseUrl) }
     var cap by remember(s.monthlyCapCents) { mutableStateOf((s.monthlyCapCents / 100).toString()) }
     var testStatus by remember { mutableStateOf("") }
@@ -111,28 +111,45 @@ fun SettingsScreen(nav: NavHostController) {
         "Panic wipe deletes everything on this phone.")) {
         item {
             Panel {
-                Title("The brain")
-                ChipRow(listOf("anthropic", "openai"), s.provider, { if (it == "anthropic") "Claude" else "OpenAI" }) { p -> upd { it.copy(provider = p) } }
-                val stored = g.secrets.keyFor(s.provider)
-                Small(if (stored.isBlank()) "No key stored." else "Key stored: ••••${stored.takeLast(4)}")
-                Field(key, { key = it }, "Paste a new key", singleLine = true)
-                Field(model, { model = it }, "Model", singleLine = true)
-                Field(fallback, { fallback = it }, "Fallback model", singleLine = true)
-                if (s.provider == "openai") Field(baseUrl, { baseUrl = it }, "API base URL", singleLine = true)
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    PosterButton("Save", onClick = {
-                        if (key.isNotBlank()) { if (s.provider == "openai") g.secrets.openAiKey = key else g.secrets.anthropicKey = key; key = "" }
-                        upd { it.copy(model = model.trim(), fallbackModel = fallback.trim(), openAiBaseUrl = baseUrl.trim()) }
-                    })
-                    PosterButton("Test", primary = false, onClick = {
-                        scope.launch {
-                            testStatus = "Testing…"
-                            val client = if (s.provider == "openai") OpenAiClient(s.openAiBaseUrl) else AnthropicClient()
-                            testStatus = runCatching { client.test(g.secrets.keyFor(s.provider), s.model); "Connected." }.getOrElse { it.message ?: "Failed." }
-                        }
-                    })
+                Title("AI services")
+                Small("Ballot tries your main service first, then any other you have connected. Free services cost nothing.")
+                ConnectedServices()
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Free only (never spend money)", style = MaterialTheme.typography.bodyLarge, color = c.fg, modifier = Modifier.weight(1f))
+                    Switch(checked = s.freeOnly, onCheckedChange = { v -> upd { it.copy(freeOnly = v) } })
                 }
-                if (testStatus.isNotBlank()) Small(testStatus, color = c.fg)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Use my other services when one is busy", style = MaterialTheme.typography.bodyLarge, color = c.fg, modifier = Modifier.weight(1f))
+                    Switch(checked = s.useBackups, onCheckedChange = { v -> upd { it.copy(useBackups = v) } })
+                }
+                LinkButton(if (showAdd) "Hide" else "Add a service", onClick = { showAdd = !showAdd })
+                if (showAdd) KeyConnector(makeMain = false)
+                LinkButton(if (showAdvanced) "Hide advanced" else "Advanced", color = c.muted, onClick = { showAdvanced = !showAdvanced })
+                if (showAdvanced) {
+                    Small("Model for the main service. Leave blank to let Ballot pick.")
+                    Field(model, { model = it }, "Model", singleLine = true)
+                    if (s.provider == "openai") Field(baseUrl, { baseUrl = it }, "OpenAI-compatible base URL", singleLine = true)
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        PosterButton("Save", onClick = {
+                            val m = model.trim()
+                            upd { st ->
+                                val models = Providers.parseModels(st.providerModels).toMutableMap()
+                                if (m.isBlank()) models.remove(st.provider) else models[st.provider] = m
+                                st.copy(providerModels = Providers.encodeModels(models), model = if (m.isNotBlank()) m else st.model, openAiBaseUrl = baseUrl.trim())
+                            }
+                        })
+                        PosterButton("Test", primary = false, onClick = {
+                            scope.launch {
+                                testStatus = "Testing…"
+                                val st = g.settings.get()
+                                val p = Providers.byId(st.provider)
+                                testStatus = runCatching { clientFor(p.id, st.openAiBaseUrl).test(g.secrets.keyFor(p.id), g.chief.modelFor(st, p)); "Connected." }
+                                    .getOrElse { KeySetup.friendly(p, it) }
+                            }
+                        })
+                    }
+                    if (testStatus.isNotBlank()) Small(testStatus, color = c.fg)
+                }
             }
         }
         item {

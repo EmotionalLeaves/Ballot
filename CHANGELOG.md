@@ -22,3 +22,4 @@ One line per loop iteration, newest last.
 ## Free AI rounds (requested 2026-11-14)
 
 - Round 1: seven AI services built in (Gemini, Groq, OpenRouter free, Cerebras, Mistral free; Claude, OpenAI paid), one key per service, key detection from the pasted text, live model lists, free calls cost nothing, failover across your services with a short wait on free-tier rate limits, "free only" mode.
+- Round 2: guided free-key flow in setup and Settings: pick a service, numbered steps, Open the key page, Paste key from the clipboard (Ballot spots which service a key belongs to), Connect picks a working model and tests it. Settings lists connected services with today's use, Make main, Re-test, Remove. Home shows "Connect a free AI" until one is set up.
