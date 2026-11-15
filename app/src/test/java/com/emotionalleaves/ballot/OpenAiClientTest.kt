@@ -92,6 +92,7 @@ class TimeoutTest {
         assertTrue(r.exceptionOrNull() is kotlinx.coroutines.TimeoutCancellationException)
         // The server is still sitting on the delayed reply; it may complain while shutting down.
         runCatching { server.shutdown() }
+        Unit
     }
 }
 
