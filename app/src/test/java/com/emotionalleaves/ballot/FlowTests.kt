@@ -460,5 +460,15 @@ class FlowTests {
         val due = case.checkIns(at).map { it.first.name }
         assertEquals(listOf("Old friend", "Promised coffee"), due)
     }
+
+    @Test fun oldPracticeRepsGoButYourBestStays() = runTest {
+        val at = com.emotionalleaves.ballot.data.now(); val old = at - 400L * 86_400_000L
+        val best = db.speech().upsert(com.emotionalleaves.ballot.data.SpeechRep(kind = "STORY", prompt = "p", transcript = "t", total = 90, createdAt = old))
+        db.speech().upsert(com.emotionalleaves.ballot.data.SpeechRep(kind = "STORY", prompt = "p", transcript = "t", total = 40, createdAt = old))
+        db.speech().upsert(com.emotionalleaves.ballot.data.SpeechRep(kind = "STORY", prompt = "p", transcript = "t", total = 60))
+        case.prune(at)
+        assertEquals(setOf(90, 60), db.speech().all().map { it.total }.toSet())
+        assertTrue(db.speech().all().any { it.id == best })
+    }
 }
 

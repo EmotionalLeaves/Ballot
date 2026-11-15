@@ -357,6 +357,10 @@ class CaseFile(val db: BallotDatabase, private val settings: SettingsStore) {
         var n = db.chat().deleteOlder("background", at - 30 * day)
         db.chat().threads().filter { it.startsWith("room:") }.forEach { n += db.chat().deleteOlder(it, at - 90 * day) }
         n += db.usage().deleteOlder(at - 400 * day)
+        // Practice reps older than a year go, except your best one for each drill (it's your benchmark).
+        val reps = db.speech().all()
+        val best = reps.groupBy { it.kind }.mapValues { (_, l) -> l.maxByOrNull { it.total }?.id }.values.toSet()
+        reps.filter { it.createdAt < at - 365 * day && it.id !in best }.forEach { db.speech().delete(it); n++ }
         // Local news goes stale: briefing items older than 60 days go (any action you added is already on your plan).
         n += db.brief().deleteOlder(at / day - 60)
         // Door-knocking notes are about voters, not you: 90 days after election day only the totals are kept, as a lesson.
