@@ -106,12 +106,6 @@ fun HomeScreen(nav: NavHostController) {
                 "How and why shows the steps, and exactly how the task was chosen.",
                 "Feeling overloaded? Tap Shrink this week and only the most important thing stays.",
             )) {
-            // AI is optional, so this is a quiet line, not a banner.
-            if (!hasBrain) item {
-                Panel(onClick = { nav.navigate(Routes.SETTINGS) }, padding = 14.dp) {
-                    Small("Optional: connect a free AI for web research and first drafts. Everything here works without it.")
-                }
-            }
             if (pending.isNotEmpty()) item {
                 Panel(onClick = { nav.navigate(Routes.APPROVALS) }, padding = 14.dp) {
                     Text("${pending.size} waiting for your OK", style = MaterialTheme.typography.titleMedium, color = c.fg)
@@ -163,6 +157,12 @@ fun HomeScreen(nav: NavHostController) {
                 // Tapping the line opens the briefing when there's something new in it.
                 Small(bits.joinToString(" · "), Modifier.padding(horizontal = 4.dp)
                     .then(if (brief.isNotEmpty()) Modifier.clickable(onClickLabel = "Open briefing") { nav.navigate(Routes.BRIEFING) } else Modifier))
+            }
+            // AI is optional, so this is a quiet line at the bottom, not a banner above your task.
+            if (!hasBrain) item {
+                Panel(onClick = { nav.navigate(Routes.SETTINGS) }, padding = 14.dp) {
+                    Small("Optional: connect a free AI for web research and first drafts. Everything here works without it.")
+                }
             }
             if (insideWork) item { Small("You're at work now. Everything keeps until after.", Modifier.padding(horizontal = 4.dp)) }
             item {
