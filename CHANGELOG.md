@@ -96,3 +96,4 @@ One line per loop iteration, newest last.
 - c1 p2 t2 i5 `establish_single_access_point`: A test checks that every page the Chief can offer with open_page really opens, so the single access point can't silently break
 - Phase 2 end (cycle 1): green, pushed. FEATURES.md checked: three new Chief tools listed; HQ, Briefing link and three Save buttons were controls, not functions, and each function is still reachable.
 - c1 p3 t1 i1 `reduce_menus_and_buttons`: The Chief's mic and send buttons are one button: a microphone while the box is empty, send once you've typed
+- c1 p3 t2 i1 `apply_professional_formatting`: The Chief's reply strip on each page is in sentence case ('The Chief · Writer · tap for the whole conversation') instead of shouting

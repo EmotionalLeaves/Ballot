@@ -95,7 +95,7 @@ fun BusyBar() {
 fun ReplyPanel(onOpenChief: () -> Unit) {
     val r = ChiefBusy.lastReply ?: return
     Panel(onClick = onOpenChief) {
-        Small("THE CHIEF · ${r.mode.label} · TAP FOR THE FULL THREAD")
+        Small("The Chief · ${r.mode.label} · tap for the whole conversation")
         Text(r.text.take(600), style = MaterialTheme.typography.bodyMedium, color = LocalBallotColors.current.fg)
     }
 }
