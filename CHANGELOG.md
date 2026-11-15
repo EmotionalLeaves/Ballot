@@ -246,3 +246,4 @@ One line per loop iteration, newest last.
 - c1 p6 t1 i43 `overhaul_system_architecture`: The weekly review now changes the plan: what you choose to start becomes a small task this week, and the review task itself is no longer offered as one of your three priorities
 - c1 p6 t1 i44 `overhaul_system_architecture`: A test guards the no-AI page finder: every page it can suggest is a real page the Chief knows and really opens
 - c1 p6 t1 i45 `overhaul_system_architecture`: Rule re-checks stop piling up copies: an unchanged page refreshes its existing source record (same id, so every citation still holds), and only a changed page adds a new one beside the old wording
+- c1 p6 t1 i46 `overhaul_system_architecture`: Fetching the same official page again with the same words refreshes and cross-checks the existing source record instead of storing another 20,000-character copy

@@ -57,7 +57,12 @@ internal fun ToolRegistry.registerResearchTools() {
         val cross = previous != null && previous.contentHash.isNotEmpty() && previous.contentHash == page.hash && previous.fetchedAt < now() - 60_000
         val flags = InjectionDefense.flagged(page.text)
         val label = Verification.label(official, fresh = true, crossChecked = cross)
-        val id = c.case.db.sources().insert(SourceRecord(url = page.url, title = page.title.take(200), excerpt = page.text.take(20_000),
+        // Same words as last time: refresh that record (now cross-checked) instead of storing a second copy.
+        val id = if (cross && previous != null) {
+            c.case.db.sources().upsert(previous.copy(title = page.title.take(200), excerpt = page.text.take(20_000), official = official, crossChecked = true,
+                label = label, injectionFlagged = flags.isNotEmpty(), confidence = label, fetchedAt = now(), updatedAt = now()))
+            previous.id
+        } else c.case.db.sources().insert(SourceRecord(url = page.url, title = page.title.take(200), excerpt = page.text.take(20_000),
             official = official, crossChecked = cross, label = label, injectionFlagged = flags.isNotEmpty(), contentHash = page.hash,
             confidence = label))
         val note = buildString {
