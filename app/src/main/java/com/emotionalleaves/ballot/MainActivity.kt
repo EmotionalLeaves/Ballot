@@ -56,6 +56,10 @@ class MainActivity : FragmentActivity() {
                 val bars = if (settings.darkTheme) androidx.activity.SystemBarStyle.dark(clear) else androidx.activity.SystemBarStyle.light(clear, clear)
                 enableEdgeToEdge(statusBarStyle = bars, navigationBarStyle = bars)
             }
+            // With the app lock on, the recent-apps preview is blank too, so the case file can't be read from it.
+            androidx.compose.runtime.LaunchedEffect(settings.appLock) {
+                if (android.os.Build.VERSION.SDK_INT >= 33) setRecentsScreenshotEnabled(!settings.appLock)
+            }
             BallotTheme(dark = settings.darkTheme, textScale = settings.textScale) {
                 val c = LocalBallotColors.current
                 Box(Modifier.fillMaxSize().background(c.bg).safeDrawingPadding()) {
