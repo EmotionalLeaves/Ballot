@@ -120,15 +120,19 @@ fun ChiefScreen(nav: NavHostController, thread: String = "main") {
         Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(value = input, onValueChange = { input = it }, modifier = Modifier.weight(1f), placeholder = { Text("Ask the Chief…") }, shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
                 maxLines = 5, textStyle = MaterialTheme.typography.bodyLarge)
+            // One button: the microphone while the box is empty (or while listening), send once there's text.
+            val sendMode = input.isNotBlank() && !speech.listening
             IconButton(onClick = {
-                if (speech.listening) speech.stop()
-                else mic { speech.start { text, _ -> if (text.isNotBlank()) send(text, voice = true) } }
-            }, modifier = Modifier.size(52.dp)) {
-                Icon(if (speech.listening) Icons.Filled.Stop else Icons.Filled.Mic, contentDescription = if (speech.listening) "Stop voice input" else "Voice input", tint = c.fg)
-            }
-            IconButton(onClick = { send(input) }, enabled = input.isNotBlank() && !ChiefBusy.busy,
-                modifier = Modifier.size(48.dp).clip(androidx.compose.foundation.shape.CircleShape).background(if (input.isNotBlank()) c.signal else c.rule)) {
-                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send", tint = c.onSignal)
+                when {
+                    sendMode -> send(input)
+                    speech.listening -> speech.stop()
+                    else -> mic { speech.start { text, _ -> if (text.isNotBlank()) send(text, voice = true) } }
+                }
+            }, enabled = !(sendMode && ChiefBusy.busy),
+                modifier = Modifier.padding(start = 8.dp).size(48.dp).clip(androidx.compose.foundation.shape.CircleShape).background(if (sendMode || speech.listening) c.signal else c.raised)) {
+                Icon(when { sendMode -> Icons.AutoMirrored.Filled.Send; speech.listening -> Icons.Filled.Stop; else -> Icons.Filled.Mic },
+                    contentDescription = when { sendMode -> "Send"; speech.listening -> "Stop voice input"; else -> "Voice input" },
+                    tint = if (sendMode || speech.listening) c.onSignal else c.fg)
             }
         }
     }
