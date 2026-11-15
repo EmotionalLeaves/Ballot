@@ -92,5 +92,51 @@ class FlowTests {
             assertEquals(db.tasks().all().size, fresh.tasks().all().size)
         } finally { fresh.close() }
     }
+
+    /** "I did the first one" → the model echoes the id the way the brief shows it. */
+    @Test fun completingByTheIdTheBriefShowsWorks() = runTest {
+        finishSetup()
+        val t = db.tasks().open().first()
+        val out = tools.execute("complete_task", obj("task_id" to "T${t.id}"), ToolCtx(case, AppSettings()))
+        assertFalse(out.text, out.isError)
+        assertTrue(db.tasks().get(t.id)!!.done)
+    }
+
+    @Test fun eventsNeverLandInsideWorkHours() = runTest {
+        finishSetup()
+        // Default work hours are Monday to Friday, 7:00 to 15:30. 2030-01-07 is a Monday.
+        val atWork = tools.execute("add_event", obj("title" to "Council", "start" to "2030-01-07T10:00"), ToolCtx(case, AppSettings()))
+        assertTrue(atWork.isError)
+        val evening = tools.execute("add_event", obj("title" to "Council", "start" to "2030-01-07T18:30"), ToolCtx(case, AppSettings()))
+        assertFalse(evening.text, evening.isError)
+        assertEquals(1, db.events().all().size)
+    }
+
+    @Test fun peopleAddedByTheChiefCanBeFoundAgain() = runTest {
+        tools.execute("add_contact", obj("name" to "Priya Shah", "how_met" to "Library board meeting"), ToolCtx(case, AppSettings()))
+        val out = tools.execute("find_contacts", obj("query" to "library"), ToolCtx(case, AppSettings()))
+        assertTrue(out.text, out.text.contains("Priya Shah"))
+    }
+
+    @Test fun everyPageCanBeOpenedByAsking() = runTest {
+        com.emotionalleaves.ballot.agent.PAGES.keys.forEach { page ->
+            val out = tools.execute("open_page", obj("page" to page), ToolCtx(case, AppSettings()))
+            assertFalse(out.text, out.isError)
+            assertEquals(page, out.cards.single().target)
+        }
+        assertTrue(tools.execute("open_page", obj("page" to "nowhere"), ToolCtx(case, AppSettings())).isError)
+    }
+
+    @Test fun settingsByAskingCannotTurnOnSpending() = runTest {
+        val store = SettingsStore(ctx)
+        val c = ToolCtx(case, AppSettings(), store = store)
+        assertTrue(tools.execute("change_setting", obj("setting" to "free_only", "value" to "false"), c).isError)
+        assertFalse(tools.execute("change_setting", obj("setting" to "dark_theme", "value" to "on"), c).isError)
+        assertTrue(store.get().darkTheme)
+        assertTrue(tools.execute("change_setting", obj("setting" to "brief_time", "value" to "25:00"), c).isError)
+        assertFalse(tools.execute("change_setting", obj("setting" to "brief_time", "value" to "19:15"), c).isError)
+        assertEquals(19 * 60 + 15, store.get().briefMinuteOfDay)
+        store.update { it.copy(darkTheme = false) }
+    }
 }
 
