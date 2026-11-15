@@ -185,5 +185,24 @@ class FlowTests {
         assertTrue(tools.execute("add_event", obj("title" to "Council", "start" to "2030-01-07T18:30"), ToolCtx(case, AppSettings())).isError)
         assertFalse(tools.execute("add_event", obj("title" to "Council", "start" to "2030-01-07T09:00"), ToolCtx(case, AppSettings())).isError)
     }
+
+    /** Stage 1 ends when the story is locked and rated clear; finishing the next task then opens stage 2 with its own plan. */
+    @Test fun meetingTheExitTestOpensTheNextStage() = runTest {
+        finishSetup()
+        case.updateProfile { it.copy(storyLocked = true, storyRatedClear = true) }
+        val t = db.tasks().open().first()
+        val out = tools.execute("complete_task", obj("task_id" to t.id), ToolCtx(case, AppSettings()))
+        assertTrue(out.text, out.text.contains("stage 2"))
+        assertEquals(2, case.profile().stage)
+        assertTrue("stage 2 tasks are seeded", db.tasks().open().any { it.stage == 2 })
+        assertTrue(db.audit().all().any { it.action.startsWith("Stage advanced to 2") })
+    }
+
+    @Test fun stagesCannotBeSkippedWithoutTheExitTest() = runTest {
+        finishSetup()
+        val t = db.tasks().open().first()
+        tools.execute("complete_task", obj("task_id" to t.id), ToolCtx(case, AppSettings()))
+        assertEquals(1, case.profile().stage)
+    }
 }
 
