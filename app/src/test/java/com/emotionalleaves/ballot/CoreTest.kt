@@ -386,5 +386,6 @@ class DateTextTest {
         listOf("2026-11-20T18:30", "2026-11-20 18:30", "2026-11-20 6:30pm", "2026-11-20 6:30 PM", "11/20/2026 6:30pm", "2026-11-20T18:30:00").forEach { assertEquals(it, want, D.dateTime(it)) }
         assertEquals(java.time.LocalDateTime.of(2026, 11, 20, 0, 15), D.dateTime("2026-11-20 12:15am"))
         assertEquals(null, D.dateTime("2026-11-20"))
+        assertEquals(java.time.LocalTime.of(21, 30), D.time("9:30\u202FPM"))
     }
 }

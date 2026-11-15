@@ -120,17 +120,24 @@ fun count(n: Int, one: String, many: String = one + "s"): String = "$n ${if (n =
 /** A stored code like GO_NO_GO shown as "Go no go". */
 fun pretty(code: String): String = code.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() }
 
-fun day(epochDay: Long): String = if (epochDay <= 0) "—" else LocalDate.ofEpochDay(epochDay).format(DateTimeFormatter.ofPattern("EEE d MMM yyyy"))
+// Dates and times follow the phone's own region: "Fri, Nov 20" and 6:30 PM in the US, "Fri 20 Nov" and 18:30 elsewhere.
+private val dayFmt get() = DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.MEDIUM)
+private val timeFmt get() = DateTimeFormatter.ofLocalizedTime(java.time.format.FormatStyle.SHORT)
+private val shortFmt get() = DateTimeFormatter.ofPattern(android.text.format.DateFormat.getBestDateTimePattern(java.util.Locale.getDefault(), "MMMd"))
+private val weekdayShortFmt get() = DateTimeFormatter.ofPattern(android.text.format.DateFormat.getBestDateTimePattern(java.util.Locale.getDefault(), "EEEMMMd"))
+
+fun day(epochDay: Long): String = if (epochDay <= 0) "—" else LocalDate.ofEpochDay(epochDay).let { it.format(DateTimeFormatter.ofPattern("EEE")) + ", " + it.format(dayFmt) }
 
 fun dateTime(millis: Long): String = if (millis <= 0) "—" else
-    LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("EEE d MMM, HH:mm"))
+    LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault()).let { it.format(weekdayShortFmt) + ", " + it.format(timeFmt) }
 
 fun shortDate(millis: Long): String = if (millis <= 0) "—" else
-    LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("d MMM"))
+    LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault()).format(shortFmt)
 
 fun dollars(cents: Long): String = "$" + "%,d".format(cents / 100) + if (cents % 100 != 0L) ".%02d".format(kotlin.math.abs(cents % 100)) else ""
 
-fun hm(min: Int): String = "%02d:%02d".format(min / 60, min % 60)
+/** Minutes after midnight shown the phone's way (6:30 PM or 18:30). parseHm reads either back. */
+fun hm(min: Int): String = java.time.LocalTime.of((min / 60) % 24, min % 60).format(timeFmt)
 
 /** Accepts 18:30, 6:30pm, 6:30 PM (core DateText). Minutes after midnight. */
 fun parseHm(s: String): Int? = com.emotionalleaves.ballot.core.DateText.time(s)?.let { it.hour * 60 + it.minute }

@@ -224,3 +224,4 @@ One line per loop iteration, newest last.
 - c1 p6 t1 i21 `overhaul_system_architecture`: Restoring a snapshot is undoable and crash-safe: the current case file is kept as an undo copy first, and the restore swaps the file in one step
 - c1 p6 t1 i22 `overhaul_system_architecture`: One tested date reader (core DateText) for every typed or AI-given date and time: 11/20/2026, Nov 20 2026, '2026-11-20 6:30pm' all work in deadlines, events and race cards
 - c1 p6 t1 i23 `overhaul_system_architecture`: Times use the same reader: 6:30pm, 6:30 PM or 18:30 work in events, work hours, brief time and settings by asking, and every date or time box shows a familiar example instead of YYYY-MM-DD
+- c1 p6 t1 i24 `overhaul_system_architecture`: Dates and times show the phone's way everywhere (Fri, Nov 20 and 6:30 PM in the US; 18:30 elsewhere) from one set of formatters, instead of a fixed British style
