@@ -40,6 +40,14 @@ object ChiefBusy {
     val busy: Boolean get() = running > 0
     var label by mutableStateOf("")
     var lastReply by mutableStateOf<ChiefReply?>(null)
+    /** Requests in flight, so Stop can cancel them. */
+    val jobs = mutableListOf<kotlinx.coroutines.Job>()
+
+    fun stopAll() {
+        jobs.toList().forEach { it.cancel() }
+        jobs.clear()
+        running = 0
+    }
 }
 
 /**
@@ -49,9 +57,14 @@ object ChiefBusy {
 fun askChief(g: AppGraph, prompt: String, label: String = "Working", thread: String = "main", fromVoice: Boolean = false, onReply: (ChiefReply) -> Unit = {}) {
     ChiefBusy.running += 1
     ChiefBusy.label = label
-    g.scope.launch {
-        val r = runCatching { g.chief.ask(prompt, thread = thread, fromVoice = fromVoice) }.getOrElse {
-            ChiefReply(it.message ?: "Something went wrong.", com.emotionalleaves.ballot.agent.Mode.STRATEGIST, emptyList(), emptyList(), error = true)
+    val job = g.scope.launch {
+        val r = try {
+            g.chief.ask(prompt, thread = thread, fromVoice = fromVoice)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            withContext(kotlinx.coroutines.NonCancellable + Dispatchers.Main) { ChiefBusy.lastReply = null }
+            throw e
+        } catch (e: Exception) {
+            ChiefReply(e.message ?: "Something went wrong.", com.emotionalleaves.ballot.agent.Mode.STRATEGIST, emptyList(), emptyList(), error = true)
         }
         if (r.queued) Workers.drainQueueWhenOnline(g.context)
         withContext(Dispatchers.Main) {
@@ -60,6 +73,8 @@ fun askChief(g: AppGraph, prompt: String, label: String = "Working", thread: Str
             onReply(r)
         }
     }
+    ChiefBusy.jobs += job
+    job.invokeOnCompletion { ChiefBusy.jobs.remove(job) }
 }
 
 @Composable
@@ -68,7 +83,9 @@ fun BusyBar() {
     Panel {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
             CircularProgressIndicator(Modifier.size(22.dp), color = LocalBallotColors.current.signal, strokeWidth = 3.dp)
-            Text("The Chief · ${ChiefBusy.label.replaceFirstChar { it.uppercase() }}…", style = MaterialTheme.typography.labelLarge, color = LocalBallotColors.current.fg)
+            Text("The Chief · ${ChiefBusy.label.replaceFirstChar { it.uppercase() }}…", style = MaterialTheme.typography.labelLarge,
+                color = LocalBallotColors.current.fg, modifier = Modifier.weight(1f))
+            com.emotionalleaves.ballot.ui.components.LinkButton("Stop", onClick = { ChiefBusy.stopAll() }, color = LocalBallotColors.current.muted)
         }
     }
 }
