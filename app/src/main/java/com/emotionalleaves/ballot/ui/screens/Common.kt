@@ -1,0 +1,124 @@
+package com.emotionalleaves.ballot.ui.screens
+
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.emotionalleaves.ballot.AppGraph
+import com.emotionalleaves.ballot.agent.ChiefReply
+import com.emotionalleaves.ballot.ui.components.Panel
+import com.emotionalleaves.ballot.ui.components.Small
+import com.emotionalleaves.ballot.ui.theme.LocalBallotColors
+import com.emotionalleaves.ballot.work.Workers
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+
+/** Whether the Chief is working on something, so every screen can show it. */
+object ChiefBusy {
+    var busy by mutableStateOf(false)
+    var label by mutableStateOf("")
+    var lastReply by mutableStateOf<ChiefReply?>(null)
+}
+
+/**
+ * Runs a Chief request in the app scope so it survives leaving the screen. The reply lands in the
+ * chat thread and the case file; screens observe those.
+ */
+fun askChief(g: AppGraph, prompt: String, label: String = "Working", thread: String = "main", fromVoice: Boolean = false, onReply: (ChiefReply) -> Unit = {}) {
+    ChiefBusy.busy = true
+    ChiefBusy.label = label
+    g.scope.launch {
+        val r = runCatching { g.chief.ask(prompt, thread = thread, fromVoice = fromVoice) }.getOrElse {
+            ChiefReply(it.message ?: "Something went wrong.", com.emotionalleaves.ballot.agent.Mode.STRATEGIST, emptyList(), emptyList(), error = true)
+        }
+        if (r.queued) Workers.drainQueueWhenOnline(g.context)
+        withContext(Dispatchers.Main) {
+            ChiefBusy.busy = false
+            ChiefBusy.lastReply = r
+            onReply(r)
+        }
+    }
+}
+
+@Composable
+fun BusyBar() {
+    if (!ChiefBusy.busy) return
+    Panel {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            CircularProgressIndicator(Modifier.size(22.dp), color = LocalBallotColors.current.signal, strokeWidth = 3.dp)
+            Text("THE CHIEF: ${ChiefBusy.label.uppercase()}…", style = MaterialTheme.typography.labelLarge, color = LocalBallotColors.current.fg)
+        }
+    }
+}
+
+/** Shows the Chief's latest reply inline on module screens. */
+@Composable
+fun ReplyPanel(onOpenChief: () -> Unit) {
+    val r = ChiefBusy.lastReply ?: return
+    Panel(onClick = onOpenChief) {
+        Small("THE CHIEF · ${r.mode.label.uppercase()} · TAP FOR THE FULL THREAD")
+        Text(r.text.take(600), style = MaterialTheme.typography.bodyMedium, color = LocalBallotColors.current.fg)
+    }
+}
+
+fun day(epochDay: Long): String = if (epochDay <= 0) "—" else LocalDate.ofEpochDay(epochDay).format(DateTimeFormatter.ofPattern("EEE d MMM yyyy"))
+
+fun dateTime(millis: Long): String = if (millis <= 0) "—" else
+    LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("EEE d MMM, HH:mm"))
+
+fun shortDate(millis: Long): String = if (millis <= 0) "—" else
+    LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("d MMM"))
+
+fun dollars(cents: Long): String = "$" + "%,d".format(cents / 100) + if (cents % 100 != 0L) ".%02d".format(kotlin.math.abs(cents % 100)) else ""
+
+fun hm(min: Int): String = "%02d:%02d".format(min / 60, min % 60)
+
+fun parseHm(s: String): Int? = s.trim().split(":").takeIf { it.size == 2 }?.let { (h, m) ->
+    val hh = h.toIntOrNull() ?: return null
+    val mm = m.toIntOrNull() ?: return null
+    if (hh in 0..23 && mm in 0..59) hh * 60 + mm else null
+}
+
+fun parseDay(s: String): Long? = runCatching { LocalDate.parse(s.trim()).toEpochDay() }.getOrNull()
+
+fun shareText(context: Context, text: String, subject: String = "") {
+    val i = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_TEXT, text)
+        if (subject.isNotBlank()) putExtra(Intent.EXTRA_SUBJECT, subject)
+    }
+    context.startActivity(Intent.createChooser(i, "Send it yourself").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+}
+
+fun openUrl(context: Context, url: String) {
+    runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+}
+
+fun dial(context: Context, phone: String) {
+    runCatching { context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+}
+
+@Composable
+fun Column2(content: @Composable () -> Unit) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) { content() }
+}

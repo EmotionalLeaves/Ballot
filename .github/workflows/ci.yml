@@ -1,0 +1,41 @@
+name: CI
+
+# Phase pushes run the quality gates only. Signed APKs come from tagged releases (release.yml).
+on:
+  push:
+    branches: ["**"]
+    tags-ignore: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Lint, unit tests, agent evals, migrations, compile
+        run: ./gradlew --no-daemon --stacktrace lintDebug testDebugUnitTest assembleDebug 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
+      - name: Summarise errors
+        if: failure()
+        run: |
+          echo "## Build errors" >> "$GITHUB_STEP_SUMMARY"
+          grep -E "^e: |error:|FAILED|What went wrong" -A3 build.log | head -150 | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: |
+            build.log
+            app/build/reports/
+          retention-days: 7
