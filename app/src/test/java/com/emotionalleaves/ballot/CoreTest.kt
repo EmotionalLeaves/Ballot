@@ -278,3 +278,28 @@ class ValuesInterviewTest {
         assertEquals(0, v.answered(""))
     }
 }
+
+class TemplatesTest {
+    private val f = com.emotionalleaves.ballot.core.TemplateFacts(name = "Jade", place = "Lincoln", why = "I cook for students and see what they go without.",
+        issues = listOf("Transit", "Housing"), positions = listOf("Transit" to "Run the 24 bus until midnight."))
+
+    @Test fun aCommentUsesYourOwnWordsAndLeavesGapsMarked() {
+        val d = com.emotionalleaves.ballot.core.Templates.draft("PUBLIC_COMMENT", "transit", f)
+        assertTrue(d, d.contains("My name is Jade and I live in Lincoln."))
+        assertTrue(d, d.contains("Run the 24 bus until midnight."))
+        assertTrue(d, d.contains("["))
+        assertFalse("no indentation leaks into the draft", d.lines().any { it.startsWith(" ") })
+    }
+
+    @Test fun everyTypeGivesADraft() {
+        listOf("PUBLIC_COMMENT", "STUMP_SPEECH", "PRESS_STATEMENT", "EMAIL", "DOOR_SCRIPT", "PALM_CARD", "APPLICATION", "LETTER", "QUESTIONNAIRE", "CRISIS_RESPONSE", "OTHER").forEach {
+            assertTrue(it, com.emotionalleaves.ballot.core.Templates.draft(it, "parks", f).isNotBlank())
+        }
+    }
+
+    @Test fun thePlatformListsOnlyWhatYouStated() {
+        val p = com.emotionalleaves.ballot.core.Templates.platform(f)
+        assertTrue(p, p.contains("Transit\nRun the 24 bus until midnight."))
+        assertTrue(p, p.contains("Housing\n[What you'd do"))
+    }
+}

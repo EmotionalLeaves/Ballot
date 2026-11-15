@@ -49,6 +49,14 @@ private val docTypes = listOf(
     "LETTER" to "Letter to the editor", "QUESTIONNAIRE" to "Questionnaire answers", "CRISIS_RESPONSE" to "Crisis response",
 )
 
+/** Your own words from the case file, for templates. */
+suspend fun templateFacts(g: com.emotionalleaves.ballot.AppGraph): com.emotionalleaves.ballot.core.TemplateFacts {
+    val p = g.case.profile()
+    return com.emotionalleaves.ballot.core.TemplateFacts(name = p.name, place = p.address.ifBlank { p.zip }, why = p.why, story60 = p.story60,
+        issues = p.issues.lines().map { it.trim() }.filter { it.isNotBlank() },
+        positions = g.db.positions().all().filter { it.stance.isNotBlank() }.map { it.issue to it.stance })
+}
+
 fun docLabel(type: String) = docTypes.firstOrNull { it.first == type }?.second ?: type.lowercase().replace('_', ' ')
 
 @Composable
@@ -59,7 +67,7 @@ fun StudioScreen(nav: NavHostController) {
     var topic by remember { mutableStateOf("") }
     val c = LocalBallotColors.current
     Screen("Drafts", kicker = "Words, in your voice", onBack = { nav.popBackStack() }, walkthrough = listOf(
-        "Pick what you need and say what it is about. The Chief drafts it in your voice.",
+        "Pick what you need and say what it is about. A template fills in your own words; the Chief can write a first draft if you prefer.",
         "Every factual claim is checked. Unverified claims are highlighted and block approval until sourced or cut.",
         "Your edit is always final. Approve only when it sounds like you.",
         "Crisis responses are held for a cooling period before you can approve them.")) {
@@ -69,12 +77,28 @@ fun StudioScreen(nav: NavHostController) {
                 Title("New draft")
                 ChipRow(docTypes, type, { it.second }) { type = it }
                 Field(topic, { topic = it }, "What it's about", minLines = 2, placeholder = "e.g. Tuesday's agenda item on the park budget, 2 minutes")
-                PosterButton("Draft it", enabled = topic.isNotBlank() && !ChiefBusy.busy, onClick = {
-                    askChief(g, "Draft a ${type.second.lowercase()} about: $topic. Write it in my voice from my case file (story, positions, voice). " +
-                        "Keep it short and plain. List every factual claim with source ids; fetch official pages for any fact you use. " +
-                        (if (type.first == "CRISIS_RESPONSE") "This is a crisis response: pause, facts first, short truthful response, one channel, one time. Set crisis true. " else "") +
-                        "Save it with draft_document type ${type.first}.", "drafting")
-                    topic = ""
+                // The template is the main path: built here from your own words, no AI. The AI draft is optional.
+                val scope = androidx.compose.runtime.rememberCoroutineScope()
+                PosterButton("Start from a template", enabled = topic.isNotBlank(), onClick = {
+                    scope.launch {
+                        val body = com.emotionalleaves.ballot.core.Templates.draft(type.first, topic, templateFacts(g))
+                        val crisis = type.first == "CRISIS_RESPONSE"
+                        val s = g.settings.get()
+                        val id = g.db.documents().upsert(com.emotionalleaves.ballot.data.Document(type = type.first, title = topic.trim().take(80), body = body,
+                            holdUntil = if (crisis) com.emotionalleaves.ballot.data.now() + s.coolingMinutes * 60_000L else 0))
+                        g.case.audit("you", "Started a draft from a template", input = "${type.second}: ${topic.take(60)}")
+                        topic = ""
+                        nav.navigate(Routes.document(id))
+                    }
+                })
+                LinkButton("Or have the Chief write a first draft", color = c.muted, onClick = {
+                    if (topic.isNotBlank() && !ChiefBusy.busy) {
+                        askChief(g, "Draft a ${type.second.lowercase()} about: $topic. Write it in my voice from my case file (story, positions, voice). " +
+                            "Keep it short and plain. List every factual claim with source ids; fetch official pages for any fact you use. " +
+                            (if (type.first == "CRISIS_RESPONSE") "This is a crisis response: pause, facts first, short truthful response, one channel, one time. Set crisis true. " else "") +
+                            "Save it with draft_document type ${type.first}.", "drafting")
+                        topic = ""
+                    }
                 })
             }
         }

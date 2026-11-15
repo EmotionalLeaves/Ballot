@@ -79,9 +79,21 @@ fun CompassScreen(nav: NavHostController) {
             }
         }
         item {
-            LinkButton("Write a one-page platform with the Chief", color = c.muted, onClick = {
-                askChief(g, "Turn my values, issues and positions into a one-page platform in my own words. No positions I have not stated. Save it with draft_document type PLATFORM.", "writing platform")
-            })
+            Panel {
+                Title("One-page platform")
+                Small("Built from your reason, your issues and the positions you've written below. Nothing you haven't said.")
+                PosterButton("Build my platform", onClick = {
+                    scope.launch {
+                        val id = g.db.documents().upsert(com.emotionalleaves.ballot.data.Document(type = "PLATFORM", title = "One-page platform",
+                            body = com.emotionalleaves.ballot.core.Templates.platform(templateFacts(g))))
+                        g.case.audit("you", "Built a one-page platform")
+                        nav.navigate(Routes.document(id))
+                    }
+                })
+                LinkButton("Or have the Chief write it", color = c.muted, onClick = {
+                    askChief(g, "Turn my values, issues and positions into a one-page platform in my own words. No positions I have not stated. Save it with draft_document type PLATFORM.", "writing platform")
+                })
+            }
         }
         item { ReplyPanel { nav.navigate(Routes.CHIEF) } }
         item {

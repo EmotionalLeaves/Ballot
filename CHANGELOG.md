@@ -153,3 +153,4 @@ One line per loop iteration, newest last.
 - AI-reliance (owner request): CLAUDE.md and DECISIONS.md set the rule that every core job works without AI; AI is for research and optional first drafts.
 - AI-reliance: the stage 2 town quiz is built in plain code from your offices and rules (QuizBuilder, with tests); no AI and nothing invented.
 - AI-reliance: the values interview is a five-question form in Who you are, saved to your profile; the Chief version is optional.
+- AI-reliance: Drafts start from a plain-code template for each kind of document, filled with your own words (Templates, tested); the one-page platform is built the same way. The Chief's draft is the optional second choice.
