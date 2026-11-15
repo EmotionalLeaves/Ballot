@@ -415,7 +415,7 @@ class ToolRegistry {
             val claims = a.arr("claims")?.mapNotNull { it as? JsonObject }?.map { o ->
                 ClaimRef(o.str("text") ?: "", o.arr("source_ids")?.longs() ?: emptyList())
             } ?: emptyList()
-            val labelled = FactCheck.label(claims, c.case)
+            val labelled = FactCheck.label(claims, c.case, c.settings.freshnessDaysGeneral)
             val blocked = labelled.any { it.label == Verification.UNVERIFIED }
             val crisis = a.bool("crisis") == true || a.str("type") == "CRISIS_RESPONSE"
             val status = if (claims.isEmpty()) FactStatus.UNCHECKED else if (blocked) FactStatus.BLOCKED else FactStatus.PASSED
@@ -549,12 +549,11 @@ data class ClaimRef(val text: String, val sourceIds: List<Long> = emptyList(), v
 
 object FactCheck {
     /** Labels each claim from its sources. A claim with no official, fresh source stays UNVERIFIED. */
-    suspend fun label(claims: List<ClaimRef>, case: CaseFile): List<ClaimRef> {
-        val settings = 30
+    suspend fun label(claims: List<ClaimRef>, case: CaseFile, freshnessDays: Int = 30): List<ClaimRef> {
         return claims.map { c ->
             val sources = case.db.sources().getMany(c.sourceIds)
             val best = sources.map { s ->
-                val fresh = Verification.isFresh(s.fetchedAt, now(), settings)
+                val fresh = Verification.isFresh(s.fetchedAt, now(), freshnessDays)
                 val matches = Verification.crossCheck(c.text, s.excerpt) || s.excerpt.isEmpty()
                 if (!matches) Verification.UNVERIFIED else Verification.label(s.official, fresh, s.crossChecked)
             }
