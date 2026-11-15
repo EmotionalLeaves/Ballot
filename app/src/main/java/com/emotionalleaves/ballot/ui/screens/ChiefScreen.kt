@@ -82,6 +82,8 @@ fun ChiefScreen(nav: NavHostController, thread: String = "main") {
     val mic = rememberMicGate()
     val scope = rememberCoroutineScope()
     val c = LocalBallotColors.current
+    var hasAi by remember { mutableStateOf(true) }
+    androidx.compose.runtime.LaunchedEffect(Unit) { hasAi = g.chief.hasKey() }
     val byId = remember(sources) { sources.associateBy { it.id } }
     LaunchedEffect(messages.size, ChiefBusy.busy) { if (messages.isNotEmpty()) list.animateScrollToItem((messages.size - 1 + if (ChiefBusy.busy) 1 else 0).coerceAtLeast(0)) }
 
@@ -108,8 +110,19 @@ fun ChiefScreen(nav: NavHostController, thread: String = "main") {
             if (messages.isEmpty()) item {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("What do you need?", style = MaterialTheme.typography.displaySmall, color = c.fg)
-                    Small("Ask in plain words. Tap a starter:")
-                    starters.forEach { s -> Panel(onClick = { send(s) }) { Text(s, style = MaterialTheme.typography.bodyLarge, color = c.fg) } }
+                    if (hasAi) {
+                        Small("Ask in plain words. Tap a starter:")
+                        starters.forEach { s -> Panel(onClick = { send(s) }) { Text(s, style = MaterialTheme.typography.bodyLarge, color = c.fg) } }
+                    } else {
+                        // Without AI the Chief can't chat, so its empty state points straight at the pages that do the job by hand.
+                        Small("No AI is connected, so the Chief can't chat. These work without it:")
+                        listOf("Your next task" to "home", "Values interview and story" to "compass", "Add your offices and take the town quiz" to "ground",
+                            "Draft from a template" to "studio", "Meetings and events" to "field", "Settings, AI services (optional)" to "settings").forEach { (label, target) ->
+                            Panel(onClick = { nav.openCard(com.emotionalleaves.ballot.agent.Card("INFO", label, target = target)) }) {
+                                Text(label, style = MaterialTheme.typography.bodyLarge, color = c.fg)
+                            }
+                        }
+                    }
                 }
             }
             items(messages, key = { it.id }) { m -> MessageView(m, byId, onCard = { nav.openCard(it) }) }
