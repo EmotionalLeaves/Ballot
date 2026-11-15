@@ -73,3 +73,4 @@ One line per loop iteration, newest last.
 - c1 p1 t1 i49 `system_check_and_update`: Tool ids written as S12, [T4] or #7 are read correctly, and a null required field counts as missing instead of crashing the tool
 - c1 p1 t1 i50 `system_check_and_update`: Rule re-checks skip error pages, so a 404 or a server outage no longer raises a false 'rule page changed' alert or replaces the source
 - c1 p1 t2 i1 `system_check_and_update`: Fetched pages record the address that answered after redirects, so a .gov link redirecting to another site is no longer marked official
+- c1 p1 t2 i2 `system_check_and_update`: Notifications show only their heading on the lock screen; the brief text and contact names stay hidden until the phone is unlocked

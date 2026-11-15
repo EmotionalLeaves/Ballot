@@ -59,6 +59,10 @@ object Notifications {
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setContentIntent(open)
             .setAutoCancel(true)
+            // On the lock screen show only the heading: the case file stays private until the phone is unlocked.
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setPublicVersion(NotificationCompat.Builder(context, channel).setSmallIcon(R.drawable.ic_stat_ballot)
+                .setContentTitle(title).setContentText("Open Ballot to see it.").setContentIntent(open).setAutoCancel(true).build())
             .build()
         runCatching { NotificationManagerCompat.from(context).notify(id, n) }
     }
