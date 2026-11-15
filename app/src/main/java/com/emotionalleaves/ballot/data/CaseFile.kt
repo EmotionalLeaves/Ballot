@@ -359,5 +359,18 @@ class CaseFile(val db: BallotDatabase, private val settings: SettingsStore) {
         n += db.usage().deleteOlder(at - 400 * day)
         return n
     }
+
+    /**
+     * Snapshots stay on the phone, so a lost or broken phone loses them too. If you haven't exported a backup for
+     * [days] days (or ever, once the case file has something in it), Today gets one small task to do it.
+     */
+    suspend fun remindBackup(lastBackupAt: Long, at: Long = now(), days: Int = 30): Boolean {
+        val due = if (lastBackupAt == 0L) db.contacts().all().isNotEmpty() || db.tasks().all().count { it.done } >= 5 else at - lastBackupAt > days * 86_400_000L
+        if (!due) return false
+        val key = "backup.${LocalDate.now().withDayOfMonth(1)}"
+        return addTaskOnce(Task(stage = profile().stage, title = "Save a backup of your case file", templateKey = key, sizeMinutes = 5,
+            why = "Everything lives on this phone. A backup file you keep elsewhere (email it to yourself, or save it to a drive) means a lost phone loses nothing.",
+            doneLooksLike = "Backup file saved somewhere off this phone.", goodEnough = "Settings, Backup, Export.", module = "settings")) != null
+    }
 }
 

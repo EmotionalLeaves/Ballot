@@ -359,5 +359,13 @@ class FlowTests {
         assertEquals(2, case.prune(at))
         assertEquals(listOf("my old question"), db.chat().all().map { it.text })
     }
+
+    @Test fun noBackupForAMonthPutsOneTaskOnToday() = runTest {
+        finishSetup()
+        tools.execute("add_contact", obj("name" to "Lee"), ToolCtx(case, AppSettings()))
+        assertTrue(case.remindBackup(lastBackupAt = 0))
+        assertFalse("once a month at most", case.remindBackup(lastBackupAt = 0))
+        assertFalse(case.remindBackup(lastBackupAt = com.emotionalleaves.ballot.data.now()))
+    }
 }
 

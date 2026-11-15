@@ -121,6 +121,7 @@ class HourlyWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx
             runCatching { Snapshots.take(applicationContext, case.db) }
             runCatching { case.expireStaleApprovals() }
             runCatching { case.prune() }
+            runCatching { case.remindBackup(s.lastBackupAt) }
             g.settings.update { it.copy(lastSnapshotDay = today) }
         }
 

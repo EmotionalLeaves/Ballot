@@ -92,7 +92,7 @@ fun SettingsScreen(nav: NavHostController) {
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
         if (uri != null) scope.launch {
             backupStatus = runCatching {
-                val bytes = Backup.export(g.db, passphrase.toCharArray(), g.settings)
+                val bytes = Backup.export(g.db, passphrase.toCharArray(), g.settings).also { g.settings.update { s -> s.copy(lastBackupAt = com.emotionalleaves.ballot.data.now()) } }
                 withContext(Dispatchers.IO) { ctx.contentResolver.openOutputStream(uri)?.use { it.write(bytes) } }
                 g.case.audit("you", "Exported a backup")
                 "Backup saved. Keep the passphrase safe: without it the file cannot be opened."

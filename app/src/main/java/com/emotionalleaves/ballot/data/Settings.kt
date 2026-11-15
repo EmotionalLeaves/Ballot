@@ -65,6 +65,8 @@ data class AppSettings(
     val volunteerHoursPerWeek: Int = 0,
     val briefMinuteOfDay: Int = 16 * 60 + 15,
     val lastSnapshotDay: Long = 0,
+    /** When you last exported an encrypted backup (epoch ms); 0 = never. */
+    val lastBackupAt: Long = 0,
     val textScale: Float = 1f,
     /** Chosen model per service, "gemini=gemini-2.5-flash;groq=openai/gpt-oss-120b". */
     val providerModels: String = "",
@@ -100,6 +102,7 @@ class SettingsStore(private val context: Context) {
         val volHours = intPreferencesKey("vol_hours")
         val briefMin = intPreferencesKey("brief_min")
         val snapDay = longPreferencesKey("snap_day")
+        val lastBackup = longPreferencesKey("last_backup_at")
         val textScale = androidx.datastore.preferences.core.floatPreferencesKey("text_scale")
         val providerModels = stringPreferencesKey("provider_models")
         val freeOnly = booleanPreferencesKey("free_only")
@@ -133,6 +136,7 @@ class SettingsStore(private val context: Context) {
             volunteerHoursPerWeek = p[K.volHours] ?: d.volunteerHoursPerWeek,
             briefMinuteOfDay = p[K.briefMin] ?: d.briefMinuteOfDay,
             lastSnapshotDay = p[K.snapDay] ?: d.lastSnapshotDay,
+            lastBackupAt = p[K.lastBackup] ?: d.lastBackupAt,
             textScale = p[K.textScale] ?: d.textScale,
             providerModels = p[K.providerModels] ?: d.providerModels,
             freeOnly = p[K.freeOnly] ?: d.freeOnly,
@@ -153,7 +157,7 @@ class SettingsStore(private val context: Context) {
             p[K.cooling] = n.coolingMinutes; p[K.freshRules] = n.freshnessDaysRules; p[K.freshGeneral] = n.freshnessDaysGeneral
             p[K.margin] = n.safetyMarginPct; p[K.support] = n.supportRatePct; p[K.cph] = n.contactsPerHour
             p[K.volHours] = n.volunteerHoursPerWeek; p[K.briefMin] = n.briefMinuteOfDay; p[K.snapDay] = n.lastSnapshotDay
-            p[K.textScale] = n.textScale
+            p[K.textScale] = n.textScale; p[K.lastBackup] = n.lastBackupAt
             p[K.providerModels] = n.providerModels; p[K.freeOnly] = n.freeOnly; p[K.useBackups] = n.useBackups
         }
     }

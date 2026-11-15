@@ -219,3 +219,4 @@ One line per loop iteration, newest last.
 - c1 p6 t1 i16 `overhaul_system_architecture`: The Chief's tools are split by area into five files (research, people, plan, records, app) instead of one 800-line file; behaviour unchanged, same tests
 - c1 p6 t1 i17 `overhaul_system_architecture`: Daily tidy-up keeps only what's useful: background job chatter goes after 30 days and practice-room transcripts after 90; your conversation with the Chief and the audit log stay
 - c1 p6 t1 i18 `overhaul_system_architecture`: The money ledger exports as a spreadsheet (CSV, tested quoting and totals) for a report or a treasurer, shared straight from Records
+- c1 p6 t1 i19 `overhaul_system_architecture`: Backup reminders: the app records when you last exported a backup, and after 30 days without one (or never, once there's something to lose) Today gets one small 'save a backup' task
