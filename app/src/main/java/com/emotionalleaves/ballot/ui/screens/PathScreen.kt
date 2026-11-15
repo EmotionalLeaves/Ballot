@@ -68,6 +68,8 @@ import java.time.ZoneId
 @Composable
 fun PathScreen(nav: NavHostController) {
     val g = LocalContext.current.graph
+    val offices by g.db.offices().observe().collectAsStateWithLifecycle(initialValue = emptyList())
+    val raceCards by g.db.raceCards().observe().collectAsStateWithLifecycle(initialValue = emptyList())
     val profile by g.db.profile().observe().collectAsStateWithLifecycle(initialValue = null)
     val decisions by g.db.decisions().observe().collectAsStateWithLifecycle(initialValue = emptyList())
     val lessons by g.db.lessons().observe().collectAsStateWithLifecycle(initialValue = emptyList())
@@ -135,11 +137,15 @@ fun PathScreen(nav: NavHostController) {
         if (showLanes) item {
             Panel {
                 Kicker("Fast lanes")
-                Small("Open seat: an uncontested or vacant local seat lets you make the race decision early. Ask the Chief to check.", color = c.fg)
+                Small("Open seat: an uncontested or vacant local seat lets you make the race decision early.", color = c.fg)
+                // Read from your own race cards in plain code.
+                val openSeats = offices.filter { o -> raceCards.any { it.officeId == o.id && (it.openSeat || it.incumbentRetiring || it.uncontestedHistory) } }
+                if (openSeats.isNotEmpty()) Small("From your race cards: " + openSeats.joinToString { "${it.body} ${it.district}".trim() }, color = c.signal)
+                else Small("None of your race cards shows an open seat yet. Mark one in Offices and races when you learn of it.")
                 Small("Appointment: many boards are filled by appointment. That builds a record without an election.", color = c.fg)
                 Small("Apprentice: working on a winning local campaign compresses learning, showing up and base-building into one season.", color = c.fg)
                 Small("Party: local party committees often have open volunteer and precinct roles. The Chief explains how each works; the choice is yours.", color = c.fg)
-                LinkButton("Check for open seats", onClick = {
+                LinkButton("Have the Chief check official sources", color = c.muted, onClick = {
                     askChief(g, "Check official sources for any open, vacant or historically uncontested local seat I am eligible for, and any appointed boards with openings. Cite sources.", "checking seats")
                     nav.navigate(Routes.CHIEF)
                 })

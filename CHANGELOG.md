@@ -166,3 +166,4 @@ One line per loop iteration, newest last.
 - c1 p4 t2 i16 `verify_goal_completion`: Fact check leaves your own story alone ('My two kids…') but still catches public claims, including ones about your opponent, so approval isn't blocked by facts no official page could hold
 - c1 p4 t2 i17 `verify_goal_completion`: Race cards can be filled in by hand (signatures, fee, deadline, past turnout and spend, open seat), so race scores and the win number work with no AI
 - c1 p4 t2 i18 `verify_goal_completion`: A filing deadline typed into a race card goes on the deadline wall as a legal deadline, so it gets alerts and a prepared draft like any other
+- c1 p4 t2 i19 `verify_goal_completion`: Fast lanes: open, retiring-incumbent and often-uncontested seats are read from your own race cards in plain code; the Chief's source check is optional
