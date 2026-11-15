@@ -25,6 +25,9 @@ object PageFinder {
         "settings" to listOf("setting", "backup", "lock", "pin", "theme", "dark", "quiet hours", "key"),
     )
 
+    /** Every page key this can return, so a test can check each one really opens. */
+    val pages: Set<String> get() = table.map { it.first }.toSet()
+
     fun find(text: String, max: Int = 3): List<String> {
         val t = " " + text.lowercase().replace(Regex("[^a-z0-9 -]"), " ").replace(Regex("\\s+"), " ") + " "
         return table.map { (page, words) -> page to words.sumOf { w -> if (t.contains(" $w ") || t.contains(" ${w}s ")) w.length else 0 } }

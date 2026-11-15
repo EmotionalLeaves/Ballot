@@ -150,6 +150,13 @@ class AgentEvalTest {
 
 class SingleAccessPointTest {
     /** Every page the Chief can offer with open_page must really open. */
+    @org.junit.Test fun everyPageThePlainFinderSuggestsOpens() {
+        com.emotionalleaves.ballot.core.PageFinder.pages.forEach { k ->
+            org.junit.Assert.assertTrue(k, k in com.emotionalleaves.ballot.agent.PAGES)
+            org.junit.Assert.assertNotNull(k, com.emotionalleaves.ballot.ui.routeFor(com.emotionalleaves.ballot.agent.Card("INFO", "x", target = k)))
+        }
+    }
+
     @org.junit.Test fun everyOpenPageTargetHasARoute() {
         com.emotionalleaves.ballot.agent.PAGES.keys.forEach { k ->
             org.junit.Assert.assertNotNull(k, com.emotionalleaves.ballot.ui.routeFor(com.emotionalleaves.ballot.agent.Card("INFO", "x", target = k)))
