@@ -9,6 +9,9 @@ Checked each phase. Controls may move or merge; a function is only removed when 
 - [x] Offices and rules added by hand; events and contacts by hand
 - [x] Pre-event prep card (PrepCard), debrief saved by hand, quiet-week blockers (WeeklyScore.blockers)
 - [x] Follow-ups, intro asks and HQ thank-yous from templates, waiting in Approvals
+- [x] Race cards by hand (filing deadline goes on the deadline wall); fast lanes read from race cards
+- [x] Mock rooms run from a question bank with a plain score; drafts fact-checked in plain code with official pages pasted by you
+- [x] Stage 8 debrief as four questions
 - [x] AI optional: web research and first drafts only, each beside a by-hand path
 
 ## Spine
