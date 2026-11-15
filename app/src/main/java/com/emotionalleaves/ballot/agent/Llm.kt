@@ -48,7 +48,11 @@ data class LlmResponse(val content: List<Block>, val stopReason: String, val usa
     val toolUses: List<Block.ToolUse> get() = content.filterIsInstance<Block.ToolUse>()
 }
 
-class LlmException(message: String, val retryable: Boolean, val status: Int = 0, val retryAfterSec: Int = 0) : Exception(message)
+/**
+ * [message] is what you read: plain and short. [detail] is the service's own technical text, kept for the audit
+ * log and Diagnostics so a bug can be traced without putting jargon in the chat.
+ */
+class LlmException(message: String, val retryable: Boolean, val status: Int = 0, val retryAfterSec: Int = 0, val detail: String = "") : Exception(message)
 
 interface LlmClient {
     val supportsWebSearch: Boolean

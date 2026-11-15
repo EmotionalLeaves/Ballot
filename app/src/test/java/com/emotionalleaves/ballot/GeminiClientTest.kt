@@ -86,7 +86,12 @@ class GeminiClientTest {
         server.enqueue(MockResponse().setResponseCode(429).setBody("""{"error":{"code":429,"message":"Quota exceeded for metric: requests per day","details":[{"retryDelay":"3600s"}]}}"""))
         val q = runCatching { client().complete(aqKey, LlmRequest("m", "s", listOf(LlmMessage("user", listOf(Block.Text("hi")))))) }.exceptionOrNull() as LlmException
         assertEquals(3600, q.retryAfterSec)
-        assertTrue(Providers.isDailyLimit(q.status, q.retryAfterSec, q.message ?: ""))
+        assertTrue(Providers.isDailyLimit(q.status, q.retryAfterSec, (q.message ?: "") + " " + q.detail))
+        // A request Gemini can't parse is Ballot's bug: the chat gets a plain sentence, Diagnostics gets Google's words.
+        server.enqueue(MockResponse().setResponseCode(400).setBody("""{"error":{"code":400,"message":"Invalid value at 'tools[0].function_declarations[16].parameters.properties[0].value', \"STRING\""}}"""))
+        val b = runCatching { client().complete(aqKey, LlmRequest("m", "s", listOf(LlmMessage("user", listOf(Block.Text("hi")))))) }.exceptionOrNull() as LlmException
+        assertFalse(b.message!!, b.message!!.contains("function_declarations"))
+        assertTrue(b.detail, b.detail.contains("function_declarations"))
     }
 
     @Test fun listsOnlyModelsThatCanChat() = runBlocking {

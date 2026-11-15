@@ -212,12 +212,12 @@ $brief
                 } catch (e: LlmException) {
                     last = e
                     anyRetryable = anyRetryable || e.retryable
-                    if (Providers.isModelProblem(e.status, e.message ?: "") && modelIndex + 1 < modelsToTry.size) {
+                    if (Providers.isModelProblem(e.status, (e.message ?: "") + " " + e.detail) && modelIndex + 1 < modelsToTry.size) {
                         modelIndex++
                         r2 = r2.copy(model = modelsToTry[modelIndex])
                         continue
                     }
-                    if (Providers.isDailyLimit(e.status, e.retryAfterSec, e.message ?: "")) {
+                    if (Providers.isDailyLimit(e.status, e.retryAfterSec, (e.message ?: "") + " " + e.detail)) {
                         rest(route.preset.id)
                         case.audit("app", "AI service resting until tomorrow", input = route.preset.name, outcome = e.message ?: "")
                         break
@@ -314,6 +314,8 @@ $brief
                 if (steps == MAX_STEPS) finalText.append("\n\nI stopped after $MAX_STEPS steps so this does not run away. Tell me to continue if you want more.")
             }
         } catch (e: LlmException) {
+            // The plain message goes in the chat; the service's own words go to the audit log for Diagnostics.
+            if (e.detail.isNotBlank()) case.audit("app", "AI service error", input = "status ${e.status}", outcome = e.detail.take(500))
             if (e.retryable) {
                 if (queue) case.db.queue().insert(QueuedRequest(thread = thread, prompt = userText))
                 return finish(thread, "${e.message} I've queued the request and will retry when I can.", Mode.CLERK, cards, sourceIds, persist, queued = true, error = true)

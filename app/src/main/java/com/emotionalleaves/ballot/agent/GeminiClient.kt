@@ -49,13 +49,14 @@ class GeminiClient(private val baseUrl: String = "https://generativelanguage.goo
             status == 401 && reason == "ACCESS_TOKEN_TYPE_UNSUPPORTED" ->
                 "Google refused this key for this project. In AI Studio, delete the key, create a new one in the same screen, and paste the new one."
             status == 401 || status == 403 -> "Google rejected the key${if (msg.isNotBlank()) ": $msg" else "."}"
-            status == 404 -> "Gemini can't use that model with this key${if (msg.isNotBlank()) " (Google says: $msg)" else "."}"
+            status == 404 -> "Gemini can't use that model with this key."
             status == 429 -> "Gemini's free allowance is used up for now${if (msg.contains("day", true) || msg.contains("quota", true)) " (daily limit)" else ""}."
             status in 500..599 -> "Gemini had an error. Try again in a minute."
-            else -> "Gemini returned an error ($status)${if (msg.isNotBlank()) ": $msg" else "."}"
+            status == 400 -> "Gemini couldn't take this request. That's a problem on Ballot's side, not yours; the details are in Settings, Diagnostics."
+            else -> "Gemini returned an error ($status)."
         }
-        return LlmException(if (status == 429 && msg.isNotBlank()) "$friendly ($msg)" else friendly, retryable = status == 429 || status >= 500,
-            status = status, retryAfterSec = maxOf(retryAfter, bodyDelay))
+        return LlmException(friendly, retryable = status == 429 || status >= 500,
+            status = status, retryAfterSec = maxOf(retryAfter, bodyDelay), detail = msg.ifBlank { body.take(500) })
     }
 
     override suspend fun listModels(apiKey: String): List<String> {

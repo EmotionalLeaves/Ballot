@@ -76,7 +76,7 @@ object KeySetup {
             last = e
             if (e is LlmException && isKeyProblem(e)) return Outcome(false, friendly(p, e))
             if (e is LlmException && e.status == 0) return Outcome(false, friendly(p, e))
-            val slow = e is kotlinx.coroutines.TimeoutCancellationException || (e is LlmException && e.status == 429 && !Providers.isModelProblem(429, e.message ?: ""))
+            val slow = e is kotlinx.coroutines.TimeoutCancellationException || (e is LlmException && e.status == 429 && !Providers.isModelProblem(429, (e.message ?: "") + " " + e.detail))
             if (!slow) onlySlow = false
         }
         // The key is fine and the service is only slow or busy: save it and let the Chief retry later.
@@ -95,7 +95,7 @@ object KeySetup {
 
     /** The key itself is wrong, so trying other models won't help. */
     private fun isKeyProblem(e: LlmException): Boolean {
-        val m = (e.message ?: "").lowercase()
+        val m = ((e.message ?: "") + " " + e.detail).lowercase()
         return e.status == 401 || (e.status == 403 && "model" !in m) || (e.status == 400 && ("api key" in m || "api_key" in m))
     }
 

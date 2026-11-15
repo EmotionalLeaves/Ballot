@@ -73,7 +73,7 @@ private fun plainError(status: Int, body: String, retryAfterSec: Int = 0): LlmEx
         in 500..599 -> "The AI provider had an error."
         else -> "The AI provider returned an error ($status)."
     }
-    return LlmException(if (msg != null) "$friendly ($msg)" else friendly, retryable = status == 429 || status >= 500, status = status, retryAfterSec = retryAfterSec)
+    return LlmException(friendly, retryable = status == 429 || status >= 500, status = status, retryAfterSec = retryAfterSec, detail = msg ?: body.take(500))
 }
 
 /** Anthropic Messages API with tool calling and the server-side web search tool. */
