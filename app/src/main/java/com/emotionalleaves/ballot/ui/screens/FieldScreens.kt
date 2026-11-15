@@ -50,7 +50,7 @@ fun BriefingScreen(nav: NavHostController) {
     val briefItems by g.db.brief().observeRecent().collectAsStateWithLifecycle(initialValue = emptyList())
     val work by androidx.work.WorkManager.getInstance(ctx).getWorkInfosForUniqueWorkFlow("brief_now").collectAsStateWithLifecycle(initialValue = emptyList())
     val c = LocalBallotColors.current
-    Screen("Briefing", kicker = "What is happening near you", onBack = { nav.popBackStack() }, walkthrough = listOf(
+    Screen("Local briefing", kicker = "What is happening near you", onBack = { nav.popBackStack() }, walkthrough = listOf(
         "A two-minute digest of local news, upcoming agendas and decisions that touch your issues.",
         "It is built in the background after work, so it is waiting when you open the app.",
         "Each item ends with one optional action.")) {
@@ -108,7 +108,7 @@ fun FieldScreen(nav: NavHostController) {
     val mic = rememberMicGate()
     val c = LocalBallotColors.current
     val nowMs = now()
-    Screen("Field", kicker = "Showing up", onBack = { nav.popBackStack() }, walkthrough = listOf(
+    Screen("Meetings and events", kicker = "Showing up", onBack = { nav.popBackStack() }, walkthrough = listOf(
         "Your calendar of public meetings, community events and volunteer shifts, outside work hours.",
         "Before an event, tap Pre-event card: who will be there, what to say, one goal.",
         "After an event, tap Debrief and just talk for a minute: who you met, what you promised. The Chief files contacts and follow-ups for you to confirm.",

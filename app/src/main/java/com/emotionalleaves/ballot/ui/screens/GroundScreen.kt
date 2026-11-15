@@ -84,7 +84,7 @@ fun GroundScreen(nav: NavHostController) {
         }
     }
 
-    Screen("Ground", kicker = "Your political map", onBack = { nav.popBackStack() }, walkthrough = listOf(
+    Screen("Offices and races", kicker = "Your political map", onBack = { nav.popBackStack() }, walkthrough = listOf(
         "Every office that represents you, who holds it, and when it is next on the ballot.",
         "Each fact is linked to its official source with a label: Verified, Likely or Unverified.",
         "Race cards hold filing rules, signatures, past turnout and past spending, from official pages only.",

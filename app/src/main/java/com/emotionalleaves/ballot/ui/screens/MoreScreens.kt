@@ -116,7 +116,7 @@ fun ApprovalsScreen(nav: NavHostController) {
     val scope = rememberCoroutineScope()
     val pending by g.db.pending().observeWaiting().collectAsStateWithLifecycle(initialValue = emptyList())
     val c = LocalBallotColors.current
-    Screen("Approvals", kicker = "Asks first, every time", onBack = { nav.popBackStack() }, walkthrough = listOf(
+    Screen("Waiting for your OK", kicker = "Asks first, every time", onBack = { nav.popBackStack() }, walkthrough = listOf(
         "Anything sent, posted, filed, signed or spent in your name waits here.",
         "For messages: edit if you like, tap Approve and send, and your own messaging app opens. You press send.",
         "For routine items you moved to 'asks first' with the autonomy dial: Approve runs them.",

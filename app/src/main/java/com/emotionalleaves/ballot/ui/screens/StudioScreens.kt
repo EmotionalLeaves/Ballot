@@ -58,7 +58,7 @@ fun StudioScreen(nav: NavHostController) {
     var type by remember { mutableStateOf(docTypes.first()) }
     var topic by remember { mutableStateOf("") }
     val c = LocalBallotColors.current
-    Screen("Studio", kicker = "Words, in your voice", onBack = { nav.popBackStack() }, walkthrough = listOf(
+    Screen("Drafts", kicker = "Words, in your voice", onBack = { nav.popBackStack() }, walkthrough = listOf(
         "Pick what you need and say what it is about. The Chief drafts it in your voice.",
         "Every factual claim is checked. Unverified claims are highlighted and block approval until sourced or cut.",
         "Your edit is always final. Approve only when it sounds like you.",

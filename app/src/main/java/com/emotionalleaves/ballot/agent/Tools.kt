@@ -564,7 +564,7 @@ class ToolRegistry {
             ToolOutcome("Saved to the Vault.", cards = listOf(Card("DOCUMENT", a.str("title")!!, "Vault", "document", id)))
         })
 
-        reg(ToolDef("add_event", "Add a public meeting, community event or volunteer shift to the Field calendar. Never inside work hours.",
+        reg(ToolDef("add_event", "Add a public meeting, community event or volunteer shift to the Meetings and events calendar. Never inside work hours.",
             S.obj(listOf("title", "start"), mapOf(
                 "title" to S.s("Title"), "type" to S.e("Type", EventType.all), "place" to S.s("Address or room"),
                 "start" to S.s("YYYY-MM-DDTHH:MM local time"), "goal" to S.s("One goal for the night"), "agenda_url" to S.s("Agenda link"),

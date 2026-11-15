@@ -189,7 +189,7 @@ fun QuizScreen(nav: NavHostController) {
             val sources = g.db.sources().all().filter { it.official }.take(8).joinToString("\n\n") { "S${it.id} ${it.title}: ${it.excerpt.take(1200)}" }
             val explainers = g.db.chat().all().filter { it.role == "assistant" }.takeLast(10).joinToString("\n") { it.text.take(400) }
             if (offices.isBlank() && sources.isBlank()) {
-                error = "The quiz is built only from what is in your case file, and it is empty. List your offices in Ground and read a few explainers first."
+                error = "The quiz is built only from what is in your case file, and it is empty. List your offices in Offices and races and read a few explainers first."
                 loading = false; return@launch
             }
             val system = "You write a 10-question multiple-choice quiz about the user's own town, using ONLY the facts below. Never invent facts. " +

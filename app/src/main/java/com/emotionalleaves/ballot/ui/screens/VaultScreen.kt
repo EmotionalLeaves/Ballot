@@ -134,7 +134,7 @@ private fun DeadlinesTab() {
     val today = LocalDate.now().toEpochDay()
     androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Small("Alerts at 14, 7 and 2 days. A legal deadline never comes within seven days without a prepared draft.")
-        if (deadlines.isEmpty()) EmptyNote("No deadlines yet. Build a race card in Ground and the Chief adds the filing deadline from the official page.")
+        if (deadlines.isEmpty()) EmptyNote("No deadlines yet. Build a race card in Offices and races and the Chief adds the filing deadline from the official page.")
         deadlines.forEach { d ->
             val left = d.dueEpochDay - today
             Panel(accent = !d.done && left in 0..7) {

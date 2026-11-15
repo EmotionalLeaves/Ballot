@@ -115,3 +115,4 @@ One line per loop iteration, newest last.
 - c1 p3 t2 i17 `apply_professional_formatting`: People: the 'of 200 for stage 5' note lines up with the big number instead of being pushed over with spaces, and follow-ups count in proper plural
 - c1 p3 t2 i18 `apply_professional_formatting`: Counts read naturally everywhere ('1 request', '3 unverified claims') instead of 'request(s)'
 - c1 p3 t2 i19 `apply_professional_formatting`: One name for one place: the Gym is called Practice everywhere, matching the More list, with a kicker saying what's inside
+- c1 p3 t2 i20 `apply_professional_formatting`: Every page title matches its name in More (Who you are, Offices and races, Meetings and events, Drafts, Waiting for your OK, Local briefing), and task steps use those names
