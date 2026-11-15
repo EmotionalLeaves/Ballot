@@ -68,6 +68,7 @@ fun HqScreen(nav: NavHostController) {
     val doors by g.db.voterContacts().observe().collectAsStateWithLifecycle(initialValue = emptyList())
     val cards by g.db.raceCards().observe().collectAsStateWithLifecycle(initialValue = emptyList())
     val money by g.db.money().observe().collectAsStateWithLifecycle(initialValue = emptyList())
+    val settings by g.settings.flow.collectAsStateWithLifecycle(initialValue = com.emotionalleaves.ballot.data.AppSettings())
     var mode by remember { mutableStateOf("Launch") }
     val c = LocalBallotColors.current
     val p = profile ?: return
@@ -127,7 +128,7 @@ fun HqScreen(nav: NavHostController) {
                 }
             }
             "Call time" -> item { CallTime(contacts.filter { it.role != ContactRole.PRESS }.sortedByDescending { it.closeness }) }
-            "Doors" -> item { Doors(doors, cards.maxByOrNull { it.score }?.let { CampaignMath.winNumber(it.pastTurnout, it.seats, 10) } ?: 0) }
+            "Doors" -> item { Doors(doors, cards.maxByOrNull { it.score }?.let { CampaignMath.winNumber(it.pastTurnout, it.seats, settings.safetyMarginPct) } ?: 0) }
             "Volunteers" -> {
                 val vols = contacts.filter { it.role == ContactRole.VOLUNTEER }
                 if (vols.isEmpty()) item { EmptyNote("No volunteers yet. Mark people as Volunteer on their contact page.") }

@@ -53,6 +53,7 @@ fun GroundScreen(nav: NavHostController) {
     val scope = rememberCoroutineScope()
     val offices by g.db.offices().observe().collectAsStateWithLifecycle(initialValue = emptyList())
     val cards by g.db.raceCards().observe().collectAsStateWithLifecycle(initialValue = emptyList())
+    val settings by g.settings.flow.collectAsStateWithLifecycle(initialValue = com.emotionalleaves.ballot.data.AppSettings())
     var open by remember { mutableStateOf<Long?>(null) }
     var rec by remember { mutableStateOf<RaceRecommendation?>(null) }
     var showWorking by remember { mutableStateOf<RaceScore?>(null) }
@@ -117,7 +118,7 @@ fun GroundScreen(nav: NavHostController) {
         items(offices.size) { i ->
             val o = offices[i]
             val rc = cards.firstOrNull { it.officeId == o.id }
-            OfficePanel(o, rc, expanded = open == o.id, onToggle = { open = if (open == o.id) null else o.id }, onWorking = {
+            OfficePanel(o, rc, settings.safetyMarginPct, expanded = open == o.id, onToggle = { open = if (open == o.id) null else o.id }, onWorking = {
                 showWorking = RaceScore(o.id, o.body, rc?.score ?: 0, rc?.scoreWorking?.split("\n")?.filter { it.isNotBlank() }?.map {
                     com.emotionalleaves.ballot.core.ScoreLine("", 0, it)
                 } ?: emptyList())
@@ -137,7 +138,7 @@ fun GroundScreen(nav: NavHostController) {
 }
 
 @Composable
-private fun OfficePanel(o: Office, rc: RaceCard?, expanded: Boolean, onToggle: () -> Unit, onWorking: () -> Unit, onRace: () -> Unit,
+private fun OfficePanel(o: Office, rc: RaceCard?, margin: Int, expanded: Boolean, onToggle: () -> Unit, onWorking: () -> Unit, onRace: () -> Unit,
                         onExplain: () -> Unit, onDelete: () -> Unit, onOpen: (String) -> Unit) {
     val c = LocalBallotColors.current
     Panel(onClick = onToggle) {
@@ -146,7 +147,7 @@ private fun OfficePanel(o: Office, rc: RaceCard?, expanded: Boolean, onToggle: (
         Small("Held by ${o.incumbent.ifBlank { "unknown" }} · next on the ballot ${o.nextElection.ifBlank { "unknown" }}", color = c.fg)
         if (rc != null && rc.score > 0) Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             BigNumber("${rc.score}", "Race score", size = 34, color = c.signal)
-            BigNumber(if (rc.pastTurnout > 0) "${CampaignMath.winNumber(rc.pastTurnout, rc.seats, 10)}" else "—", "Win number", size = 34)
+            BigNumber(if (rc.pastTurnout > 0) "${CampaignMath.winNumber(rc.pastTurnout, rc.seats, margin)}" else "—", "Win number", size = 34)
         }
         if (expanded) {
             if (o.powers.isNotBlank()) Body("Controls: ${o.powers}")
