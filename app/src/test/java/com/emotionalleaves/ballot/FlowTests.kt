@@ -138,5 +138,52 @@ class FlowTests {
         assertEquals(19 * 60 + 15, store.get().briefMinuteOfDay)
         store.update { it.copy(darkTheme = false) }
     }
+
+    /** "Too much this week": only the most important thing stays in the next seven days. */
+    @Test fun shrinkingTheWeekKeepsOneThing() = runTest {
+        finishSetup()
+        val today = case.today()
+        db.tasks().open().forEach { db.tasks().upsert(it.copy(dueEpochDay = today + 2)) }
+        tools.execute("reschedule_plan", obj("shrink_week" to true, "reason" to "Too much"), ToolCtx(case, AppSettings()))
+        val thisWeek = db.tasks().open().filter { !it.legal && it.dueEpochDay in today..today + 7 }
+        assertEquals(1, thisWeek.size)
+    }
+
+    @Test fun aRealConversationCountsTowardTheBase() = runTest {
+        tools.execute("log_interaction", obj("contact" to "Sam Okafor", "notes" to "Coffee after the meeting", "two_way" to true), ToolCtx(case, AppSettings()))
+        tools.execute("log_interaction", obj("contact" to "Sam Okafor", "notes" to "Waved", "two_way" to false), ToolCtx(case, AppSettings()))
+        assertEquals(1, case.stats().twoWayContacts)
+        assertTrue(db.contacts().all().single().lastContactAt > 0)
+    }
+
+    @Test fun panicWipeLeavesNothing() = runTest {
+        finishSetup()
+        tools.execute("add_contact", obj("name" to "Lee"), ToolCtx(case, AppSettings()))
+        case.clearAll()
+        assertTrue(db.contacts().all().isEmpty())
+        assertTrue(db.tasks().all().isEmpty())
+        assertTrue(db.audit().all().isEmpty())
+    }
+
+    @Test fun lessonsAndBriefItemsLandWhereTheyShow() = runTest {
+        tools.execute("record_lesson", obj("what" to "Arrive early to sign up for comment", "kind" to "EVENT"), ToolCtx(case, AppSettings()))
+        tools.execute("save_brief_item", obj("title" to "Park budget on Tuesday's agenda", "kind" to "AGENDA"), ToolCtx(case, AppSettings()))
+        assertEquals("Arrive early to sign up for comment", db.lessons().all().single().what)
+        assertEquals(1, db.brief().countDay(case.today()))
+    }
+
+    @Test fun aSnapshotByAskingSaysPlainlyWhenThereIsNothingYet() = runTest {
+        val out = tools.execute("run_job", obj("job" to "snapshot"), ToolCtx(case, AppSettings(), app = ctx))
+        assertFalse(out.text, out.isError)
+        assertTrue(out.text, out.text.contains("Snapshot saved") || out.text.contains("Nothing to snapshot"))
+    }
+
+    @Test fun changedWorkHoursMoveWhatCountsAsWorkTime() = runTest {
+        finishSetup()
+        tools.execute("update_profile", obj("work_start" to "12:00", "work_end" to "20:00"), ToolCtx(case, AppSettings()))
+        // 18:30 on a Monday is now inside work.
+        assertTrue(tools.execute("add_event", obj("title" to "Council", "start" to "2030-01-07T18:30"), ToolCtx(case, AppSettings())).isError)
+        assertFalse(tools.execute("add_event", obj("title" to "Council", "start" to "2030-01-07T09:00"), ToolCtx(case, AppSettings())).isError)
+    }
 }
 
