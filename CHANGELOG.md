@@ -81,3 +81,4 @@ One line per loop iteration, newest last.
 - c1 p1 t2 i7 `system_check_and_update`: A queued request that fails three times now tells you in the chat instead of vanishing
 - c1 p1 t2 i8 `system_check_and_update`: Web page fetches and free search give up after 30 seconds instead of 150, so one slow site can't stall a Chief answer
 - c1 p1 t2 i9 `system_check_and_update`: http-only town and county sites can be read when https fails, but a page that didn't arrive over https never counts as official
+- c1 p1 t2 i10 `system_check_and_update`: An http-only site gets a plain 'no secure version, open it in a browser or call' message; the http fallback is dropped because cleartext stays off app-wide

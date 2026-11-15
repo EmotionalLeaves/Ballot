@@ -22,8 +22,9 @@ object PageFetcher {
         try {
             get(https)
         } catch (e: LlmException) {
-            // Some small town and county sites still have no https. Read them anyway, but they can't count as official.
-            if (clean.startsWith("http://")) get(clean) else throw e
+            // Ballot never uses plain http (it is switched off for the whole app), so say so plainly.
+            if (clean.startsWith("http://")) throw LlmException("Could not reach the secure (https) version of $clean. Ballot never uses plain http, so if the site only has that, open it in a browser or call the office.", retryable = false)
+            throw e
         }
     }
 
