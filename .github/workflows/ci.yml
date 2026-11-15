@@ -28,6 +28,7 @@ jobs:
       - name: Print exported Room schemas (so they can be committed for migration tests)
         if: success()
         run: |
+          if [ ! -d app/schemas ]; then ./gradlew --no-daemon -q :app:kspDebugKotlin --rerun || true; fi
           find . -path "*schemas*" -name "*.json" -not -path "./.git/*" | while read -r f; do echo "=== SCHEMA $f"; cat "$f"; echo "=== END SCHEMA"; done
           true
       - name: Summarise errors
