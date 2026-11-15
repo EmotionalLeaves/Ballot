@@ -67,4 +67,5 @@ Checked each phase. Controls may move or merge; a function is only removed when 
 - [x] Encrypted export/import (also from setup's first screen); a snapshot before every import; daily snapshots, seven kept, restore screen
 - [x] Releases signed with one fixed key, checked by fingerprint, so updates install over the last APK
 - [x] Crash reports on device with copy; visible network log
+- [x] Combined pages with tabs: What's on locally (meetings, briefing), Your voice (who you are, drafts), Your town (offices, town quiz), Records (vault, case file), Your plan (plan, weekly review, run or wait)
 - [x] Calm theme (light default, dark for night), text scaling, 48dp tap targets, screen-reader labels, collapsible Settings sections, grouped More menu
