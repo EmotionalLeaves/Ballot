@@ -258,7 +258,13 @@ class RuleRecheckWorker(ctx: Context, params: WorkerParameters) : CoroutineWorke
             val changed = comparable && prev!!.contentHash != page.hash
             val official = page.secure && com.emotionalleaves.ballot.core.Verification.isOfficial(page.url, s.officialDomains)
             val label = com.emotionalleaves.ballot.core.Verification.label(official, fresh = true, crossChecked = comparable && !changed)
-            val newSource = case.db.sources().insert(com.emotionalleaves.ballot.data.SourceRecord(url = page.url, title = page.title.take(200),
+            // Unchanged page: refresh the same source record (its id stays, so everything citing it still points at it).
+            // Changed page: a new record, so the old wording stays on file beside the new.
+            val newSource = if (comparable && !changed) {
+                case.db.sources().upsert(prev!!.copy(url = page.url, title = page.title.take(200), excerpt = page.text.take(20_000), official = official,
+                    crossChecked = true, label = label, contentHash = page.hash, confidence = label, fetchedAt = now(), updatedAt = now()))
+                prev.id
+            } else case.db.sources().insert(com.emotionalleaves.ballot.data.SourceRecord(url = page.url, title = page.title.take(200),
                 excerpt = page.text.take(20_000), official = official, crossChecked = comparable && !changed, label = label,
                 contentHash = page.hash, confidence = label, source = "recheck"))
             case.db.rules().upsert(rule.copy(lastChecked = now(), sourceId = newSource, status = if (changed) "CHANGED" else label, updatedAt = now()))
