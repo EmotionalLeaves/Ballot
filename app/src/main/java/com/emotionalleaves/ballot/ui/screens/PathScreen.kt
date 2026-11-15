@@ -375,7 +375,10 @@ fun WeeklyReviewScreen(nav: NavHostController) {
         item {
             PosterButton(if (saved > 0) "Saved" else "Save review", enabled = saved == 0, onClick = {
                 scope.launch {
-                    g.db.lessons().upsert(Lesson(kind = "WEEK", what = "Week score $score. Stop: $stop. Keep: $keep.", change = "Start: $start"))
+                    val what = listOfNotNull("Week score $score.", stop.takeIf { it.isNotBlank() }?.let { "Stop: ${it.trim()}." }, keep.takeIf { it.isNotBlank() }?.let { "Keep: ${it.trim()}." }).joinToString(" ")
+                    g.db.lessons().upsert(Lesson(kind = "WEEK", what = what, change = start.takeIf { it.isNotBlank() }?.let { "Start: ${it.trim()}" } ?: ""))
+                    // Doing the review is the review task: take it off Today.
+                    g.db.tasks().open().filter { it.templateKey.startsWith("review.") }.forEach { g.case.completeTask(it) }
                     val today = LocalDate.now().toEpochDay()
                     picked.forEachIndexed { idx, id -> g.db.tasks().get(id)?.let { g.db.tasks().upsert(it.copy(dueEpochDay = today + 2 + idx * 2, updatedAt = now())) } }
                     g.case.rescore()
