@@ -21,7 +21,7 @@ object PageFetcher {
             .header("Accept", "text/html,application/xhtml+xml,text/plain;q=0.9,*/*;q=0.5")
             .build()
         try {
-            Http.client.newCall(req).await().use { r ->
+            Http.pages.newCall(req).await().use { r ->
                 // The address that actually answered, after redirects: the official check must judge this one,
                 // or a .gov link that redirects elsewhere would pass as official.
                 val finalUrl = r.request.url.toString()

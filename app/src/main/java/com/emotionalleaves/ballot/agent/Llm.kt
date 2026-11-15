@@ -109,6 +109,11 @@ object Http {
             .addInterceptor(NetLog.interceptor)
             .build()
     }
+
+    /** Web pages get much less time than AI replies: one slow site must not stall the Chief's whole answer. */
+    val pages: OkHttpClient by lazy {
+        client.newBuilder().connectTimeout(10, TimeUnit.SECONDS).readTimeout(20, TimeUnit.SECONDS).callTimeout(30, TimeUnit.SECONDS).build()
+    }
 }
 
 // Small JSON helpers used across the agent.

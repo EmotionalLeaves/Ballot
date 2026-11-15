@@ -25,7 +25,7 @@ object FreeSearch {
                 .header("Accept", "text/html")
                 .build()
             try {
-                Http.client.newCall(req).await().use { r ->
+                Http.pages.newCall(req).await().use { r ->
                     val html = r.body?.string() ?: ""
                     if (r.isSuccessful) {
                         val hits = parse(html).take(max)
