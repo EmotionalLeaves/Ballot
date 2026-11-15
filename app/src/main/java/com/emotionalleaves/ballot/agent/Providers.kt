@@ -173,7 +173,7 @@ class AnthropicClient(private val baseUrl: String = "https://api.anthropic.com/v
 }
 
 /** OpenAI-compatible chat completions with function calling. No built-in web search here. */
-class OpenAiClient(private val baseUrl: String) : LlmClient {
+class OpenAiClient(private val baseUrl: String, private val echoSignatures: Boolean = baseUrl.contains("generativelanguage.googleapis.com")) : LlmClient {
     override val supportsWebSearch = false
 
     override suspend fun listModels(apiKey: String): List<String> {
@@ -190,12 +190,19 @@ class OpenAiClient(private val baseUrl: String) : LlmClient {
 
     override suspend fun complete(apiKey: String, request: LlmRequest): LlmResponse {
         if (apiKey.isBlank()) throw LlmException("No API key yet. Add one in Settings.", retryable = false)
+        val toolNames = request.messages.flatMap { it.content }.filterIsInstance<Block.ToolUse>().associate { it.id to it.name }
         val msgs = buildJsonArray {
             addJsonObject { put("role", "system"); put("content", request.system) }
             request.messages.forEach { m ->
                 val results = m.content.filterIsInstance<Block.ToolResult>()
                 if (results.isNotEmpty()) {
-                    results.forEach { r -> addJsonObject { put("role", "tool"); put("tool_call_id", r.toolUseId); put("content", r.content) } }
+                    results.forEach { r ->
+                        addJsonObject {
+                            put("role", "tool"); put("tool_call_id", r.toolUseId); put("content", r.content)
+                            // Gemini matches results to calls by name as well as id.
+                            if (echoSignatures) toolNames[r.toolUseId]?.let { put("name", it) }
+                        }
+                    }
                     val texts = m.content.filterIsInstance<Block.Text>()
                     if (texts.isNotEmpty()) addJsonObject { put("role", m.role); put("content", texts.joinToString("\n") { it.text }) }
                 } else {
@@ -210,6 +217,11 @@ class OpenAiClient(private val baseUrl: String) : LlmClient {
                                 addJsonObject {
                                     put("id", u.id); put("type", "function")
                                     putJsonObject("function") { put("name", u.name); put("arguments", u.input.toString()) }
+                                    // Gemini rejects a replayed tool call without its thought signature.
+                                    when {
+                                        u.extra != null -> put("extra_content", u.extra)
+                                        echoSignatures -> putJsonObject("extra_content") { putJsonObject("google") { put("thought_signature", "skip_thought_signature_validator") } }
+                                    }
                                 }
                             }
                         }
@@ -244,7 +256,7 @@ class OpenAiClient(private val baseUrl: String) : LlmClient {
             val t = tc as? JsonObject ?: return@forEach
             val f = t.obj("function") ?: return@forEach
             val args = runCatching { BallotJson.parseToJsonElement(f.str("arguments") ?: "{}").jsonObject }.getOrDefault(JsonObject(emptyMap()))
-            blocks += Block.ToolUse(t.str("id") ?: "", f.str("name") ?: "", args)
+            blocks += Block.ToolUse(t.str("id") ?: "", f.str("name") ?: "", args, t.obj("extra_content"))
         }
         val finish = choice.str("finish_reason") ?: "stop"
         val usage = o.obj("usage")

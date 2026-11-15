@@ -20,7 +20,8 @@ val BallotJson = Json { ignoreUnknownKeys = true; explicitNulls = false; encodeD
 /** Provider-neutral message blocks. Raw keeps provider-specific blocks (web search results) intact. */
 sealed class Block {
     data class Text(val text: String, val citations: List<Citation> = emptyList()) : Block()
-    data class ToolUse(val id: String, val name: String, val input: JsonObject) : Block()
+    /** extra carries provider data that must be echoed back, such as Gemini's thought signature. */
+    data class ToolUse(val id: String, val name: String, val input: JsonObject, val extra: JsonObject? = null) : Block()
     data class ToolResult(val toolUseId: String, val content: String, val isError: Boolean = false) : Block()
     data class Raw(val json: JsonObject) : Block()
 }
