@@ -230,6 +230,12 @@ private fun MoneyTab() {
         }
         if (totals.inKind > 0) Small("Raised includes ${dollars(totals.inKind)} given in kind, which isn't cash to spend.")
         warnings.forEach { Small("⚠ $it", color = c.signal) }
+        // For a report or a treasurer: the whole ledger as a spreadsheet file, shared from your phone.
+        if (money.isNotEmpty()) LinkButton("Share the ledger as a spreadsheet (CSV)", onClick = {
+            val rows = money.map { m -> com.emotionalleaves.ballot.core.Ledger.Row(java.time.Instant.ofEpochMilli(m.at).atZone(java.time.ZoneId.systemDefault()).toLocalDate().toString(),
+                m.direction, m.amountCents, m.person, m.address, m.employer, m.occupation, m.category, m.reportPeriod, m.memo, m.ownFunds) }
+            shareText(ctx, com.emotionalleaves.ballot.core.Ledger.csv(rows), "Campaign ledger")
+        })
         Panel {
             Title("Log money")
             Small("From the first dollar, including your own.")

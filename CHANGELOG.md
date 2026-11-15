@@ -218,3 +218,4 @@ One line per loop iteration, newest last.
 - c1 p6 t1 i15 `overhaul_system_architecture`: Meeting reminders: an event starting within three hours gets one notification with its prep card ready (schema 2 adds Event.remindedAt, with a tested 1-to-2 migration)
 - c1 p6 t1 i16 `overhaul_system_architecture`: The Chief's tools are split by area into five files (research, people, plan, records, app) instead of one 800-line file; behaviour unchanged, same tests
 - c1 p6 t1 i17 `overhaul_system_architecture`: Daily tidy-up keeps only what's useful: background job chatter goes after 30 days and practice-room transcripts after 90; your conversation with the Chief and the audit log stay
+- c1 p6 t1 i18 `overhaul_system_architecture`: The money ledger exports as a spreadsheet (CSV, tested quoting and totals) for a report or a treasurer, shared straight from Records

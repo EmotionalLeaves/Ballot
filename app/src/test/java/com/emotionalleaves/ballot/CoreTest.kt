@@ -359,3 +359,16 @@ class PageTextTest {
         assertFalse(com.emotionalleaves.ballot.core.PageText.stable(a) == com.emotionalleaves.ballot.core.PageText.stable(c))
     }
 }
+
+class LedgerCsvTest {
+    @Test fun csvQuotesAndTotals() {
+        val L = com.emotionalleaves.ballot.core.Ledger
+        val csv = L.csv(listOf(com.emotionalleaves.ballot.core.Ledger.Row("2026-11-02", "IN", 2550, "Ana Ruiz", "12 Elm St, Lincoln", "", "", "contribution", "", "", false),
+            com.emotionalleaves.ballot.core.Ledger.Row("2026-11-01", "OUT", 1000, "Print shop", "", "", "", "flyers", "", "said \"rush\"", false)))
+        val lines = csv.lines()
+        assertTrue(lines[1].startsWith("2026-11-01,OUT,10.00,Print shop"))
+        assertTrue(lines[1].contains("\"said \"\"rush\"\"\""))
+        assertTrue(lines[2].contains("\"12 Elm St, Lincoln\""))
+        assertTrue(csv.contains("Cash on hand,,15.50"))
+    }
+}
