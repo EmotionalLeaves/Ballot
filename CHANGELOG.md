@@ -8,3 +8,4 @@ One line per loop iteration, newest last.
 
 ## Loop
 
+- c1 p1 t1 i1 `system_check_and_update`: Weekly counts now stop at the week's end, so review history shows real per-week scores; stage exits passed now count

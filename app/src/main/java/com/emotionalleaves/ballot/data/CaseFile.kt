@@ -180,14 +180,17 @@ class CaseFile(val db: BallotDatabase, private val settings: SettingsStore) {
         db.tasks().upsert(shrunk.copy(skippedCount = skips, updatedAt = now()))
     }
 
-    suspend fun weekCounts(weekStartMillis: Long): WeekCounts {
-        val interactions = db.interactions().since(weekStartMillis)
-        val events = db.events().all().filter { it.startAt >= weekStartMillis }
-        val contacts = db.contacts().all().filter { it.createdAt >= weekStartMillis }
-        val reps = db.speech().all().filter { it.createdAt >= weekStartMillis }
-        val money = db.money().all().filter { it.at >= weekStartMillis && it.direction == MoneyDirection.IN }
-        val doors = db.voterContacts().all().filter { it.at >= weekStartMillis }
-        val tasksDone = db.tasks().doneSince(weekStartMillis)
+    /** Counts for one week: from weekStartMillis up to (not including) a week later. */
+    suspend fun weekCounts(weekStartMillis: Long, weekEndMillis: Long = weekStartMillis + 7 * 86_400_000L): WeekCounts {
+        fun inWeek(t: Long) = t >= weekStartMillis && t < weekEndMillis
+        val interactions = db.interactions().since(weekStartMillis).filter { inWeek(it.at) }
+        val events = db.events().all().filter { inWeek(it.startAt) }
+        val contacts = db.contacts().all().filter { inWeek(it.createdAt) }
+        val reps = db.speech().all().filter { inWeek(it.createdAt) }
+        val money = db.money().all().filter { inWeek(it.at) && it.direction == MoneyDirection.IN }
+        val doors = db.voterContacts().all().filter { inWeek(it.at) }
+        val tasksDone = db.tasks().doneSince(weekStartMillis).filter { inWeek(it.doneAt) }
+        val stageUps = db.audit().all().count { inWeek(it.at) && it.action.startsWith("Stage advanced") }
         return WeekCounts(
             conversations = interactions.count { it.twoWay },
             meetings = events.count { it.attended },
@@ -195,7 +198,7 @@ class CaseFile(val db: BallotDatabase, private val settings: SettingsStore) {
             newContacts = contacts.size,
             followUpsOnTime = tasksDone.count { it.followUpSince > 0 && (it.dueEpochDay == 0L || it.doneAt / 86_400_000L <= it.dueEpochDay) },
             speakingReps = reps.size,
-            exitTestsPassed = 0,
+            exitTestsPassed = stageUps,
             dollarsRaised = money.sumOf { it.amountCents },
             doors = doors.count { it.outcome != DoorOutcome.NOT_HOME },
             supportersIdentified = doors.count { it.outcome == DoorOutcome.SUPPORTER },
