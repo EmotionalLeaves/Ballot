@@ -397,5 +397,13 @@ class CaseFile(val db: BallotDatabase, private val settings: SettingsStore) {
         audit("you", "Merged two contacts", input = "${drop.name} into ${keep.name}")
         return merged
     }
+
+    /** Marks a deadline done (or not). Done also ticks off its "finish and file" task, so Today stops showing it. */
+    suspend fun setDeadlineDone(d: Deadline, done: Boolean) {
+        db.deadlines().upsert(d.copy(done = done, updatedAt = now()))
+        if (done) db.tasks().open().filter { it.deadlineId == d.id }.forEach { completeTask(it) }
+        audit("you", if (done) "Marked a deadline done" else "Reopened a deadline", input = d.title)
+        rescore()
+    }
 }
 

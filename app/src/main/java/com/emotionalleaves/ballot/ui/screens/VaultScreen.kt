@@ -144,14 +144,17 @@ private fun DeadlinesTab() {
             Panel(accent = !d.done && left in 0..7) {
                 val ink = if (!d.done && left in 0..7) com.emotionalleaves.ballot.ui.theme.Ink else c.fg
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    BigNumber(if (d.done) "✓" else "$left", if (d.done) "Done" else "Days left", color = ink, size = 44)
+                    BigNumber(when { d.done -> "✓"; left < 0 -> "Passed"; left == 0L -> "Today"; else -> "$left" },
+                        when { d.done -> "Done"; left < 0 -> "${-left} ${if (left == -1L) "day" else "days"} ago"; left == 0L -> "Due today"; left == 1L -> "Day left"; else -> "Days left" },
+                        color = if (!d.done && left < 0) c.signal else ink, size = 44)
                     ConfidenceBadge(d.confidence)
                 }
                 Text(d.title, style = MaterialTheme.typography.titleMedium, color = ink)
                 Small("Due ${day(d.dueEpochDay)}${if (d.legal) " · legal" else ""}", color = ink)
-                if (d.confidence != Confidence.VERIFIED) Small("Confirm with the election office.", color = ink)
+                if (!d.done && left < 0 && d.legal) Small("If this was missed, call the election office: some deadlines have a late option or a fee.", color = c.signal)
+                else if (d.confidence != Confidence.VERIFIED) Small("Confirm with the election office.", color = ink)
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(d.done, { v -> scope.launch { g.db.deadlines().upsert(d.copy(done = v, updatedAt = now())) } })
+                    Checkbox(d.done, { v -> scope.launch { g.case.setDeadlineDone(d, v) } })
                     Small("Done", color = ink)
                     if (d.officialUrl.isNotBlank()) LinkButton("Official page", onClick = { openUrl(ctx, d.officialUrl) }, color = ink)
                 }

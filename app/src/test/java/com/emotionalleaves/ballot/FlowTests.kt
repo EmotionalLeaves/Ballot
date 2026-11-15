@@ -387,5 +387,13 @@ class FlowTests {
         assertEquals("current case file", undo.readText())
         live.delete(); snap.delete(); undo.delete()
     }
+
+    @Test fun markingADeadlineDoneTicksOffItsFilingTask() = runTest {
+        finishSetup()
+        val id = case.addDeadlineByHand("Filing closes", java.time.LocalDate.now().plusDays(3).toEpochDay())
+        assertTrue(db.tasks().open().any { it.deadlineId == id })
+        case.setDeadlineDone(db.deadlines().get(id)!!, true)
+        assertFalse(db.tasks().open().any { it.deadlineId == id })
+    }
 }
 

@@ -229,3 +229,4 @@ One line per loop iteration, newest last.
 - c1 p6 t1 i26 `overhaul_system_architecture`: Alert delivery is checked: if notifications are off, Today says deadline alerts and meeting reminders can't reach you, with one tap to the phone's setting (re-checked each time you return)
 - c1 p6 t1 i27 `overhaul_system_architecture`: Contribution limits are checked in tested plain code (core LimitCheck): one donor however their name is typed, own funds excluded, and going over the limit says plainly that the extra usually has to be refunded
 - c1 p6 t1 i28 `overhaul_system_architecture`: Without AI the Chief still points the way: what you type is matched in plain code to the page that does that job (core PageFinder) and offered as one-tap cards
+- c1 p6 t1 i29 `overhaul_system_architecture`: Deadlines: ticking one done also ticks off its 'finish and file' task on Today, and a passed deadline says 'Passed, N days ago' with what to do instead of a negative count
