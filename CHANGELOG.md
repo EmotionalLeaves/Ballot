@@ -99,3 +99,4 @@ One line per loop iteration, newest last.
 - c1 p3 t2 i1 `apply_professional_formatting`: The Chief's reply strip on each page is in sentence case ('The Chief · Writer · tap for the whole conversation') instead of shouting
 - c1 p3 t2 i2 `apply_professional_formatting`: Approvals help and the case file's source list use sentence case; a flagged source reads 'contains instructions (ignored)' so it says what happened
 - c1 p3 t2 i3 `apply_professional_formatting`: Settings switches: the whole row is the tap target (48dp tall, read as a switch by TalkBack), not just the small toggle
+- c1 p3 t2 i4 `apply_professional_formatting`: Drafts' empty state says how to make the first one and that drafts wait for your approval

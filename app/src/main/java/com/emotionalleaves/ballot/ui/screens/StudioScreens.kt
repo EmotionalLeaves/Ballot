@@ -81,7 +81,7 @@ fun StudioScreen(nav: NavHostController) {
         item { ReplyPanel { nav.navigate(Routes.CHIEF) } }
         val list = docs.filter { !it.inVault }
         item { Title("Drafts (${list.size})") }
-        if (list.isEmpty()) item { EmptyNote("No drafts yet.") }
+        if (list.isEmpty()) item { EmptyNote("No drafts yet. Pick a kind above, say what it's about, and tap Draft it. Drafts stay here until you approve them.") }
         items(list.size) { i ->
             val d = list[i]
             Panel(onClick = { nav.navigate(Routes.document(d.id)) }, padding = 12.dp) {
