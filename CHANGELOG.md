@@ -190,3 +190,4 @@ One line per loop iteration, newest last.
 - c1 p5 t2 i9 `remove_excess_navigation_elements`: no change: the mock room's Done is its only on-screen way out (it has no header back arrow), so it stays
 - c1 p5 t2 i10 `remove_excess_navigation_elements`: no change: 'Waiting for your OK' shows on Today, People and More on purpose; each is where an approval is next needed
 - c1 p5 t3 i1 `apply_intuitive_layout`: Today: your next task is the first thing on screen; the optional AI line moved to the bottom
+- c1 p5 t3 i2 `apply_intuitive_layout`: Who you are follows the stage order: values, issues, story, positions, and the one-page platform last, built from what's above it
