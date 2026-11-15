@@ -250,3 +250,4 @@ One line per loop iteration, newest last.
 - c1 p6 t1 i47 `overhaul_system_architecture`: One spelling per web page (core UrlNorm: no www, fragments, tracking tags or trailing slash), so a page fetched through different links is recognised as the same source and cross-checked
 - c1 p6 t1 i48 `overhaul_system_architecture`: Practice reps older than a year are tidied away daily, except your best rep for each drill, which stays as your benchmark
 - c1 p6 t1 i49 `overhaul_system_architecture`: Sunday evenings bring one plain 'week ahead' notice from your own records (meetings, deadlines, promises), no AI needed, opening the Briefing
+- c1 p6 t1 i50 `overhaul_system_architecture`: The Chief is told how the app now works: search the case file before saying 'I don't know', point to the by-hand pages (templates, quiz, prep cards, week ahead) when they fit, and never make a step depend on AI
