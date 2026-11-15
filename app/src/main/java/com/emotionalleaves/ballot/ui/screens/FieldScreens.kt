@@ -254,15 +254,26 @@ private fun EventPanel(
                 PosterButton(if (speech.listening) "Stop" else "Speak", onClick = {
                     if (speech.listening) speech.stop() else mic { speech.start { text, _ -> typed = (typed + " " + text).trim() } }
                 })
-                PosterButton("File it", primary = false, enabled = typed.isNotBlank(), onClick = {
+                // Saving is plain and instant. Having the Chief turn it into contacts and follow-ups is the optional extra.
+                PosterButton("Save debrief", primary = false, enabled = typed.isNotBlank(), onClick = {
                     val text = typed
-                    scope.launch { g.db.events().upsert(e.copy(debrief = text, attended = true, updatedAt = now())) }
-                    askChief(g, "Debrief for the event \"${e.title}\" (${dateTime(e.startAt)}): $text\n\nFile every person I met with add_contact and log_interaction, " +
-                        "every promise as a follow-up, and one lesson with record_lesson. Then list what you filed.", "filing the debrief", fromVoice = true)
+                    scope.launch {
+                        g.db.events().upsert(e.copy(debrief = text, attended = true, updatedAt = now()))
+                        g.db.lessons().upsert(com.emotionalleaves.ballot.data.Lesson(kind = "EVENT", what = "${e.title}: ${text.take(300)}"))
+                        g.case.advanceIfReady()
+                    }
                     onDebrief(null)
-                    nav.navigate(Routes.CHIEF)
                 })
             }
+            LinkButton("Save, and have the Chief file people and promises", color = c.muted, onClick = {
+                val text = typed
+                if (text.isBlank()) return@LinkButton
+                scope.launch { g.db.events().upsert(e.copy(debrief = text, attended = true, updatedAt = now())) }
+                askChief(g, "Debrief for the event \"${e.title}\" (${dateTime(e.startAt)}): $text\n\nFile every person I met with add_contact and log_interaction, " +
+                    "every promise as a follow-up, and one lesson with record_lesson. Then list what you filed.", "filing the debrief", fromVoice = true)
+                onDebrief(null)
+                nav.navigate(Routes.CHIEF)
+            })
         } else LinkButton("Debrief", onClick = { onDebrief(e.id) })
     }
 }

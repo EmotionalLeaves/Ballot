@@ -106,10 +106,10 @@ fun HomeScreen(nav: NavHostController) {
                 "How and why shows the steps, and exactly how the task was chosen.",
                 "Feeling overloaded? Tap Shrink this week and only the most important thing stays.",
             )) {
+            // AI is optional, so this is a quiet line, not a banner.
             if (!hasBrain) item {
-                Panel(accent = true, onClick = { nav.navigate(Routes.SETTINGS) }) {
-                    Text("Connect a free AI", style = MaterialTheme.typography.titleMedium, color = Ink)
-                    Text("The Chief needs one to research and draft. Google Gemini is free and takes two minutes.", style = MaterialTheme.typography.bodyMedium, color = Ink)
+                Panel(onClick = { nav.navigate(Routes.SETTINGS) }, padding = 14.dp) {
+                    Small("Optional: connect a free AI for web research and first drafts. Everything here works without it.")
                 }
             }
             if (pending.isNotEmpty()) item {

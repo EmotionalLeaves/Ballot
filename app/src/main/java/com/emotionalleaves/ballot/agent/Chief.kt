@@ -256,7 +256,8 @@ $brief
             return finish(thread, reply, Mode.STRATEGIST, emptyList(), emptyList(), persist)
         }
         if (!hasKey()) {
-            return finish(thread, "I need an AI service before I can research or draft. Open More, then Settings, then AI services: Google Gemini is free and takes about two minutes. Everything you log by hand still works.", Mode.STRATEGIST,
+            return finish(thread, "No AI service is connected, so I can't research the web or write drafts. Everything else works without me: your plan on Today, the town quiz, draft templates in Drafts, contacts, events and deadlines. " +
+                "If you'd like research and drafts too, connect a free AI in Settings, AI services (Google Gemini takes about two minutes).", Mode.STRATEGIST,
                 listOf(Card("INFO", "Connect a free AI", "Opens AI services in Settings", "settings")), emptyList(), persist, error = true)
         }
         if (!online()) {

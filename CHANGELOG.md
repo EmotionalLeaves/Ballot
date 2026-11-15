@@ -156,3 +156,4 @@ One line per loop iteration, newest last.
 - AI-reliance: Drafts start from a plain-code template for each kind of document, filled with your own words (Templates, tested); the one-page platform is built the same way. The Chief's draft is the optional second choice.
 - AI-reliance: a quiet week's review names likely blockers in plain code from your own numbers (WeeklyScore.blockers, tested); talking it through with the Chief is optional.
 - AI-reliance: the pre-event card is built in plain code from your goal, issues, stances and contacts (PrepCard, tested); web research with the Chief is optional.
+- AI-reliance: event debriefs save by hand (with a lesson) and the Chief's filing is optional; setup, Today and the Chief say plainly that Ballot works without AI and that AI only adds research and drafts.
