@@ -173,7 +173,7 @@ fun HqScreen(nav: NavHostController) {
             }
         }
         item {
-            val raised = money.filter { it.direction != MoneyDirection.OUT }.sumOf { it.amountCents }
+            val raised = com.emotionalleaves.ballot.core.Ledger.totals(money.map { it.direction to it.amountCents }).raised
             Small("Raised so far ${dollars(raised)} · doors knocked ${doors.count { it.outcome != DoorOutcome.NOT_HOME }}")
         }
     }

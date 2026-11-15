@@ -339,3 +339,13 @@ class GapsTest {
         assertEquals("[name]", com.emotionalleaves.ballot.core.Gaps.first("Hi [name]"))
     }
 }
+
+class LedgerTest {
+    @Test fun inKindIsRaisedButNotCash() {
+        val t = com.emotionalleaves.ballot.core.Ledger.totals(listOf("IN" to 5000L, "IN_KIND" to 2000L, "OUT" to 1500L))
+        assertEquals(7000L, t.raised)
+        assertEquals(3500L, t.cashOnHand)
+        assertEquals("IN_KIND", com.emotionalleaves.ballot.core.Ledger.parseDirection(" In-kind "))
+        assertEquals(null, com.emotionalleaves.ballot.core.Ledger.parseDirection("sideways"))
+    }
+}

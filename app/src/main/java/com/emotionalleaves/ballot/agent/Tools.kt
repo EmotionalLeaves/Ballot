@@ -486,8 +486,8 @@ class ToolRegistry {
                 "own_funds" to S.b("The user's own money"),
             )), RoutineKind.TRACKER, voiceConfirm = true, required = listOf("direction", "amount_dollars")) { a, c ->
             // Models write "in", "In" or "in-kind": store the one spelling every report and total looks for.
-            val direction = a.str("direction")!!.trim().uppercase().replace('-', '_').replace(' ', '_')
-            if (direction !in setOf(MoneyDirection.IN, MoneyDirection.OUT, MoneyDirection.IN_KIND)) return@ToolDef ToolOutcome("direction must be IN, OUT or IN_KIND.", isError = true)
+            val direction = com.emotionalleaves.ballot.core.Ledger.parseDirection(a.str("direction")!!)
+                ?: return@ToolDef ToolOutcome("direction must be IN, OUT or IN_KIND.", isError = true)
             val cents = Math.round((a.dbl("amount_dollars") ?: 0.0) * 100)
             if (cents <= 0) return@ToolDef ToolOutcome("Amount must be above zero.", isError = true)
             val at = a.str("date")?.let { parseDate(it) }?.let { LocalDate.ofEpochDay(it).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli() } ?: now()

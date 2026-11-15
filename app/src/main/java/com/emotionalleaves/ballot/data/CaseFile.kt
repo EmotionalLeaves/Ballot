@@ -187,7 +187,7 @@ class CaseFile(val db: BallotDatabase, private val settings: SettingsStore) {
         val events = db.events().all().filter { inWeek(it.startAt) }
         val contacts = db.contacts().all().filter { inWeek(it.createdAt) }
         val reps = db.speech().all().filter { inWeek(it.createdAt) }
-        val money = db.money().all().filter { inWeek(it.at) && it.direction == MoneyDirection.IN }
+        val money = db.money().all().filter { inWeek(it.at) }
         val doors = db.voterContacts().all().filter { inWeek(it.at) }
         val tasksDone = db.tasks().doneSince(weekStartMillis).filter { inWeek(it.doneAt) }
         val stageUps = db.audit().all().count { inWeek(it.at) && it.action.startsWith("Stage advanced") }
@@ -199,7 +199,7 @@ class CaseFile(val db: BallotDatabase, private val settings: SettingsStore) {
             followUpsOnTime = tasksDone.count { it.followUpSince > 0 && (it.dueEpochDay == 0L || it.doneAt / 86_400_000L <= it.dueEpochDay) },
             speakingReps = reps.size,
             exitTestsPassed = stageUps,
-            dollarsRaised = money.sumOf { it.amountCents },
+            dollarsRaised = com.emotionalleaves.ballot.core.Ledger.totals(money.map { it.direction to it.amountCents }).raised,
             doors = doors.count { it.outcome != DoorOutcome.NOT_HOME },
             supportersIdentified = doors.count { it.outcome == DoorOutcome.SUPPORTER },
         )

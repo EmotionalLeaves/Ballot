@@ -220,14 +220,14 @@ private fun MoneyTab() {
     var own by remember { mutableStateOf(false) }
     val c = LocalBallotColors.current
     LaunchedEffect(money.size) { warnings = MoneyChecks.warnings(g.case) }
-    val inTotal = money.filter { it.direction != MoneyDirection.OUT }.sumOf { it.amountCents }
-    val outTotal = money.filter { it.direction == MoneyDirection.OUT }.sumOf { it.amountCents }
+    val totals = com.emotionalleaves.ballot.core.Ledger.totals(money.map { it.direction to it.amountCents })
     androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            BigNumber(dollars(inTotal), "In", size = 36)
-            BigNumber(dollars(outTotal), "Out", size = 36)
-            BigNumber(dollars(inTotal - outTotal), "Balance", size = 36, color = c.signal)
+            BigNumber(dollars(totals.raised), "Raised", size = 36)
+            BigNumber(dollars(totals.out), "Spent", size = 36)
+            BigNumber(dollars(totals.cashOnHand), "Cash on hand", size = 36, color = c.signal)
         }
+        if (totals.inKind > 0) Small("Raised includes ${dollars(totals.inKind)} given in kind, which isn't cash to spend.")
         warnings.forEach { Small("⚠ $it", color = c.signal) }
         Panel {
             Title("Log money")
