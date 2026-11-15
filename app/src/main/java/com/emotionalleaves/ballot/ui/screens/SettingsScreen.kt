@@ -38,6 +38,7 @@ import com.emotionalleaves.ballot.data.Snapshots
 import com.emotionalleaves.ballot.graph
 import com.emotionalleaves.ballot.ui.components.Body
 import com.emotionalleaves.ballot.ui.components.ChipRow
+import com.emotionalleaves.ballot.ui.components.Collapsible
 import com.emotionalleaves.ballot.ui.components.ConfirmDialog
 import com.emotionalleaves.ballot.ui.components.Field
 import com.emotionalleaves.ballot.ui.components.Kicker
@@ -113,8 +114,7 @@ fun SettingsScreen(nav: NavHostController) {
         "Backups are encrypted with a passphrase you choose. Snapshots are taken automatically each day, seven kept.",
         "Panic wipe deletes everything on this phone.")) {
         item {
-            Panel {
-                Title("AI services")
+            Collapsible("AI services", "Your AI, backups and free-only mode", startOpen = true) {
                 Small("Ballot tries your main service first, then any other you have connected. Free services cost nothing.")
                 ConnectedServices()
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -156,8 +156,7 @@ fun SettingsScreen(nav: NavHostController) {
             }
         }
         item {
-            Panel {
-                Title("Spend")
+            Collapsible("Spend", "What paid AI has cost this month") {
                 val capMicros = (s.monthlyCapCents * 10_000L).coerceAtLeast(1)
                 Body("This month: ${dollars(spend / 10_000)} of ${dollars(s.monthlyCapCents.toLong())}")
                 Small(if (s.freeOnly) "Free only is on: nothing will be spent." else "Free services never count toward the cap; only paid ones do.", color = c.fg)
@@ -168,8 +167,7 @@ fun SettingsScreen(nav: NavHostController) {
             }
         }
         item {
-            Panel {
-                Title("Autonomy dial")
+            Collapsible("Autonomy dial", "What the Chief does without asking") {
                 Small("Routine work the Chief does on its own. Switch any to 'ask me first'.")
                 RoutineKind.all.forEach { k ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -185,8 +183,7 @@ fun SettingsScreen(nav: NavHostController) {
             }
         }
         item {
-            Panel {
-                Title("Quiet hours and look")
+            Collapsible("Quiet hours and look", "Sleep, brief time, review day, theme, text size") {
                 var sleepStart by remember(s.sleepStartMin) { mutableStateOf(hm(s.sleepStartMin)) }
                 var sleepEnd by remember(s.sleepEndMin) { mutableStateOf(hm(s.sleepEndMin)) }
                 var brief by remember(s.briefMinuteOfDay) { mutableStateOf(hm(s.briefMinuteOfDay)) }
@@ -216,8 +213,7 @@ fun SettingsScreen(nav: NavHostController) {
             }
         }
         item {
-            Panel {
-                Title("Facts and safety")
+            Collapsible("Facts and safety", "Official sites, cooling period, win margin") {
                 Small("Official sources are .gov, .mil and locality .us sites. Add your city or county site if it uses another domain (for example cityofexample.org).")
                 s.officialDomains.forEach { d -> Row(verticalAlignment = Alignment.CenterVertically) { Body(d, Modifier.weight(1f)); LinkButton("Remove", color = c.muted, onClick = { upd { it.copy(officialDomains = it.officialDomains - d) } }) } }
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -239,8 +235,7 @@ fun SettingsScreen(nav: NavHostController) {
             }
         }
         item {
-            Panel {
-                Title("Lock")
+            Collapsible("Lock", "PIN and fingerprint") {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("App lock (PIN or biometric)", style = MaterialTheme.typography.bodyLarge, color = c.fg, modifier = Modifier.weight(1f))
                     Switch(checked = s.appLock && g.secrets.hasPin(), onCheckedChange = { v ->
@@ -262,8 +257,7 @@ fun SettingsScreen(nav: NavHostController) {
             }
         }
         item {
-            Panel {
-                Title("Backup")
+            Collapsible("Backup", "Encrypted export and daily snapshots") {
                 Small("An encrypted file you keep somewhere safe. You choose the passphrase.")
                 Field(passphrase, { passphrase = it }, "Backup passphrase (8+ characters)", singleLine = true)
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -282,8 +276,7 @@ fun SettingsScreen(nav: NavHostController) {
             }
         }
         item {
-            Panel {
-                Title("Diagnostics")
+            Collapsible("Diagnostics", "Network log, crash reports, version") {
                 LinkButton(if (showNet) "Hide network log" else "Network log", onClick = { showNet = !showNet })
                 if (showNet) NetLog.snapshot().take(60).forEach { e -> Small("${shortDate(e.at)} ${e.method} ${e.host}${e.path} → ${e.status}", color = c.fg) }
                 Small("Network calls go only to your AI provider and to pages being fetched.")

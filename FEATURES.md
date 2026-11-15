@@ -54,4 +54,4 @@ Checked each phase. Controls may move or merge; a function is only removed when 
 - [x] FLAG_SECURE on Vault and vault documents; panic wipe with double confirm
 - [x] Encrypted export/import; daily snapshots, seven kept, restore screen
 - [x] Crash reports on device with copy; visible network log
-- [x] Dark and light themes, text scaling, large tap targets, screen-reader labels on key controls
+- [x] Calm theme (light default, dark for night), text scaling, 48dp tap targets, screen-reader labels, collapsible Settings sections, grouped More menu

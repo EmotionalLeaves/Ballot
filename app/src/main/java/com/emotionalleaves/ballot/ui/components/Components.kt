@@ -341,3 +341,20 @@ fun RowSpaced(content: @Composable RowScope.() -> Unit) {
 
 @Composable
 fun Gap(h: Dp = 8.dp) = Spacer(Modifier.height(h))
+
+/** A card whose body opens on tap, so long pages show only headings until you need one. */
+@Composable
+fun Collapsible(title: String, subtitle: String = "", startOpen: Boolean = false, content: @Composable ColumnScope.() -> Unit) {
+    val c = LocalBallotColors.current
+    var open by remember { mutableStateOf(startOpen) }
+    Panel(padding = 0.dp) {
+        Row(Modifier.fillMaxWidth().clickable(role = Role.Button) { open = !open }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.titleMedium, color = c.fg, modifier = Modifier.semantics { heading() })
+                if (subtitle.isNotBlank()) Text(subtitle, style = MaterialTheme.typography.bodySmall, color = c.muted)
+            }
+            Text(if (open) "−" else "+", style = MaterialTheme.typography.titleLarge, color = c.muted)
+        }
+        if (open) Column(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp), content = content)
+    }
+}

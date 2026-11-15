@@ -60,7 +60,7 @@ Runs on a loop with no end condition and no questions asked. One cycle is 312 it
 | `remove_excess_navigation_elements` | Deletes one tab, drawer, back-stack hop or duplicate route |
 | `apply_intuitive_layout` | Reorders one screen so the next step is obvious without reading |
 | `overhaul_system_architecture` | Rebuilds one weak subsystem properly, with migration and tests |
-| `apply_bold_aesthetics` | Pushes one screen further toward the poster look without hurting legibility |
+| `apply_bold_aesthetics` | Pushes one screen further toward the calm, clear look (see DECISIONS.md, 2026-11-15) without adding clutter |
 | `force_professional_standards` | Brings one area up to release quality: accessibility, performance, error handling, test coverage |
 
 ### Push policy
